@@ -17,6 +17,10 @@ oc cluster up
 ```
 
 ```bash
+oc policy add-role-to-user edit system:serviceaccount:`oc project -q`:default
+```
+
+```bash
 oc create -f manifest/
 ```
 
