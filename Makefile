@@ -16,21 +16,21 @@ image-build-slim:
 	docker build -t $(IMAGE):slim -f Dockerfile.slim .
 
 .PHONY: image-build-all
-build-all: build build-slim
+image-build-all: package image-build image-build-slim
 
 .PHONY: image-publish-slim
-image-publish-slim: build-slim
+image-publish-slim: image-build-slim
 	docker tag $(IMAGE):slim $(IMAGE):slim-`git rev-parse --short=8 HEAD`
 	docker tag $(IMAGE):slim $(IMAGE):latest
-	docker publish $(IMAGE):slim-`git rev-parse --short=8 HEAD`
-	docker publish $(IMAGE):latest
+	docker push $(IMAGE):slim-`git rev-parse --short=8 HEAD`
+	docker push $(IMAGE):latest
 
 .PHONY: image-publish
 image-publish: image-build
 	docker tag $(IMAGE):centos $(IMAGE):centos-`git rev-parse --short=8 HEAD`
 	docker tag $(IMAGE):centos $(IMAGE):centos-latest
-	docker publish $(IMAGE):centos-`git rev-parse --short=8 HEAD`
-	docker publish $(IMAGE):centos-latest
+	docker push $(IMAGE):centos-`git rev-parse --short=8 HEAD`
+	docker push $(IMAGE):centos-latest
 
 .PHONY: image-publish-all
-image-publish-all: image-build-all image-publish-slim image-publish
+image-publish-all: image-build-all image-publish image-publish-slim
