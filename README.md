@@ -10,3 +10,18 @@
 [![Layers info](https://images.microbadger.com/badges/image/jkremser/oshinko-operator:centos-latest.svg)](https://microbadger.com/images/jkremser/oshinko-operator:centos-latest)
 `jkremser/oshinko-operator:centos-latest`
 
+
+# Quick Start
+```bash
+oc cluster up
+```
+
+```bash
+oc create -f manifest/
+```
+
+```bash
+oc create -f examples/cluster.yaml
+```
+
+NOTE: The current operator implementation only creates log entry if there is an attempt for creating a new cluster. 
