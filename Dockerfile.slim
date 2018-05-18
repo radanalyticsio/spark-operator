@@ -2,4 +2,4 @@
 #FROM java:openjdk-8-jre-alpine
 FROM jkremser/mini-jre:8
 ADD target/oshinko-operator-*.jar /oshinko-operator.jar
-CMD ["/usr/bin/java", "-jar", "/oshinko-operator.jar", "-Dvertx.cacheDirBase=/tmp"]
+CMD ["/usr/bin/java", "-Dvertx.cacheDirBase=/tmp", "-jar", "/oshinko-operator.jar"]
