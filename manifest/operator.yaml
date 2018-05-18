@@ -28,5 +28,5 @@ spec:
         image: jkremser/oshinko-operator:latest
         env:
         - name: OSHINKO_NAMESPACE
-        value: myproject
+          value: myproject
         imagePullPolicy: Always
