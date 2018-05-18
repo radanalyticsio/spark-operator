@@ -7,6 +7,10 @@ build: package image-build-slim
 package:
 	mvn package -DskipTests
 
+.PHONY: test
+test:
+	mvn test -B
+
 .PHONY: image-build
 image-build:
 	docker build -t $(IMAGE):centos -f Dockerfile.centos .
@@ -16,7 +20,7 @@ image-build-slim:
 	docker build -t $(IMAGE):slim -f Dockerfile.slim .
 
 .PHONY: image-build-all
-image-build-all: package image-build image-build-slim
+image-build-all: image-build image-build-slim
 
 .PHONY: image-publish-slim
 image-publish-slim: image-build-slim

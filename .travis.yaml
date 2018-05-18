@@ -1,0 +1,10 @@
+language: java
+
+services:
+  - docker
+
+script:
+  - make test
+
+after_success:
+  - make image-publish-all
