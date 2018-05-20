@@ -9,6 +9,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.Watch;
 import io.fabric8.kubernetes.client.Watcher;
+import io.fabric8.kubernetes.client.dsl.Watchable;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
@@ -89,7 +90,8 @@ public class OshinkoOperator extends AbstractVerticle {
     private void createConfigMapWatch(Handler<AsyncResult<Watch>> handler) {
         getVertx().executeBlocking(
             future -> {
-                Watch watch = client.configMaps().inNamespace(namespace).withLabels(selector.toMap()).watch(new Watcher<ConfigMap>() {
+                Watchable<Watch, Watcher<ConfigMap>> watchable = "*".equals(namespace) ? client.configMaps().inAnyNamespace() : client.configMaps().inNamespace(namespace);
+                Watch watch = watchable.watch(new Watcher<ConfigMap>() {
                     @Override
                     public void eventReceived(Action action, ConfigMap cm) {
                         log.error("received:  \n\n" + cm.toString() + "\n\n");
