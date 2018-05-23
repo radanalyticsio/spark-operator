@@ -2,9 +2,13 @@
 #FROM java:openjdk-8-jre-alpine
 FROM jkremser/mini-jre:8
 
-ENV OSHINKO_VERSION=v0.5.2
-LABEL OSHINKO_VERSION="v0.5.2" \
+ARG OSHINKO_VERSION=v0.5.2
+ENV OSHINKO_VERSION=${OSHINKO_VERSION}
+LABEL OSHINKO_VERSION=${OSHINKO_VERSION} \
       BASE_IMAGE="jkremser/mini-jre:8"
+
 ADD target/oshinko-operator-*.jar /oshinko-operator.jar
-RUN wget -qO- https://github.com/radanalyticsio/oshinko-cli/releases/download/$OSHINKO_VERSION/oshinko_$OSHINKO_VERSION_linux_386.tar.gz | tar xvz
+
+RUN wget -qO- https://github.com/radanalyticsio/oshinko-cli/releases/download/${OSHINKO_VERSION}/oshinko_${OSHINKO_VERSION}_linux_386.tar.gz | tar xvz
+
 CMD ["/usr/bin/java", "-Dvertx.cacheDirBase=/tmp", "-jar", "/oshinko-operator.jar"]
