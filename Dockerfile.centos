@@ -7,6 +7,6 @@ LABEL OSHINKO_VERSION=${OSHINKO_VERSION} \
 
 ADD target/oshinko-operator-*.jar /oshinko-operator.jar
 
-RUN wget -qO- https://github.com/radanalyticsio/oshinko-cli/releases/download/${OSHINKO_VERSION}/oshinko_${OSHINKO_VERSION}_linux_386.tar.gz | tar xvz
+RUN curl -L https://github.com/radanalyticsio/oshinko-cli/releases/download/${OSHINKO_VERSION}/oshinko_${OSHINKO_VERSION}_linux_386.tar.gz | tar xvz
 
 CMD ["/usr/bin/java", "-Dvertx.cacheDirBase=/tmp", "-jar", "/oshinko-operator.jar"]
