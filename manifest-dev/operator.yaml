@@ -25,7 +25,7 @@ spec:
       #serviceAccountName: oshinko-operator
       containers:
       - name: oshinko-operator
-        image: jkremser/oshinko-operator:slim
+        image: jkremser/oshinko-operator:dev
         env:
         - name: OSHINKO_NAMESPACE
           value: myproject

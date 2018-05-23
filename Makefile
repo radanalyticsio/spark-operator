@@ -38,3 +38,11 @@ image-publish: image-build
 
 .PHONY: image-publish-all
 image-publish-all: image-build-all image-publish image-publish-slim
+
+.PHONY: devel
+devel: build
+	docker tag $(IMAGE):slim $(IMAGE):dev
+	-docker kill `docker ps -q` || true
+	oc cluster up
+	oc policy add-role-to-user edit system:serviceaccount:`oc project -q`:default
+	oc apply -f manifest-dev/

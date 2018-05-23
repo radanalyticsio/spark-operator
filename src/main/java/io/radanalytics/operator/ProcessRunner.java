@@ -30,7 +30,7 @@ public class ProcessRunner {
 
     private void runOshinko(String suffix) {
         try {
-            String command = "sh -c '/oshinko_linux_386/oshinko " + suffix + "'";
+            String[] command = new String[] {"sh", "-c", "sh -c \"/oshinko_linux_386/oshinko " + suffix + "\""};
             log.info("running: " + command);
             Process p = Runtime.getRuntime().exec(command);
             BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
