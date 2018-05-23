@@ -3,7 +3,9 @@ package io.radanalytics.operator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.Optional;
 
 public class ProcessRunner {
@@ -28,9 +30,25 @@ public class ProcessRunner {
 
     private void runOshinko(String suffix) {
         try {
-            String command = "/oshinko_linux_386/oshinko " + suffix;
+            String command = "sh -c /oshinko_linux_386/oshinko " + suffix;
             log.info("running: " + command);
-            Runtime.getRuntime().exec(command);
+            Process p = Runtime.getRuntime().exec(command);
+            BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            BufferedReader err = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+            String line;
+            StringBuilder sb = new StringBuilder();
+            while ((line = in.readLine()) != null) {
+                sb.append(line + "\n");
+            }
+            log.info(sb.toString());
+            in.close();
+
+            sb = new StringBuilder();
+            while ((line = err.readLine()) != null) {
+                sb.append(line + "\n");
+            }
+            log.error(sb.toString());
+            err.close();
         } catch (IOException e) {
             log.error("Running oshinko cli failed with: " + e.getMessage());
             e.printStackTrace();
