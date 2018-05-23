@@ -12,7 +12,7 @@ public class ProcessRunner {
 
     public void createCluster(String name, Optional<String> image, Optional<Integer> masters, Optional<Integer> workers) {
         StringBuilder sb = new StringBuilder();
-        sb.append(" --certificate-authority=/var/run/secrets /kubernetes.io/serviceaccount/ca.crt");
+        sb.append(" --certificate-authority=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt");
         sb.append(" --token=`cat /var/run/secrets/kubernetes.io/serviceaccount/token`");
         sb.append(" --namespace=`cat /var/run/secrets/kubernetes.io/serviceaccount/namespace`");
         sb.append(" --server=https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_SERVICE_PORT");
