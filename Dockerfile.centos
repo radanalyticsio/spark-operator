@@ -1,3 +1,7 @@
 FROM fabric8/java-centos-openjdk8-jdk:1.4.0
+ENV OSHINKO_VERSION="v0.5.2"
+LABEL OSHINKO_VERSION="v0.5.2" \
+      BASE_IMAGE="fabric8/java-centos-openjdk8-jdk:1.4.0"
 ADD target/oshinko-operator-*.jar /oshinko-operator.jar
+RUN wget -qO- https://github.com/radanalyticsio/oshinko-cli/releases/download/$OSHINKO_VERSION/oshinko_$OSHINKO_VERSION_linux_386.tar.gz | tar xvz
 CMD ["/usr/bin/java", "-Dvertx.cacheDirBase=/tmp", "-jar", "/oshinko-operator.jar"]
