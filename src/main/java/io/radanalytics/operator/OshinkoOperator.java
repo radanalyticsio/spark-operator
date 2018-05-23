@@ -17,6 +17,7 @@ import io.vertx.core.Handler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 public class OshinkoOperator extends AbstractVerticle {
@@ -95,6 +96,13 @@ public class OshinkoOperator extends AbstractVerticle {
                     @Override
                     public void eventReceived(Action action, ConfigMap cm) {
                         log.error("received:  \n\n" + cm.toString() + "\n\n");
+                        ProcessRunner pr = new ProcessRunner();
+
+                        // todo: testing
+                        log.error("creating cluster:  \n\n" + cm.getMetadata().getName() + "\n\n");
+                        pr.createCluster(cm.getMetadata().getName(), Optional.empty(), Optional.empty(), Optional.empty());
+
+
 //                        Labels labels = Labels.fromResource(cm);
 //                        AssemblyType type;
 //                        try {
