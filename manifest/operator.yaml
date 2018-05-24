@@ -22,7 +22,7 @@ spec:
       initializers:
         pending: []  
     spec:
-      #serviceAccountName: oshinko-operator
+      serviceAccountName: oshinko-operator
       containers:
       - name: oshinko-operator
         image: jkremser/oshinko-operator:latest
