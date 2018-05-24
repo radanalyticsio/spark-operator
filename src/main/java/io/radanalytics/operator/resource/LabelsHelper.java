@@ -6,6 +6,8 @@ package io.radanalytics.operator.resource;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 
+import java.util.Collections;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -37,5 +39,17 @@ public class LabelsHelper {
                 .map(r -> r.getMetadata())
                 .map(m -> m.getLabels())
                 .map(l -> l.get(OSHINKO_KIND_LABEL));
+    }
+
+    public static Map<String, String> forCluster() {
+        return forKind(OSHINKO_KIND_CLUSTER_LABEL);
+    }
+
+    public static Map<String, String> forApp() {
+        return forKind(OSHINKO_KIND_APP_LABEL);
+    }
+
+    private static Map<String, String> forKind(String kind) {
+        return Collections.singletonMap(OSHINKO_KIND_LABEL, kind);
     }
 }

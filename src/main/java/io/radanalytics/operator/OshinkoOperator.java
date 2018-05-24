@@ -5,11 +5,18 @@
 package io.radanalytics.operator;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
+import io.fabric8.kubernetes.api.model.ConfigMapList;
+import io.fabric8.kubernetes.api.model.DoneableConfigMap;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.Watch;
 import io.fabric8.kubernetes.client.Watcher;
+import io.fabric8.kubernetes.client.dsl.MixedOperation;
+import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.kubernetes.client.dsl.Watchable;
+import io.radanalytics.operator.resource.HasDataHelper;
+import io.radanalytics.operator.resource.LabelsHelper;
+import io.radanalytics.operator.resource.ResourceHelper;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
@@ -17,6 +24,7 @@ import io.vertx.core.Handler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
@@ -30,7 +38,7 @@ public class OshinkoOperator extends AbstractVerticle {
     private static final int HEALTH_SERVER_PORT = 8080;
 
     private final KubernetesClient client;
-    private final Labels selector;
+    private final Map<String, String> selector;
     private final String namespace;
     private final long reconciliationInterval;
 
@@ -45,7 +53,7 @@ public class OshinkoOperator extends AbstractVerticle {
         this.namespace = namespace;
         this.reconciliationInterval = reconciliationInterval;
         this.client = client;
-        this.selector = Labels.forKind("cluster");
+        this.selector = LabelsHelper.forCluster();
     }
 
     @Override
@@ -56,7 +64,7 @@ public class OshinkoOperator extends AbstractVerticle {
         getVertx().createSharedWorkerExecutor("kubernetes-ops-pool", 10, TimeUnit.SECONDS.toNanos(120));
 
         createConfigMapWatch(res -> {
-            if (res.succeeded())    {
+            if (res.succeeded()) {
                 configMapWatch = res.result();
 
                 log.info("Setting up periodical reconciliation for namespace {}", namespace);
@@ -90,101 +98,77 @@ public class OshinkoOperator extends AbstractVerticle {
 
     private void createConfigMapWatch(Handler<AsyncResult<Watch>> handler) {
         getVertx().executeBlocking(
-            future -> {
-                Watchable<Watch, Watcher<ConfigMap>> watchable = "*".equals(namespace) ? client.configMaps().inAnyNamespace() : client.configMaps().inNamespace(namespace);
-                Watch watch = watchable.watch(new Watcher<ConfigMap>() {
-                    @Override
-                    public void eventReceived(Action action, ConfigMap cm) {
-                        log.error("received:  \n\n" + cm.toString() + "\n\n");
-                        ProcessRunner pr = new ProcessRunner();
-
-                        // todo: testing
-                        log.error("creating cluster:  \n\n" + cm.getMetadata().getName() + "\n\n");
-                        pr.createCluster(cm.getMetadata().getName(), Optional.empty(), Optional.empty(), Optional.empty());
-
-
-//                        Labels labels = Labels.fromResource(cm);
-//                        AssemblyType type;
-//                        try {
-//                            type = labels.type();
-//                        } catch (IllegalArgumentException e) {
-//                            log.warn("Unknown {} label {} received in ConfigMap {} in namespace {}",
-//                                    Labels.STRIMZI_TYPE_LABEL,
-//                                    cm.getMetadata().getLabels().get(Labels.STRIMZI_TYPE_LABEL),
-//                                    cm.getMetadata().getName(), namespace);
-//                            return;
-//                        }
-//
-//                        final AbstractAssemblyOperator cluster;
-//                        if (type == null) {
-//                            log.warn("Missing label {} in ConfigMap {} in namespace {}", Labels.STRIMZI_TYPE_LABEL, cm.getMetadata().getName(), namespace);
-//                            return;
-//                        } else {
-//                            switch (type) {
-//                                case KAFKA:
-//                                    cluster = kafkaAssemblyOperator;
-//                                    break;
-//                                case CONNECT:
-//                                    cluster = kafkaConnectAssemblyOperator;
-//                                    break;
-//                                case CONNECT_S2I:
-//                                    cluster = kafkaConnectS2IAssemblyOperator;
-//                                    break;
-//                                default:
-//                                    return;
-//                            }
-//                        }
-//                        String name = cm.getMetadata().getName();
-//                        switch (action) {
-//                            case ADDED:
-//                            case DELETED:
-//                            case MODIFIED:
-//                                Reconciliation reconciliation = new Reconciliation("watch", type, namespace, name);
-//                                log.info("{}: ConfigMap {} in namespace {} was {}", reconciliation, name, namespace, action);
-//                                cluster.reconcileAssembly(reconciliation, result -> {
-//                                    if (result.succeeded()) {
-//                                        log.info("{}: assembly reconciled", reconciliation);
-//                                    } else {
-//                                        log.error("{}: Failed to reconcile", reconciliation, result.cause());
-//                                    }
-//                                });
-//                                break;
-//                            case ERROR:
-//                                log.error("Failed ConfigMap {} in namespace{} ", name, namespace);
-//                                reconcileAll("watch error");
-//                                break;
-//                            default:
-//                                log.error("Unknown action: {} in namespace {}", name, namespace);
-//                                reconcileAll("watch unknown");
-//                        }
-                    }
-
-                    @Override
-                    public void onClose(KubernetesClientException e) {
-                        if (e != null) {
-                            log.error("Watcher closed with exception in namespace {}", namespace, e);
-                            recreateConfigMapWatch();
-                        } else {
-                            log.info("Watcher closed in namespace {}", namespace);
+                future -> {
+                    MixedOperation<ConfigMap, ConfigMapList, DoneableConfigMap, Resource<ConfigMap, DoneableConfigMap>> aux = client.configMaps();
+                    Watchable<Watch, Watcher<ConfigMap>> watchable = "*".equals(namespace) ? aux.inAnyNamespace().withLabels(selector) : aux.inNamespace(namespace).withLabels(selector);
+                    Watch watch = watchable.watch(new Watcher<ConfigMap>() {
+                        @Override
+                        public void eventReceived(Action action, ConfigMap cm) {
+                            if (ResourceHelper.isCluster(cm)) {
+                                log.info("ConfigMap \n{}\n in namespace {} was {}", cm, namespace, action);
+                                switch (action) {
+                                    case ADDED:
+                                        addCluster(cm);
+                                        break;
+                                    case DELETED:
+                                        deleteCluster(cm);
+                                        break;
+                                    case MODIFIED:
+                                        break;
+                                    case ERROR:
+                                        log.error("Failed ConfigMap {} in namespace{} ", cm, namespace);
+                                        reconcileAll("watch error");
+                                        break;
+                                    default:
+                                        log.error("Unknown action: {} in namespace {}", action, namespace);
+                                        reconcileAll("watch unknown");
+                                }
+                            }
                         }
+
+                        @Override
+                        public void onClose(KubernetesClientException e) {
+                            if (e != null) {
+                                log.error("Watcher closed with exception in namespace {}", namespace, e);
+                                recreateConfigMapWatch();
+                            } else {
+                                log.info("Watcher closed in namespace {}", namespace);
+                            }
+                        }
+                    });
+                    future.complete(watch);
+                }, res -> {
+                    if (res.succeeded()) {
+                        log.info("ConfigMap watcher running for labels {}", selector);
+                        handler.handle(Future.succeededFuture((Watch) res.result()));
+                    } else {
+                        log.info("ConfigMap watcher failed to start", res.cause());
+                        handler.handle(Future.failedFuture("ConfigMap watcher failed to start"));
                     }
-                });
-                future.complete(watch);
-            }, res -> {
-                if (res.succeeded())    {
-                    log.info("ConfigMap watcher running for labels {}", selector);
-                    handler.handle(Future.succeededFuture((Watch) res.result()));
-                } else {
-                    log.info("ConfigMap watcher failed to start", res.cause());
-                    handler.handle(Future.failedFuture("ConfigMap watcher failed to start"));
                 }
-            }
         );
+    }
+
+    private void addCluster(ConfigMap cm) {
+        ProcessRunner pr = new ProcessRunner();
+        String name = ResourceHelper.name(cm);
+        log.info("creating cluster:  \n{}\n", name);
+        Optional<String> image = HasDataHelper.image(cm);
+        Optional<Integer> masters = HasDataHelper.masters(cm).map(m -> Integer.parseInt(m));
+        Optional<Integer> workers = HasDataHelper.workers(cm).map(w -> Integer.parseInt(w));
+        pr.createCluster(name, image, masters, workers);
+    }
+
+    private void deleteCluster(ConfigMap cm) {
+        ProcessRunner pr = new ProcessRunner();
+        String name = ResourceHelper.name(cm);
+        log.info("deleting cluster:  \n{}\n", name);
+        pr.deleteCluster(name);
     }
 
     private void recreateConfigMapWatch() {
         createConfigMapWatch(res -> {
-            if (res.succeeded())    {
+            if (res.succeeded()) {
                 log.info("ConfigMap watch recreated in namespace {}", namespace);
                 configMapWatch = res.result();
             } else {
@@ -196,15 +180,10 @@ public class OshinkoOperator extends AbstractVerticle {
     }
 
     /**
-      Periodical reconciliation (in case we lost some event)
+     * Periodical reconciliation (in case we lost some event)
      */
     private void reconcileAll(String trigger) {
-//        kafkaAssemblyOperator.reconcileAll(trigger, namespace, selector);
-//        kafkaConnectAssemblyOperator.reconcileAll(trigger, namespace, selector);
-//
-//        if (kafkaConnectS2IAssemblyOperator != null) {
-//            kafkaConnectS2IAssemblyOperator.reconcileAll(trigger, namespace, selector);
-//        }
+
     }
 
     /**
