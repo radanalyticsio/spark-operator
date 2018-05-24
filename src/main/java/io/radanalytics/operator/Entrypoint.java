@@ -109,7 +109,8 @@ public class Entrypoint {
 
     static void printInfo() {
         String gitSha = Manifests.read("Implementation-Build");
-        log.info("\n{}Oshinko-operator{} has started in version {}. {}\n",ANSI_R, ANSI_RESET, Entrypoint.class.getPackage().getImplementationVersion(), FOO);
+        log.info("\n{}Oshinko-operator{} has started in version {}{}{}. {}\n", ANSI_R, ANSI_RESET, ANSI_G,
+                Entrypoint.class.getPackage().getImplementationVersion(), ANSI_RESET, FOO);
         if (!gitSha.isEmpty()) {
             log.info("Git sha: {}{}{}", ANSI_Y, gitSha, ANSI_RESET);
         }
