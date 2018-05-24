@@ -45,4 +45,5 @@ devel: build
 	-docker kill `docker ps -q` || true
 	oc cluster up
 	oc policy add-role-to-user edit system:serviceaccount:`oc project -q`:default
-	oc apply -f manifest-dev/
+	oc create -f manifest-dev/
+	oc logs -f `oc get pods --no-headers -l app.kubernetes.io/name=oshinko-operator | cut -f1 -d' '`
