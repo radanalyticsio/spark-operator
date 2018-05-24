@@ -2,19 +2,6 @@ package io.radanalytics.operator;
 
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
-
-//import io.strimzi.operator.cluster.operator.assembly.KafkaAssemblyOperator;
-//import io.strimzi.operator.cluster.operator.assembly.KafkaConnectAssemblyOperator;
-//import io.strimzi.operator.cluster.operator.assembly.KafkaConnectS2IAssemblyOperator;
-//import io.strimzi.operator.cluster.operator.resource.KafkaSetOperator;
-//import io.strimzi.operator.cluster.operator.resource.ZookeeperSetOperator;
-//import io.strimzi.operator.cluster.operator.resource.BuildConfigOperator;
-//import io.strimzi.operator.cluster.operator.resource.ConfigMapOperator;
-//import io.strimzi.operator.cluster.operator.resource.DeploymentConfigOperator;
-//import io.strimzi.operator.cluster.operator.resource.DeploymentOperator;
-//import io.strimzi.operator.cluster.operator.resource.ImageStreamOperator;
-//import io.strimzi.operator.cluster.operator.resource.PvcOperator;
-//import io.strimzi.operator.cluster.operator.resource.ServiceOperator;
 import io.fabric8.openshift.client.OpenShiftClient;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;

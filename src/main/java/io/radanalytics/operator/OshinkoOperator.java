@@ -1,7 +1,3 @@
-/*
- * Copyright 2017-2018, Strimzi authors.
- * License: Apache License 2.0 (see the file LICENSE or http://apache.org/licenses/LICENSE-2.0.html).
- */
 package io.radanalytics.operator;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
@@ -32,9 +28,6 @@ public class OshinkoOperator extends AbstractVerticle {
 
     private static final Logger log = LoggerFactory.getLogger(OshinkoOperator.class.getName());
 
-    public static final String STRIMZI_CLUSTER_OPERATOR_DOMAIN = "cluster.operator.strimzi.io";
-    public static final String STRIMZI_CLUSTER_OPERATOR_SERVICE_ACCOUNT = "strimzi-cluster-operator";
-
     private static final int HEALTH_SERVER_PORT = 8080;
 
     private final KubernetesClient client;
@@ -46,6 +39,13 @@ public class OshinkoOperator extends AbstractVerticle {
 
     private long reconcileTimer;
 
+    public static final String ANSI_R = "\u001B[31m";
+    public static final String ANSI_G = "\u001B[32m";
+    public static final String ANSI_Y = "\u001B[33m";
+    public static final String ANSI_RESET = "\u001B[0m";
+    public static final String BALLOON = "\uD83C\uDF88";
+    public static final String FOO = ANSI_R + BALLOON + ANSI_G + BALLOON + ANSI_Y + BALLOON + ANSI_RESET;
+
     public OshinkoOperator(String namespace,
                            long reconciliationInterval,
                            KubernetesClient client) {
@@ -53,7 +53,13 @@ public class OshinkoOperator extends AbstractVerticle {
         this.reconciliationInterval = reconciliationInterval;
         this.client = client;
         this.selector = LabelsHelper.forCluster();
+        log.info("\n\n\n{}Oshinko-operator{} has started in version {}. {}\n\n\n",ANSI_R, ANSI_RESET, getClass().getPackage().getImplementationVersion(), FOO);
     }
+
+    public static void main(String [] args) {
+        System.out.println("Hello \u001b[1;31mred\u001b[0m world!");
+    }
+
 
     @Override
     public void start(Future<Void> start) {
