@@ -46,4 +46,5 @@ devel: build
 	oc cluster up
 	oc policy add-role-to-user edit system:serviceaccount:`oc project -q`:default
 	oc create -f manifest-dev/
+	until [ "true" = "`oc get pod -l app.kubernetes.io/name=oshinko-operator -o json 2> /dev/null | grep \"\\\"ready\\\": \" | sed -e 's;.*\(true\|false\),;\1;'`" ]; do printf "."; sleep 1; done
 	oc logs -f `oc get pods --no-headers -l app.kubernetes.io/name=oshinko-operator | cut -f1 -d' '`
