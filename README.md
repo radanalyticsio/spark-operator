@@ -20,12 +20,20 @@ oc cluster up
 oc policy add-role-to-user edit system:serviceaccount:`oc project -q`:default
 ```
 
+Run the oshinko-operator deployment:
 ```bash
 oc create -f manifest/
 ```
+
+Create new cluster from prepared example:
 
 ```bash
 oc create -f examples/cluster.yaml
 ```
 
 After issuing the commands above, you should be able to see a new Spark cluster running in the current namespace.
+
+Once you don't need the cluster anymore, you can delete it by deleting the config map resource by:
+```bash
+oc delete cm my-spark-cluster
+```
