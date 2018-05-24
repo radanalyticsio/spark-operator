@@ -8,6 +8,13 @@
     <artifactId>oshinko-operator</artifactId>
     <version>0.0.1-SNAPSHOT</version>
 
+    <scm>
+        <url>https://github.com/Jiri-Kremser/oshinko-operator</url>
+        <connection>scm:git:git@github.com:Jiri-Kremser/oshinko-operator.git</connection>
+        <developerConnection>scm:git:git@github.com:Jiri-Kremser/oshinko-operator.git</developerConnection>
+        <tag>HEAD</tag>
+    </scm>
+
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
@@ -16,6 +23,7 @@
         <maven.failsafe.version>2.20.1</maven.failsafe.version>
         <maven.assembly.version>3.1.0</maven.assembly.version>
         <maven.shade.version>3.1.0</maven.shade.version>
+        <maven.buildnumber.version>1.4</maven.buildnumber.version>
         <jacoco.version>0.7.9</jacoco.version>
         <license.maven.version>2.11</license.maven.version>
 
@@ -31,12 +39,12 @@
         <dependency>
             <groupId>io.fabric8</groupId>
             <artifactId>kubernetes-client</artifactId>
-	    <version>${fabric8.kubernetes-client.version}</version>
+	        <version>${fabric8.kubernetes-client.version}</version>
         </dependency>
         <dependency>
             <groupId>io.fabric8</groupId>
             <artifactId>openshift-client</artifactId>
-	    <version>${fabric8.kubernetes-client.version}</version>
+	        <version>${fabric8.kubernetes-client.version}</version>
         </dependency>
         <dependency>
             <groupId>io.fabric8</groupId>
@@ -46,27 +54,34 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-	    <version>${slf4j.version}</version>
+	        <version>${slf4j.version}</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>
-	    <version>${slf4j.version}</version>
+	        <version>${slf4j.version}</version>
         </dependency>
         <dependency>
             <groupId>io.vertx</groupId>
             <artifactId>vertx-core</artifactId>
-	    <version>${vertx.version}</version>
+	        <version>${vertx.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.jcabi</groupId>
+            <artifactId>jcabi-manifests</artifactId>
+            <version>1.1</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-	    <version>${junit.version}</version>
+	        <version>${junit.version}</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>io.vertx</groupId>
             <artifactId>vertx-unit</artifactId>
-	    <version>${vertx.version}</version>
+	        <version>${vertx.version}</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
     <build>
@@ -78,9 +93,30 @@
                     <archive>
                         <manifest>
                             <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
-                            <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+                            <addDefaultSpecificationEntries>false</addDefaultSpecificationEntries>
                         </manifest>
+                        <manifestEntries>
+                            <Implementation-Build>${buildNumber}</Implementation-Build>
+                        </manifestEntries>
                     </archive>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>buildnumber-maven-plugin</artifactId>
+                <version>${maven.buildnumber.version}</version>
+                <executions>
+                    <execution>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>create</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <shortRevisionLength>8</shortRevisionLength>
+                    <doCheck>false</doCheck>
+                    <doUpdate>false</doUpdate>
                 </configuration>
             </plugin>
             <plugin>

@@ -22,7 +22,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 
 public class OshinkoOperator extends AbstractVerticle {
 
@@ -39,13 +38,6 @@ public class OshinkoOperator extends AbstractVerticle {
 
     private long reconcileTimer;
 
-    public static final String ANSI_R = "\u001B[31m";
-    public static final String ANSI_G = "\u001B[32m";
-    public static final String ANSI_Y = "\u001B[33m";
-    public static final String ANSI_RESET = "\u001B[0m";
-    public static final String BALLOON = "\uD83C\uDF88";
-    public static final String FOO = ANSI_R + BALLOON + ANSI_G + BALLOON + ANSI_Y + BALLOON + ANSI_RESET;
-
     public OshinkoOperator(String namespace,
                            long reconciliationInterval,
                            KubernetesClient client) {
@@ -53,20 +45,11 @@ public class OshinkoOperator extends AbstractVerticle {
         this.reconciliationInterval = reconciliationInterval;
         this.client = client;
         this.selector = LabelsHelper.forCluster();
-        log.info("\n\n\n{}Oshinko-operator{} has started in version {}. {}\n\n\n",ANSI_R, ANSI_RESET, getClass().getPackage().getImplementationVersion(), FOO);
     }
-
-    public static void main(String [] args) {
-        System.out.println("Hello \u001b[1;31mred\u001b[0m world!");
-    }
-
 
     @Override
     public void start(Future<Void> start) {
-        log.info("Starting ClusterOperator for namespace {}", namespace);
-
-        // Configure the executor here, but it is used only in other places
-        getVertx().createSharedWorkerExecutor("kubernetes-ops-pool", 10, TimeUnit.SECONDS.toNanos(120));
+        log.info("Starting OshinkoOperator for namespace {}", namespace);
 
         createConfigMapWatch(res -> {
             if (res.succeeded()) {
@@ -78,22 +61,22 @@ public class OshinkoOperator extends AbstractVerticle {
                     reconcileAll("timer");
                 });
 
-                log.info("ClusterOperator running for namespace {}", namespace);
+                log.info("OshinkoOperator running for namespace {}", namespace);
 
                 // start the HTTP server for healthchecks
                 this.startHealthServer();
 
                 start.complete();
             } else {
-                log.error("ClusterOperator startup failed for namespace {}", namespace, res.cause());
-                start.fail("ClusterOperator startup failed for namespace " + namespace);
+                log.error("OshinkoOperator startup failed for namespace {}", namespace, res.cause());
+                start.fail("OshinkoOperator startup failed for namespace " + namespace);
             }
         });
     }
 
     @Override
     public void stop(Future<Void> stop) {
-        log.info("Stopping ClusterOperator for namespace {}", namespace);
+        log.info("Stopping OshinkoOperator for namespace {}", namespace);
         vertx.cancelTimer(reconcileTimer);
         configMapWatch.close();
         client.close();

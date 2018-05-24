@@ -9,6 +9,8 @@ import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.Optional;
 
+import static io.radanalytics.operator.AnsiColors.*;
+
 public class ProcessRunner {
 
     private static final Logger log = LoggerFactory.getLogger(ProcessRunner.class.getName());
@@ -46,7 +48,7 @@ public class ProcessRunner {
             }
             String stdOutput = sb.toString();
             if (!stdOutput.isEmpty()) {
-                log.info(stdOutput);
+                log.info("{}{}{}",ANSI_G, stdOutput, ANSI_RESET);
             }
             in.close();
 
@@ -56,7 +58,7 @@ public class ProcessRunner {
             }
             String errOutput = sb.toString();
             if (!errOutput.isEmpty()) {
-                log.error(errOutput);
+                log.error("{}{}{}",ANSI_R, stdOutput, ANSI_RESET);
             }
             err.close();
         } catch (IOException e) {

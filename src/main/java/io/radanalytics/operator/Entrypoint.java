@@ -1,5 +1,6 @@
 package io.radanalytics.operator;
 
+import com.jcabi.manifests.Manifests;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.openshift.client.OpenShiftClient;
@@ -13,11 +14,12 @@ import org.slf4j.LoggerFactory;
 
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+
+import static io.radanalytics.operator.AnsiColors.*;
 
 public class Entrypoint {
+
     private static final Logger log = LoggerFactory.getLogger(Entrypoint.class.getName());
 
     public static void main(String[] args) {
@@ -41,10 +43,12 @@ public class Entrypoint {
     }
 
     static CompositeFuture run(Vertx vertx, KubernetesClient client, boolean isOpenShift, OperatorConfig config) {
-//        printEnvInfo();
+        printInfo();
 
         if (isOpenShift) {
-
+            log.info("OpenShift environment detected.");
+        } else {
+            log.info("Kubernetes environment detected.");
         }
 
         List<Future> futures = new ArrayList<>();
@@ -103,12 +107,12 @@ public class Entrypoint {
         return fut;
     }
 
-    static void printEnvInfo() {
-        Map<String, String> m = new HashMap<>(System.getenv());
-        StringBuilder sb = new StringBuilder();
-        for (Map.Entry<String, String> entry: m.entrySet()) {
-            sb.append("\t").append(entry.getKey()).append(": ").append(entry.getValue()).append("\n");
+    static void printInfo() {
+        String gitSha = Manifests.read("Implementation-Build");
+        log.info("\n{}Oshinko-operator{} has started in version {}. {}\n",ANSI_R, ANSI_RESET, Entrypoint.class.getPackage().getImplementationVersion(), FOO);
+        if (!gitSha.isEmpty()) {
+            log.info("Git sha: {}{}{}", ANSI_Y, gitSha, ANSI_RESET);
         }
-        log.info("Using config:\n" + sb.toString());
+        log.info("==================\n");
     }
 }
