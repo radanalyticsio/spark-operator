@@ -28,4 +28,4 @@ oc create -f manifest/
 oc create -f examples/cluster.yaml
 ```
 
-NOTE: The current operator implementation only creates log entry if there is an attempt for creating a new cluster. 
+After issuing the commands above, you should be able to see a new Spark cluster running in the current namespace.
