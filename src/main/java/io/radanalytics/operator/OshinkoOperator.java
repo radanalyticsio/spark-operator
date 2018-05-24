@@ -49,7 +49,6 @@ public class OshinkoOperator extends AbstractVerticle {
     public OshinkoOperator(String namespace,
                            long reconciliationInterval,
                            KubernetesClient client) {
-        log.info("Creating ClusterOperator for namespace {}", namespace);
         this.namespace = namespace;
         this.reconciliationInterval = reconciliationInterval;
         this.client = client;
