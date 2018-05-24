@@ -28,6 +28,10 @@ public class ProcessRunner {
         runOshinko("delete " + name);
     }
 
+    public void scaleCluster(String name, int workers) {
+        runOshinko("scale " + name + " --workers=" + workers);
+    }
+
     private void runOshinko(String suffix) {
         try {
             String[] command = new String[] {"sh", "-c", "sh -c \"/oshinko_linux_386/oshinko " + suffix + "\""};
