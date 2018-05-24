@@ -12,20 +12,17 @@
 
 
 # Quick Start
+Start the local cluster (you can skip this step, if you an OpenShift cluster already running):
 ```bash
 oc cluster up
 ```
 
-```bash
-oc policy add-role-to-user edit system:serviceaccount:`oc project -q`:default
-```
-
-Run the oshinko-operator deployment:
+Run the `oshinko-operator` deployment:
 ```bash
 oc create -f manifest/
 ```
 
-Create new cluster from prepared example:
+Create new cluster from the prepared example:
 
 ```bash
 oc create -f examples/cluster.yaml
