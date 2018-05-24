@@ -1,8 +1,11 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: my-spark-cluster
+  name: my-spark-cluster           # compulsory
   labels:
-    radanalytics.io/kind: cluster
+    radanalytics.io/kind: cluster  # compulsory
 data:
-  worker-nodes: "2"
+  worker-nodes: "2"                # optional defaults to 1
+  master-nodes: "1"                # optional defaults to 1
+#  custom-image: ""                # optional defaults to radanalyticsio/openshift-spark
+  
