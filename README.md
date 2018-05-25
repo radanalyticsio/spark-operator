@@ -12,7 +12,7 @@
 
 
 # Quick Start
-Start the local cluster (you can skip this step, if you an OpenShift cluster already running):
+Start the local cluster (you can skip this step, if you have an OpenShift cluster already running):
 ```bash
 oc cluster up
 ```
