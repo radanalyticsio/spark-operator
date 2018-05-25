@@ -14,8 +14,8 @@ public class KubernetesDeployer {
         int workers = maybeWorkers.orElse(1);
         ReplicationController masterRc = getRCforMaster(name, masters, image);
         ReplicationController workerRc = getRCforWorker(name, workers, image);
-        Service masterService = getServiceForMaster(name, 7077);
-        Service masterUiService = getServiceForMaster(name + "-ui", 8080);
+        Service masterService = getService(name, name + "-m-1", 7077);
+        Service masterUiService = getService(name + "-ui", name + "-m-1", 8080);
         KubernetesList resources = new KubernetesListBuilder().withItems(masterRc, workerRc, masterService, masterUiService).build();
         return resources;
     }
@@ -28,9 +28,9 @@ public class KubernetesDeployer {
         return getRCforMasterOrWorker(false, name, replicas, image);
     }
 
-    private static Service getServiceForMaster(String name, int port) {
+    private static Service getService(String name, String label, int port) {
         Service masterService = new ServiceBuilder().withNewMetadata().withName(name).endMetadata()
-                .withNewSpec().withSelector(getSelector(name + "-m-1"))
+                .withNewSpec().withSelector(getSelector(label))
                 .withPorts(new ServicePortBuilder().withPort(port).withNewTargetPort().withIntVal(port).endTargetPort().withProtocol("TCP").build())
                 .endSpec().build();
         return masterService;
