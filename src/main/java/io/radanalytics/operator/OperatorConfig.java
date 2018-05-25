@@ -53,8 +53,7 @@ public class OperatorConfig {
         String namespacesList = map.get(OperatorConfig.OSHINKO_NAMESPACE);
         Set<String> namespaces;
         if (namespacesList == null || namespacesList.isEmpty()) {
-//            throw new IllegalArgumentException(OperatorConfig.OSHINKO_NAMESPACE + " cannot be null");
-            namespaces = Collections.singleton("*");
+            namespaces = null; //Collections.singleton("*");
         } else {
             namespaces = new HashSet(asList(namespacesList.trim().split("\\s*,+\\s*")));
         }

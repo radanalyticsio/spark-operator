@@ -42,7 +42,7 @@ public class Entrypoint {
         });
     }
 
-    static CompositeFuture run(Vertx vertx, KubernetesClient client, boolean isOpenShift, OperatorConfig config) {
+    private static CompositeFuture run(Vertx vertx, KubernetesClient client, boolean isOpenShift, OperatorConfig config) {
         printInfo();
 
         if (isOpenShift) {
@@ -52,28 +52,40 @@ public class Entrypoint {
         }
 
         List<Future> futures = new ArrayList<>();
-        for (String namespace : config.getNamespaces()) {
-            Future<String> fut = Future.future();
-            futures.add(fut);
-            OshinkoOperator operator = new OshinkoOperator(namespace,
-                    isOpenShift,
-                    config.getReconciliationIntervalMs(),
-                    client);
-            vertx.deployVerticle(operator,
-                    res -> {
-                        if (res.succeeded()) {
-                            log.info("Cluster Operator verticle started in namespace {}", namespace);
-                        } else {
-                            log.error("Cluster Operator verticle in namespace {} failed to start", namespace, res.cause());
-                            System.exit(1);
-                        }
-                        fut.completer().handle(res);
-                    });
+        if (null == config.getNamespaces()) { // get the current namespace
+            String namespace = client.getNamespace();
+            Future<String> future = runForNamespace(vertx, client, isOpenShift, namespace, config.getReconciliationIntervalMs());
+            futures.add(future);
+        } else {
+            for (String namespace : config.getNamespaces()) {
+                Future<String> future = runForNamespace(vertx, client, isOpenShift, namespace, config.getReconciliationIntervalMs());
+                futures.add(future);
+            }
         }
         return CompositeFuture.join(futures);
     }
 
-    static Future<Boolean> isOnOpenShift(Vertx vertx, KubernetesClient client)  {
+    private static Future runForNamespace(Vertx vertx, KubernetesClient client, boolean isOpenShift, String namespace, long interval) {
+        Future<String> future = Future.future();
+
+        OshinkoOperator operator = new OshinkoOperator(namespace,
+                isOpenShift,
+                interval,
+                client);
+        vertx.deployVerticle(operator,
+                res -> {
+                    if (res.succeeded()) {
+                        log.info("Cluster Operator verticle started in namespace {}", namespace);
+                    } else {
+                        log.error("Cluster Operator verticle in namespace {} failed to start", namespace, res.cause());
+                        System.exit(1);
+                    }
+                    future.completer().handle(res);
+                });
+        return future;
+    }
+
+    private static Future<Boolean> isOnOpenShift(Vertx vertx, KubernetesClient client)  {
         URL kubernetesApi = client.getMasterUrl();
         Future<Boolean> fut = Future.future();
 
@@ -108,7 +120,7 @@ public class Entrypoint {
         return fut;
     }
 
-    static void printInfo() {
+    private static void printInfo() {
         String gitSha = Manifests.read("Implementation-Build");
         log.info("\n{}Oshinko-operator{} has started in version {}{}{}. {}\n", ANSI_R, ANSI_RESET, ANSI_G,
                 Entrypoint.class.getPackage().getImplementationVersion(), ANSI_RESET, FOO);

@@ -26,7 +26,7 @@ spec:
       containers:
       - name: oshinko-operator
         image: jkremser/oshinko-operator:latest
-        env:
-        - name: OSHINKO_NAMESPACE
-          value: myproject
+        #env:
+        #- name: OSHINKO_NAMESPACE
+        #  value: myproject
         imagePullPolicy: IfNotPresent
