@@ -3,6 +3,7 @@ package io.radanalytics.operator;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapList;
 import io.fabric8.kubernetes.api.model.DoneableConfigMap;
+import io.fabric8.kubernetes.api.model.KubernetesResourceList;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.Watch;
@@ -150,8 +151,8 @@ public class OshinkoOperator extends AbstractVerticle {
             ProcessRunner pr = new ProcessRunner();
             pr.createCluster(name, image, masters, workers);
         } else {
-            // todo
-            log.error("not implemented yet for K8s");
+            KubernetesResourceList list = KubernetesDeployer.getResourceList(name, image, masters, workers);
+            client.resourceList(list).createOrReplace();
         }
     }
 
