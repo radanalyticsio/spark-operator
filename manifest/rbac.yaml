@@ -3,12 +3,14 @@ kind: ServiceAccount
 metadata:
   name: oshinko-operator
 ---
-apiVersion: v1
+apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: RoleBinding
 metadata:
   name: oshinko-operator-edit
 roleRef:
+  kind: Role
   name: edit
+  apiGroup: rbac.authorization.k8s.io
 subjects:
   - kind: ServiceAccount
     name: oshinko-operator
