@@ -37,7 +37,7 @@ public class OperatorConfig {
      * @param operationTimeoutMs    timeout for internal operations specified in milliseconds
      */
     public OperatorConfig(Set<String> namespaces, long reconciliationIntervalMs, long operationTimeoutMs) {
-        this.namespaces = unmodifiableSet(new HashSet<>(namespaces));
+        this.namespaces = namespaces;
         this.reconciliationIntervalMs = reconciliationIntervalMs;
         this.operationTimeoutMs = operationTimeoutMs;
     }
