@@ -30,6 +30,15 @@ oc create -f examples/cluster.yaml
 
 After issuing the commands above, you should be able to see a new Spark cluster running in the current namespace.
 
+```bash
+oc get pods
+NAME                               READY     STATUS    RESTARTS   AGE
+my-spark-cluster-m-1-5kjtj         1/1       Running   0          10s
+my-spark-cluster-w-1-m8knz         1/1       Running   0          10s
+my-spark-cluster-w-1-vg9k2         1/1       Running   0          10s
+oshinko-operator-510388731-852b2   1/1       Running   0          27s
+```
+
 Once you don't need the cluster anymore, you can delete it by deleting the config map resource by:
 ```bash
 oc delete cm my-spark-cluster
