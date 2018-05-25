@@ -56,6 +56,7 @@ public class Entrypoint {
             Future<String> fut = Future.future();
             futures.add(fut);
             OshinkoOperator operator = new OshinkoOperator(namespace,
+                    isOpenShift,
                     config.getReconciliationIntervalMs(),
                     client);
             vertx.deployVerticle(operator,

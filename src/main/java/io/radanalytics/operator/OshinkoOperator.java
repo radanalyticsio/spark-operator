@@ -32,6 +32,7 @@ public class OshinkoOperator extends AbstractVerticle {
     private final KubernetesClient client;
     private final Map<String, String> selector;
     private final String namespace;
+    private final boolean isOpenshift;
     private final long reconciliationInterval;
 
     private volatile Watch configMapWatch;
@@ -39,9 +40,11 @@ public class OshinkoOperator extends AbstractVerticle {
     private long reconcileTimer;
 
     public OshinkoOperator(String namespace,
+                           boolean isOpenshift,
                            long reconciliationInterval,
                            KubernetesClient client) {
         this.namespace = namespace;
+        this.isOpenshift = isOpenshift;
         this.reconciliationInterval = reconciliationInterval;
         this.client = client;
         this.selector = LabelsHelper.forCluster();
@@ -96,10 +99,10 @@ public class OshinkoOperator extends AbstractVerticle {
                                 log.info("ConfigMap \n{}\n in namespace {} was {}", cm, namespace, action);
                                 switch (action) {
                                     case ADDED:
-                                        addCluster(cm);
+                                        addCluster(cm, isOpenshift);
                                         break;
                                     case DELETED:
-                                        deleteCluster(cm);
+                                        deleteCluster(cm, isOpenshift);
                                         break;
                                     case MODIFIED:
                                         break;
@@ -137,21 +140,32 @@ public class OshinkoOperator extends AbstractVerticle {
         );
     }
 
-    private void addCluster(ConfigMap cm) {
-        ProcessRunner pr = new ProcessRunner();
+    private void addCluster(ConfigMap cm, boolean isOpenshift) {
         String name = ResourceHelper.name(cm);
         log.info("creating cluster:  \n{}\n", name);
         Optional<String> image = HasDataHelper.image(cm);
         Optional<Integer> masters = HasDataHelper.masters(cm).map(m -> Integer.parseInt(m));
         Optional<Integer> workers = HasDataHelper.workers(cm).map(w -> Integer.parseInt(w));
-        pr.createCluster(name, image, masters, workers);
+        if (isOpenshift) {
+            ProcessRunner pr = new ProcessRunner();
+            pr.createCluster(name, image, masters, workers);
+        } else {
+            // todo
+            log.error("not implemented yet for K8s");
+        }
     }
 
-    private void deleteCluster(ConfigMap cm) {
-        ProcessRunner pr = new ProcessRunner();
+    private void deleteCluster(ConfigMap cm, boolean isOpenshift) {
         String name = ResourceHelper.name(cm);
         log.info("deleting cluster:  \n{}\n", name);
-        pr.deleteCluster(name);
+
+        if (isOpenshift) {
+            ProcessRunner pr = new ProcessRunner();
+            pr.deleteCluster(name);
+        } else {
+            // todo
+            log.error("not implemented yet for K8s");
+        }
     }
 
     private void recreateConfigMapWatch() {
