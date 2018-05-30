@@ -9,6 +9,12 @@ LABEL OSHINKO_VERSION=${OSHINKO_VERSION} \
 
 ADD target/spark-operator-*.jar /spark-operator.jar
 
-RUN wget -qO- https://github.com/radanalyticsio/oshinko-cli/releases/download/${OSHINKO_VERSION}/oshinko_${OSHINKO_VERSION}_linux_386.tar.gz | tar xvz
+RUN set -x && \
+  wget https://github.com/radanalyticsio/oshinko-cli/releases/download/${OSHINKO_VERSION}/oshinko_${OSHINKO_VERSION}_linux_386.tar.gz && \
+  wget https://github.com/radanalyticsio/oshinko-cli/releases/download/${OSHINKO_VERSION}/SHA256-CHECKSUM && \
+  cat SHA256-CHECKSUM | grep oshinko_${OSHINKO_VERSION}_linux_386.tar.gz > SHA256-CHECKSUM-filtered && \
+  sha256sum -c SHA256-CHECKSUM-filtered && \
+  tar -xzf ./oshinko_${OSHINKO_VERSION}_linux_386.tar.gz && \
+  rm ./oshinko_${OSHINKO_VERSION}_linux_386.tar.gz SHA256-CHECKSUM SHA256-CHECKSUM-filtered
 
 CMD ["/usr/bin/java", "-Dvertx.cacheDirBase=/tmp", "-jar", "/spark-operator.jar"]
