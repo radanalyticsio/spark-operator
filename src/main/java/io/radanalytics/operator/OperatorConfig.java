@@ -17,7 +17,7 @@ import static java.util.Collections.unmodifiableSet;
  */
 public class OperatorConfig {
 
-    public static final String OSHINKO_NAMESPACE = "OSHINKO_NAMESPACE";
+    public static final String WATCHED_NAMESPACE = "WATCHED_NAMESPACE";
     public static final String OPERATOR_FULL_RECONCILIATION_INTERVAL_MS = "OPERATOR_FULL_RECONCILIATION_INTERVAL_MS";
     public static final String OPERATOR_OPERATION_TIMEOUT_MS = "OPERATOR_OPERATION_TIMEOUT_MS";
 
@@ -49,7 +49,7 @@ public class OperatorConfig {
      */
     public static OperatorConfig fromMap(Map<String, String> map) {
 
-        String namespacesList = map.get(OperatorConfig.OSHINKO_NAMESPACE);
+        String namespacesList = map.get(OperatorConfig.WATCHED_NAMESPACE);
         Set<String> namespaces;
         if (namespacesList == null || namespacesList.isEmpty()) {
             namespaces = null; //Collections.singleton("*");

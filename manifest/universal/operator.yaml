@@ -27,6 +27,6 @@ spec:
       - name: spark-operator
         image: jkremser/spark-operator:latest
         #env:
-        #- name: OSHINKO_NAMESPACE
+        #- name: WATCHED_NAMESPACE
         #  value: myproject
         imagePullPolicy: IfNotPresent
