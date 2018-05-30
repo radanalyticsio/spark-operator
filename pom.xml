@@ -5,13 +5,13 @@
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.radanalytics</groupId>
-    <artifactId>oshinko-operator</artifactId>
+    <artifactId>spark-operator</artifactId>
     <version>0.0.2-SNAPSHOT</version>
 
     <scm>
-        <url>https://github.com/Jiri-Kremser/oshinko-operator</url>
-        <connection>scm:git:git@github.com:Jiri-Kremser/oshinko-operator.git</connection>
-        <developerConnection>scm:git:git@github.com:Jiri-Kremser/oshinko-operator.git</developerConnection>
+        <url>https://github.com/Jiri-Kremser/spark-operator</url>
+        <connection>scm:git:git@github.com:Jiri-Kremser/spark-operator.git</connection>
+        <developerConnection>scm:git:git@github.com:Jiri-Kremser/spark-operator.git</developerConnection>
         <tag>HEAD</tag>
     </scm>
 

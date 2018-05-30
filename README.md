@@ -1,13 +1,13 @@
 # spark-operator
 
-[![Build status](https://travis-ci.org/Jiri-Kremser/oshinko-operator.svg?branch=master)](https://travis-ci.org/Jiri-Kremser/oshinko-operator)
+[![Build status](https://travis-ci.org/Jiri-Kremser/spark-operator.svg?branch=master)](https://travis-ci.org/Jiri-Kremser/spark-operator)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0)
 
 `DeploymentConfig`-based approach for managing the Spark clusters in K8s and OpenShift.
 
 # Quick Start
 
-Run the `oshinko-operator` deployment:
+Run the `spark-operator` deployment:
 ```bash
 oc create -f manifest/openshift/
 ```
@@ -26,7 +26,7 @@ NAME                               READY     STATUS    RESTARTS   AGE
 my-spark-cluster-m-1-5kjtj         1/1       Running   0          10s
 my-spark-cluster-w-1-m8knz         1/1       Running   0          10s
 my-spark-cluster-w-1-vg9k2         1/1       Running   0          10s
-oshinko-operator-510388731-852b2   1/1       Running   0          27s
+spark-operator-510388731-852b2     1/1       Running   0          27s
 ```
 
 Once you don't need the cluster anymore, you can delete it by deleting the config map resource by:
@@ -63,8 +63,8 @@ You will see one error during creation of RBAC resources, this is harmless. It's
 same syntax for defining `RoleBindings` and the [operator-all.yaml](./manifest/universal/operator-all.yaml) file contains both of them.
 
 ### Images
-[![Layers info](https://images.microbadger.com/badges/image/jkremser/oshinko-operator.svg)](https://microbadger.com/images/jkremser/oshinko-operator)
-`jkremser/oshinko-operator:latest`
+[![Layers info](https://images.microbadger.com/badges/image/jkremser/spark-operator.svg)](https://microbadger.com/images/jkremser/spark-operator)
+`jkremser/spark-operator:latest`
 
-[![Layers info](https://images.microbadger.com/badges/image/jkremser/oshinko-operator:centos-latest.svg)](https://microbadger.com/images/jkremser/oshinko-operator:centos-latest)
-`jkremser/oshinko-operator:centos-latest`
+[![Layers info](https://images.microbadger.com/badges/image/jkremser/spark-operator:centos-latest.svg)](https://microbadger.com/images/jkremser/spark-operator:centos-latest)
+`jkremser/spark-operator:centos-latest`

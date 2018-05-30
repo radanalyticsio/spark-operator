@@ -1,31 +1,31 @@
 apiVersion: apps/v1beta1
 kind: Deployment
 metadata:
-  name: oshinko-operator
-  #namespace: oshinko-operator
+  name: spark-operator
+  #namespace: spark-operator
   labels:
-    app.kubernetes.io/name: oshinko-operator
+    app.kubernetes.io/name: spark-operator
     app.kubernetes.io/version: v0.0.1-v1alpha1
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app.kubernetes.io/name: oshinko-operator
+      app.kubernetes.io/name: spark-operator
       app.kubernetes.io/version: v0.0.1-v1alpha1
   strategy:
     type: Recreate
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: oshinko-operator
+        app.kubernetes.io/name: spark-operator
         app.kubernetes.io/version: v0.0.1-v1alpha1
       initializers:
         pending: []  
     spec:
-      serviceAccountName: oshinko-operator
+      serviceAccountName: spark-operator
       containers:
-      - name: oshinko-operator
-        image: jkremser/oshinko-operator:latest
+      - name: spark-operator
+        image: jkremser/spark-operator:latest
         #env:
         #- name: OSHINKO_NAMESPACE
         #  value: myproject

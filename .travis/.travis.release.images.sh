@@ -3,7 +3,7 @@
 set -xe
 
 OWNER="${OWNER:-jkremser}"
-IMAGE="${IMAGE:-oshinko-operator}"
+IMAGE="${IMAGE:-spark-operator}"
 
 # if building the release tag
 if [[ "${TRAVIS_TAG}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then

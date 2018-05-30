@@ -1,57 +1,57 @@
 apiVersion: apps/v1beta1
 kind: Deployment
 metadata:
-  name: oshinko-operator
+  name: spark-operator
   labels:
-    app.kubernetes.io/name: oshinko-operator
+    app.kubernetes.io/name: spark-operator
     app.kubernetes.io/version: v0.0.1-v1alpha1
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app.kubernetes.io/name: oshinko-operator
+      app.kubernetes.io/name: spark-operator
       app.kubernetes.io/version: v0.0.1-v1alpha1
   strategy:
     type: Recreate
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: oshinko-operator
+        app.kubernetes.io/name: spark-operator
         app.kubernetes.io/version: v0.0.1-v1alpha1
       initializers:
         pending: []  
     spec:
-      serviceAccountName: oshinko-operator
+      serviceAccountName: spark-operator
       containers:
-      - name: oshinko-operator
-        image: jkremser/oshinko-operator:latest
+      - name: spark-operator
+        image: jkremser/spark-operator:latest
         imagePullPolicy: IfNotPresent
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: oshinko-operator
+  name: spark-operator
 ---
 # K8s specific (this fails on OpenShift)
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: RoleBinding
 metadata:
-  name: oshinko-operator-edit
+  name: spark-operator-edit
 roleRef:
   kind: Role
   name: edit
   apiGroup: rbac.authorization.k8s.io
 subjects:
   - kind: ServiceAccount
-    name: oshinko-operator
+    name: spark-operator
 ---
 # OpenShift specific (this fails on plain K8s)
 apiVersion: v1
 kind: RoleBinding
 metadata:
-  name: oshinko-operator-edit
+  name: spark-operator-edit
 roleRef:
   name: edit
 subjects:
   - kind: ServiceAccount
-    name: oshinko-operator
+    name: spark-operator

@@ -18,9 +18,8 @@ import static java.util.Collections.unmodifiableSet;
 public class OperatorConfig {
 
     public static final String OSHINKO_NAMESPACE = "OSHINKO_NAMESPACE";
-    public static final String OSHINKO_CONFIGMAP_LABELS = "OSHINKO_CONFIGMAP_LABELS";
-    public static final String OSHINKO_FULL_RECONCILIATION_INTERVAL_MS = "OSHINKO_FULL_RECONCILIATION_INTERVAL_MS";
-    public static final String OSHINKO_OPERATION_TIMEOUT_MS = "OSHINKO_OPERATION_TIMEOUT_MS";
+    public static final String OPERATOR_FULL_RECONCILIATION_INTERVAL_MS = "OPERATOR_FULL_RECONCILIATION_INTERVAL_MS";
+    public static final String OPERATOR_OPERATION_TIMEOUT_MS = "OPERATOR_OPERATION_TIMEOUT_MS";
 
     public static final long DEFAULT_FULL_RECONCILIATION_INTERVAL_MS = 120_000;
     public static final long DEFAULT_OPERATION_TIMEOUT_MS = 60_000;
@@ -32,9 +31,9 @@ public class OperatorConfig {
     /**
      * Constructor
      *
-     * @param namespaces namespace in which the operator will run and create resources
+     * @param namespaces                  namespace in which the operator will run and create resources
      * @param reconciliationIntervalMs    specify every how many milliseconds the reconciliation runs
-     * @param operationTimeoutMs    timeout for internal operations specified in milliseconds
+     * @param operationTimeoutMs          timeout for internal operations specified in milliseconds
      */
     public OperatorConfig(Set<String> namespaces, long reconciliationIntervalMs, long operationTimeoutMs) {
         this.namespaces = namespaces;
@@ -59,13 +58,13 @@ public class OperatorConfig {
         }
 
         long reconciliationInterval = DEFAULT_FULL_RECONCILIATION_INTERVAL_MS;
-        String reconciliationIntervalEnvVar = map.get(OperatorConfig.OSHINKO_FULL_RECONCILIATION_INTERVAL_MS);
+        String reconciliationIntervalEnvVar = map.get(OperatorConfig.OPERATOR_FULL_RECONCILIATION_INTERVAL_MS);
         if (reconciliationIntervalEnvVar != null) {
             reconciliationInterval = Long.parseLong(reconciliationIntervalEnvVar);
         }
 
         long operationTimeout = DEFAULT_OPERATION_TIMEOUT_MS;
-        String operationTimeoutEnvVar = map.get(OperatorConfig.OSHINKO_OPERATION_TIMEOUT_MS);
+        String operationTimeoutEnvVar = map.get(OperatorConfig.OPERATOR_OPERATION_TIMEOUT_MS);
         if (operationTimeoutEnvVar != null) {
             operationTimeout = Long.parseLong(operationTimeoutEnvVar);
         }

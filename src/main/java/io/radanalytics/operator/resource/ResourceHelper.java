@@ -21,11 +21,11 @@ public class ResourceHelper {
     }
 
     public static boolean isCluster(ConfigMap cm) {
-        return isAKind(cm, LabelsHelper.OSHINKO_KIND_CLUSTER_LABEL);
+        return isAKind(cm, LabelsHelper.OPERATOR_KIND_CLUSTER_LABEL);
     }
 
     public static boolean isApp(ConfigMap cm) {
-        return isAKind(cm, LabelsHelper.OSHINKO_KIND_APP_LABEL);
+        return isAKind(cm, LabelsHelper.OPERATOR_KIND_APP_LABEL);
     }
 
     private static boolean isAKind(ConfigMap cm, String kind) {

@@ -1,4 +1,4 @@
-IMAGE?=jkremser/oshinko-operator
+IMAGE?=jkremser/spark-operator
 
 .PHONY: build
 build: package image-build-slim
@@ -44,5 +44,5 @@ devel: build
 	-docker kill `docker ps -q` || true
 	oc cluster up
 	oc create -f manifest/openshift/
-	until [ "true" = "`oc get pod -l app.kubernetes.io/name=oshinko-operator -o json 2> /dev/null | grep \"\\\"ready\\\": \" | sed -e 's;.*\(true\|false\),;\1;'`" ]; do printf "."; sleep 1; done
-	oc logs -f `oc get pods --no-headers -l app.kubernetes.io/name=oshinko-operator | cut -f1 -d' '`
+	until [ "true" = "`oc get pod -l app.kubernetes.io/name=spark-operator -o json 2> /dev/null | grep \"\\\"ready\\\": \" | sed -e 's;.*\(true\|false\),;\1;'`" ]; do printf "."; sleep 1; done
+	oc logs -f `oc get pods --no-headers -l app.kubernetes.io/name=spark-operator | cut -f1 -d' '`

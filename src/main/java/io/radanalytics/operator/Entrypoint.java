@@ -68,7 +68,7 @@ public class Entrypoint {
     private static Future runForNamespace(Vertx vertx, KubernetesClient client, boolean isOpenShift, String namespace, long interval) {
         Future<String> future = Future.future();
 
-        OshinkoOperator operator = new OshinkoOperator(namespace,
+        SparkOperator operator = new SparkOperator(namespace,
                 isOpenShift,
                 interval,
                 client);
@@ -122,7 +122,7 @@ public class Entrypoint {
 
     private static void printInfo() {
         String gitSha = Manifests.read("Implementation-Build");
-        log.info("\n{}Oshinko-operator{} has started in version {}{}{}. {}\n", ANSI_R, ANSI_RESET, ANSI_G,
+        log.info("\n{}Spark-operator{} has started in version {}{}{}. {}\n", ANSI_R, ANSI_RESET, ANSI_G,
                 Entrypoint.class.getPackage().getImplementationVersion(), ANSI_RESET, FOO);
         if (!gitSha.isEmpty()) {
             log.info("Git sha: {}{}{}", ANSI_Y, gitSha, ANSI_RESET);

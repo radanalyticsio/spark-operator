@@ -24,9 +24,9 @@ import org.slf4j.LoggerFactory;
 import java.util.Map;
 import java.util.Optional;
 
-public class OshinkoOperator extends AbstractVerticle {
+public class SparkOperator extends AbstractVerticle {
 
-    private static final Logger log = LoggerFactory.getLogger(OshinkoOperator.class.getName());
+    private static final Logger log = LoggerFactory.getLogger(SparkOperator.class.getName());
 
     private static final int HEALTH_SERVER_PORT = 8080;
 
@@ -40,10 +40,10 @@ public class OshinkoOperator extends AbstractVerticle {
 
     private long reconcileTimer;
 
-    public OshinkoOperator(String namespace,
-                           boolean isOpenshift,
-                           long reconciliationInterval,
-                           KubernetesClient client) {
+    public SparkOperator(String namespace,
+                         boolean isOpenshift,
+                         long reconciliationInterval,
+                         KubernetesClient client) {
         this.namespace = namespace;
         this.isOpenshift = isOpenshift;
         this.reconciliationInterval = reconciliationInterval;
@@ -53,7 +53,7 @@ public class OshinkoOperator extends AbstractVerticle {
 
     @Override
     public void start(Future<Void> start) {
-        log.info("Starting OshinkoOperator for namespace {}", namespace);
+        log.info("Starting SparkOperator for namespace {}", namespace);
 
         createConfigMapWatch(res -> {
             if (res.succeeded()) {
@@ -65,22 +65,22 @@ public class OshinkoOperator extends AbstractVerticle {
                     reconcileAll("timer");
                 });
 
-                log.info("OshinkoOperator running for namespace {}", namespace);
+                log.info("SparkOperator running for namespace {}", namespace);
 
                 // start the HTTP server for healthchecks
                 this.startHealthServer();
 
                 start.complete();
             } else {
-                log.error("OshinkoOperator startup failed for namespace {}", namespace, res.cause());
-                start.fail("OshinkoOperator startup failed for namespace " + namespace);
+                log.error("SparkOperator startup failed for namespace {}", namespace, res.cause());
+                start.fail("SparkOperator startup failed for namespace " + namespace);
             }
         });
     }
 
     @Override
     public void stop(Future<Void> stop) {
-        log.info("Stopping OshinkoOperator for namespace {}", namespace);
+        log.info("Stopping SparkOperator for namespace {}", namespace);
         vertx.cancelTimer(reconcileTimer);
         configMapWatch.close();
         client.close();

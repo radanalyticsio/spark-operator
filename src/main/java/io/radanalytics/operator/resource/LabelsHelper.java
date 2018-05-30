@@ -15,7 +15,7 @@ import java.util.Optional;
  */
 public class LabelsHelper {
 
-    public static final String OSHINKO_DOMAIN = "radanalytics.io/";
+    public static final String OPERATOR_DOMAIN = "radanalytics.io/";
 
     /**
      * The kind of a ConfigMap:
@@ -28,28 +28,28 @@ public class LabelsHelper {
      *         by the app operator.</li>
      * </ul>
      */
-    public static final String OSHINKO_KIND_LABEL = OSHINKO_DOMAIN + "kind";
+    public static final String OPERATOR_KIND_LABEL = OPERATOR_DOMAIN + "kind";
 
-    public static final String OSHINKO_KIND_CLUSTER_LABEL = "cluster";
+    public static final String OPERATOR_KIND_CLUSTER_LABEL = "cluster";
 
-    public static final String OSHINKO_KIND_APP_LABEL = "app";
+    public static final String OPERATOR_KIND_APP_LABEL = "app";
 
     public static final Optional<String> getKind(HasMetadata resource) {
         return Optional.ofNullable(resource)
                 .map(r -> r.getMetadata())
                 .map(m -> m.getLabels())
-                .map(l -> l.get(OSHINKO_KIND_LABEL));
+                .map(l -> l.get(OPERATOR_KIND_LABEL));
     }
 
     public static Map<String, String> forCluster() {
-        return forKind(OSHINKO_KIND_CLUSTER_LABEL);
+        return forKind(OPERATOR_KIND_CLUSTER_LABEL);
     }
 
     public static Map<String, String> forApp() {
-        return forKind(OSHINKO_KIND_APP_LABEL);
+        return forKind(OPERATOR_KIND_APP_LABEL);
     }
 
     private static Map<String, String> forKind(String kind) {
-        return Collections.singletonMap(OSHINKO_KIND_LABEL, kind);
+        return Collections.singletonMap(OPERATOR_KIND_LABEL, kind);
     }
 }
