@@ -19,7 +19,7 @@ setup-git() {
 }
 
 commit() {
-  git checkout $BRANCH
+  git checkout -b $BRANCH
   git add -A
   git commit -m "Travis build: $TRAVIS_BUILD_NUMBER"
 }
