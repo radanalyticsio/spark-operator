@@ -109,3 +109,13 @@ Desktop.ini
 # ESLint
 ######################
 .eslintcache
+
+
+##########################
+# Custom/Project Specific
+##########################
+
+# generated manifests
+/k8s-spark-operator.yaml
+/openshift-spark-operator.yaml
+
