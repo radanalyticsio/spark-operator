@@ -11,3 +11,4 @@ after_success:
   - make image-publish-all
   - ./.travis/.travis.release.images.sh
   - docker logout
+  - ./.travis/.travis.push.manifests.sh
