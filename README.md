@@ -62,6 +62,18 @@ EOF
 You will see one error during creation of RBAC resources, this is harmless. It's there because OpenShift and Kubernetes don't use the
 same syntax for defining `RoleBindings` and the [operator-all.yaml](./manifest/universal/operator-all.yaml) file contains both of them.
 
+If you don't want to see the harmless error, you can also used manifests tailored directly for:
+
+Kubernetes:
+```
+kubectl create -f https://raw.githubusercontent.com/Jiri-Kremser/spark-operator/dist/k8s-spark-operator.yaml
+```
+
+and for Openshift:
+```
+oc create -f https://github.com/Jiri-Kremser/spark-operator/blob/dist/openshift-spark-operator.yaml
+```
+
 ### Images
 [![Layers info](https://images.microbadger.com/badges/image/jkremser/spark-operator.svg)](https://microbadger.com/images/jkremser/spark-operator)
 `jkremser/spark-operator:latest`
