@@ -68,11 +68,13 @@ Kubernetes:
 ```
 kubectl create -f https://raw.githubusercontent.com/Jiri-Kremser/spark-operator/dist/k8s-spark-operator.yaml
 ```
+(or even http://bit.ly/oc-spark)
 
 and for Openshift:
 ```
 oc create -f https://raw.githubusercontent.com/Jiri-Kremser/spark-operator/dist/openshift-spark-operator.yaml
 ```
+(or even http://bit.ly/k8s-spark)
 
 ### Images
 [![Layers info](https://images.microbadger.com/badges/image/jkremser/spark-operator.svg)](https://microbadger.com/images/jkremser/spark-operator)
