@@ -1,0 +1,48 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: spark-operator
+---
+apiVersion: v1
+kind: RoleBinding
+metadata:
+  name: spark-operator-edit
+roleRef:
+  name: edit
+subjects:
+  - kind: ServiceAccount
+    name: spark-operator
+---
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: spark-operator
+  #namespace: spark-operator
+  labels:
+    app.kubernetes.io/name: spark-operator
+    app.kubernetes.io/version: v0.1.0-v1alpha1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: spark-operator
+      app.kubernetes.io/version: v0.1.0-v1alpha1
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: spark-operator
+        app.kubernetes.io/version: v0.1.0-v1alpha1
+      initializers:
+        pending: []  
+    spec:
+      serviceAccountName: spark-operator
+      containers:
+      - name: spark-operator
+        image: jkremser/spark-operator:latest
+        #env:
+        #- name: WATCHED_NAMESPACE
+        #  value: myproject
+        imagePullPolicy: IfNotPresent
