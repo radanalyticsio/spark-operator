@@ -11,8 +11,8 @@ generate() {
 }
 
 setup-git() {
-  git config --global user.email "travis@travis-ci.org"
-  git config --global user.name "Travis CI"
+  git config --local user.email "jkremser@redhat.com"
+  git config --local user.name "Jirka Kremser"
   set +x
   git remote add upstream https://${GH_TOKEN}@github.com/$REPO.git > /dev/null 2>&1
   set -x
