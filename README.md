@@ -71,7 +71,7 @@ kubectl create -f https://raw.githubusercontent.com/Jiri-Kremser/spark-operator/
 
 and for Openshift:
 ```
-oc create -f https://github.com/Jiri-Kremser/spark-operator/blob/dist/openshift-spark-operator.yaml
+oc create -f https://raw.githubusercontent.com/Jiri-Kremser/spark-operator/dist/openshift-spark-operator.yaml
 ```
 
 ### Images
