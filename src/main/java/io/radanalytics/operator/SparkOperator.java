@@ -208,7 +208,7 @@ public class SparkOperator extends AbstractVerticle {
             // todo: image change, masters # change for OpenShift
         } else {
             if (cluster.getWorkers() != workers) {
-                client.replicationControllers().withName(name + "-w").scale(workers);
+                client.replicationControllers().withName(name + "-w-1").scale(workers);
                 clusters.put(name, maybeImage, maybeMasters, maybeWorkers);
                 log.info("Cluster {} has been modified", name);
             }
