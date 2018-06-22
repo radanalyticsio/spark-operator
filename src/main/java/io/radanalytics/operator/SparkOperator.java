@@ -67,7 +67,7 @@ public class SparkOperator extends AbstractVerticle {
 
                 log.info("SparkOperator running for namespace {}", namespace);
 
-                // start the HTTP server for healthchecks
+                // start the HTTP server for health checks
                 this.startHealthServer();
 
                 start.complete();
@@ -153,6 +153,7 @@ public class SparkOperator extends AbstractVerticle {
         } else {
             KubernetesResourceList list = KubernetesDeployer.getResourceList(name, image, masters, workers);
             client.resourceList(list).createOrReplace();
+            log.info("Cluster {} has been created", name);
         }
     }
 
@@ -164,8 +165,10 @@ public class SparkOperator extends AbstractVerticle {
             ProcessRunner pr = new ProcessRunner();
             pr.deleteCluster(name);
         } else {
-            // todo
-            log.error("not implemented yet for K8s");
+            client.services().withLabels(KubernetesDeployer.getClusterLabels(name)).delete();
+            client.replicationControllers().withLabels(KubernetesDeployer.getClusterLabels(name)).delete();
+            client.pods().withLabels(KubernetesDeployer.getClusterLabels(name)).delete();
+            log.info("Cluster {} has been deleted", name);
         }
     }
 

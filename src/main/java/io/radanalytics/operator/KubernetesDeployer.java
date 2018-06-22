@@ -4,6 +4,9 @@ import io.fabric8.kubernetes.api.model.*;
 
 import java.util.*;
 
+import static io.radanalytics.operator.resource.LabelsHelper.OPERATOR_DOMAIN;
+import static io.radanalytics.operator.resource.LabelsHelper.OPERATOR_KIND_CLUSTER_LABEL;
+
 public class KubernetesDeployer {
 
     public static final String SPARK_IMAGE_DEFAULT = "radanalyticsio/openshift-spark:2.3-latest";
@@ -29,8 +32,8 @@ public class KubernetesDeployer {
     }
 
     private static Service getService(String name, String label, int port) {
-        Service masterService = new ServiceBuilder().withNewMetadata().withName(name).endMetadata()
-                .withNewSpec().withSelector(getSelector(label))
+        Service masterService = new ServiceBuilder().withNewMetadata().withName(name).withLabels(getClusterLabels(name)).endMetadata()
+                .withNewSpec().withSelector(getSelector(name, label))
                 .withPorts(new ServicePortBuilder().withPort(port).withNewTargetPort().withIntVal(port).endTargetPort().withProtocol("TCP").build())
                 .endSpec().build();
         return masterService;
@@ -41,8 +44,8 @@ public class KubernetesDeployer {
     }
 
     private static ReplicationController getRCforMasterOrWorker(boolean isMaster, String name, int replicas, String image) {
-        String masterName = name + (isMaster ? "-m-1" : "-w-1");
-        Map<String, String> labels = getSelector(masterName);
+        String podName = name + (isMaster ? "-m-1" : "-w-1");
+        Map<String, String> labels = getSelector(name, podName);
 
         List<ContainerPort> ports = new ArrayList<>(2);
         List<EnvVar> envVars = new ArrayList<>();
@@ -88,7 +91,9 @@ public class KubernetesDeployer {
             containerBuilder.withLivenessProbe(generalProbe);
         }
 
-        ReplicationController rc = new ReplicationControllerBuilder().withNewMetadata().withName(masterName).endMetadata()
+        ReplicationController rc = new ReplicationControllerBuilder().withNewMetadata()
+                .withName(podName).withLabels(getClusterLabels(name))
+                .endMetadata()
                 .withNewSpec().withReplicas(replicas)
                 .withSelector(labels)
                 .withNewTemplate().withNewMetadata().withLabels(labels).endMetadata()
@@ -97,7 +102,13 @@ public class KubernetesDeployer {
         return rc;
     }
 
-    private static Map<String, String> getSelector(String name) {
-        return Collections.singletonMap("deployment", name);
+    private static Map<String, String> getSelector(String clusterName, String podName) {
+        Map<String, String> map = Collections.singletonMap("deployment", podName);
+        map.put(OPERATOR_DOMAIN + OPERATOR_KIND_CLUSTER_LABEL, clusterName);
+        return map;
+    }
+
+    public static Map<String, String> getClusterLabels(String name) {
+        return Collections.singletonMap(OPERATOR_DOMAIN + OPERATOR_KIND_CLUSTER_LABEL, name);
     }
 }
