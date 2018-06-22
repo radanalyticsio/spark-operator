@@ -2,7 +2,7 @@
 #FROM java:openjdk-8-jre-alpine
 FROM jkremser/mini-jre:8
 
-ARG OSHINKO_VERSION=v0.5.2
+ARG OSHINKO_VERSION=v0.5.3
 ENV OSHINKO_VERSION=${OSHINKO_VERSION} \
     JAVA_OPTS="-XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap"
 LABEL OSHINKO_VERSION=${OSHINKO_VERSION} \

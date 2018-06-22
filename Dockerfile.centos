@@ -1,6 +1,6 @@
 FROM fabric8/java-centos-openjdk8-jdk:1.4.0
 
-ARG OSHINKO_VERSION=v0.5.2
+ARG OSHINKO_VERSION=v0.5.3
 ENV OSHINKO_VERSION=${OSHINKO_VERSION} \
     JAVA_OPTS="-XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap"
 LABEL OSHINKO_VERSION=${OSHINKO_VERSION} \
