@@ -4,15 +4,14 @@ import io.fabric8.kubernetes.api.model.*;
 
 import java.util.*;
 
+import static io.radanalytics.operator.OperatorConfig.DEFAULT_SPARK_IMAGE;
 import static io.radanalytics.operator.resource.LabelsHelper.OPERATOR_DOMAIN;
 import static io.radanalytics.operator.resource.LabelsHelper.OPERATOR_KIND_CLUSTER_LABEL;
 
 public class KubernetesDeployer {
 
-    public static final String SPARK_IMAGE_DEFAULT = "radanalyticsio/openshift-spark:2.3-latest";
-
     public static KubernetesResourceList getResourceList(String name, Optional<String> maybeImage, Optional<Integer> maybeMasters, Optional<Integer> maybeWorkers) {
-        String image = maybeImage.orElse(SPARK_IMAGE_DEFAULT);
+        String image = maybeImage.orElse(DEFAULT_SPARK_IMAGE);
         int masters = maybeMasters.orElse(1);
         int workers = maybeWorkers.orElse(1);
         ReplicationController masterRc = getRCforMaster(name, masters, image);
