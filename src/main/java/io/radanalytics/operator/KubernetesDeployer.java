@@ -103,7 +103,8 @@ public class KubernetesDeployer {
     }
 
     private static Map<String, String> getSelector(String clusterName, String podName) {
-        Map<String, String> map = Collections.singletonMap("deployment", podName);
+        Map<String, String> map = new HashMap<>(2);
+        map.put("deployment", podName);
         map.put(OPERATOR_DOMAIN + OPERATOR_KIND_CLUSTER_LABEL, clusterName);
         return map;
     }
