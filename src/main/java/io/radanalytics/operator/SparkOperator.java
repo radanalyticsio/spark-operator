@@ -24,6 +24,8 @@ import org.slf4j.LoggerFactory;
 import java.util.Map;
 import java.util.Optional;
 
+import static io.radanalytics.operator.OperatorConfig.DEFAULT_SPARK_IMAGE;
+
 public class SparkOperator extends AbstractVerticle {
 
     private static final Logger log = LoggerFactory.getLogger(SparkOperator.class.getName());
@@ -35,6 +37,7 @@ public class SparkOperator extends AbstractVerticle {
     private final String namespace;
     private final boolean isOpenshift;
     private final long reconciliationInterval;
+    private final RunningClusters clusters;
 
     private volatile Watch configMapWatch;
 
@@ -47,6 +50,7 @@ public class SparkOperator extends AbstractVerticle {
         this.namespace = namespace;
         this.isOpenshift = isOpenshift;
         this.reconciliationInterval = reconciliationInterval;
+        this.clusters = new RunningClusters();
         this.client = client;
         this.selector = LabelsHelper.forCluster();
     }
@@ -106,6 +110,7 @@ public class SparkOperator extends AbstractVerticle {
                                         deleteCluster(cm, isOpenshift);
                                         break;
                                     case MODIFIED:
+                                        modifyCluster(cm, isOpenshift);
                                         break;
                                     case ERROR:
                                         log.error("Failed ConfigMap {} in namespace{} ", cm, namespace);
@@ -144,15 +149,19 @@ public class SparkOperator extends AbstractVerticle {
     private void addCluster(ConfigMap cm, boolean isOpenshift) {
         String name = ResourceHelper.name(cm);
         log.info("creating cluster:  \n{}\n", name);
-        Optional<String> image = HasDataHelper.image(cm);
-        Optional<Integer> masters = HasDataHelper.masters(cm).map(m -> Integer.parseInt(m));
-        Optional<Integer> workers = HasDataHelper.workers(cm).map(w -> Integer.parseInt(w));
+        Optional<String> maybeImage = HasDataHelper.image(cm);
+        Optional<Integer> maybeMasters = HasDataHelper.masters(cm).map(m -> Integer.parseInt(m));
+        Optional<Integer> maybeWorkers = HasDataHelper.workers(cm).map(w -> Integer.parseInt(w));
         if (isOpenshift) {
             ProcessRunner pr = new ProcessRunner();
-            pr.createCluster(name, image, masters, workers);
+            boolean success = pr.createCluster(name, maybeImage, maybeMasters, maybeWorkers);
+            if (success) {
+                clusters.put(name, maybeImage, maybeMasters, maybeWorkers);
+            }
         } else {
-            KubernetesResourceList list = KubernetesDeployer.getResourceList(name, image, masters, workers);
+            KubernetesResourceList list = KubernetesDeployer.getResourceList(name, maybeImage, maybeMasters, maybeWorkers);
             client.resourceList(list).createOrReplace();
+            clusters.put(name, maybeImage, maybeMasters, maybeWorkers);
             log.info("Cluster {} has been created", name);
         }
     }
@@ -163,12 +172,47 @@ public class SparkOperator extends AbstractVerticle {
 
         if (isOpenshift) {
             ProcessRunner pr = new ProcessRunner();
-            pr.deleteCluster(name);
+            boolean success = pr.deleteCluster(name);
+            if (success) {
+                clusters.delete(name);
+            }
         } else {
             client.services().withLabels(KubernetesDeployer.getClusterLabels(name)).delete();
             client.replicationControllers().withLabels(KubernetesDeployer.getClusterLabels(name)).delete();
             client.pods().withLabels(KubernetesDeployer.getClusterLabels(name)).delete();
+            clusters.delete(name);
             log.info("Cluster {} has been deleted", name);
+        }
+    }
+
+    private void modifyCluster(ConfigMap cm, boolean isOpenshift) {
+        String name = ResourceHelper.name(cm);
+        log.info("modifying cluster:  \n{}\n", name);
+        Optional<String> maybeImage = HasDataHelper.image(cm);
+        Optional<Integer> maybeMasters = HasDataHelper.masters(cm).map(m -> Integer.parseInt(m));
+        Optional<Integer> maybeWorkers = HasDataHelper.workers(cm).map(w -> Integer.parseInt(w));
+        String image = maybeImage.orElse(DEFAULT_SPARK_IMAGE);
+        int masters = maybeMasters.orElse(1);
+        int workers = maybeWorkers.orElse(1);
+        RunningClusters.ClusterInfo cluster = clusters.getCluster(name);
+        log.info("scaling from {} worker replicas to {}", cluster.getWorkers(), workers);
+
+        if (isOpenshift) {
+            if (cluster.getWorkers() != workers) {
+                ProcessRunner pr = new ProcessRunner();
+                boolean success = pr.scaleCluster(name, workers);
+                if (success) {
+                    clusters.put(name, maybeImage, maybeMasters, maybeWorkers);
+                }
+            }
+            // todo: image change, masters # change for OpenShift
+        } else {
+            if (cluster.getWorkers() != workers) {
+                client.replicationControllers().withName(name + "-w").scale(workers);
+                clusters.put(name, maybeImage, maybeMasters, maybeWorkers);
+                log.info("Cluster {} has been modified", name);
+            }
+            // todo: image change, masters # change for k8s
         }
     }
 

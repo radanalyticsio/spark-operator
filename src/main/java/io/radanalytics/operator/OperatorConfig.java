@@ -24,6 +24,8 @@ public class OperatorConfig {
     public static final long DEFAULT_FULL_RECONCILIATION_INTERVAL_MS = 120_000;
     public static final long DEFAULT_OPERATION_TIMEOUT_MS = 60_000;
 
+    public static final String DEFAULT_SPARK_IMAGE = "radanalyticsio/openshift-spark:2.3-latest";
+
     private final Set<String> namespaces;
     private final long reconciliationIntervalMs;
     private final long operationTimeoutMs;
