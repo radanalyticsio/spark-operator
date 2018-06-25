@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: spark-cluster-with-data
+  labels:
+    radanalytics.io/kind: cluster
+data:
+  worker-nodes: "2"
+  master-nodes: "1"
+  worker-spec:
+    download:
+    - url: https://data.cityofnewyork.us/api/views/kku6-nxdu/rows.csv
+      to: /data
