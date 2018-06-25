@@ -4,16 +4,16 @@ import io.fabric8.kubernetes.api.model.*;
 
 import java.util.*;
 
-import static io.radanalytics.operator.OperatorConfig.DEFAULT_SPARK_IMAGE;
 import static io.radanalytics.operator.resource.LabelsHelper.OPERATOR_DOMAIN;
 import static io.radanalytics.operator.resource.LabelsHelper.OPERATOR_KIND_CLUSTER_LABEL;
 
 public class KubernetesDeployer {
 
-    public static KubernetesResourceList getResourceList(String name, Optional<String> maybeImage, Optional<Integer> maybeMasters, Optional<Integer> maybeWorkers) {
-        String image = maybeImage.orElse(DEFAULT_SPARK_IMAGE);
-        int masters = maybeMasters.orElse(1);
-        int workers = maybeWorkers.orElse(1);
+    public static KubernetesResourceList getResourceList(ClusterInfo cluster) {
+        String name = cluster.getName();
+        String image = cluster.getImage();
+        int masters = cluster.getMasters();
+        int workers = cluster.getWorkers();
         ReplicationController masterRc = getRCforMaster(name, masters, image);
         ReplicationController workerRc = getRCforWorker(name, workers, image);
         Service masterService = getService(name, name, name + "-m-1", 7077);
@@ -84,20 +84,38 @@ public class KubernetesDeployer {
                 .withTerminationMessagePolicy("File")
                 .withPorts(ports);
 
+        if (true) {
+            VolumeMount mount = new VolumeMountBuilder().withName("data-dir").withMountPath("/tmp").build();
+            containerBuilder.withVolumeMounts(mount);
+        }
+
         if (isMaster) {
             containerBuilder = containerBuilder.withReadinessProbe(generalProbe).withLivenessProbe(masterLiveness);
         } else {
             containerBuilder.withLivenessProbe(generalProbe);
         }
 
-        ReplicationController rc = new ReplicationControllerBuilder().withNewMetadata()
+        PodTemplateSpecFluent.SpecNested<ReplicationControllerSpecFluent.TemplateNested<ReplicationControllerFluent.SpecNested<ReplicationControllerBuilder>>> aux = new ReplicationControllerBuilder().withNewMetadata()
                 .withName(podName).withLabels(getClusterLabels(name))
                 .endMetadata()
                 .withNewSpec().withReplicas(replicas)
                 .withSelector(labels)
                 .withNewTemplate().withNewMetadata().withLabels(labels).endMetadata()
-                .withNewSpec().withContainers(containerBuilder.build())
-                .endSpec().endTemplate().endSpec().build();
+                .withNewSpec().withContainers(containerBuilder.build());
+        if (true) {
+            VolumeMount mount = new VolumeMountBuilder().withName("data-dir").withMountPath("/tmp").build();
+            Container initContainer = new ContainerBuilder()
+                    .withName("downloader")
+                    .withImage("busybox")
+                    .withCommand("wget", "https://data.cityofnewyork.us/api/views/kku6-nxdu/rows.csv", "-P", "/tmp")
+                    .withVolumeMounts(mount)
+                    .build();
+            Volume volume = new VolumeBuilder().withName("data-dir").withNewEmptyDir().endEmptyDir().build();
+            aux.withInitContainers(initContainer).withVolumes(volume);
+        }
+
+        ReplicationController rc =
+                aux.endSpec().endTemplate().endSpec().build();
         return rc;
     }
 

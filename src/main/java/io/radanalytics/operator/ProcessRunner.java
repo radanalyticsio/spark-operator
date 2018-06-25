@@ -1,5 +1,8 @@
 package io.radanalytics.operator;
 
+import io.fabric8.kubernetes.api.model.ConfigMap;
+import io.radanalytics.operator.resource.HasDataHelper;
+import io.radanalytics.operator.resource.ResourceHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,11 +18,19 @@ public class ProcessRunner {
 
     private static final Logger log = LoggerFactory.getLogger(ProcessRunner.class.getName());
 
-    public boolean createCluster(String name, Optional<String> image, Optional<Integer> masters, Optional<Integer> workers) {
+    public boolean createCluster(ConfigMap cm) {
+        String name = ResourceHelper.name(cm);
+        Optional<String> maybeImage = HasDataHelper.image(cm);
+        Optional<Integer> maybeMasters = HasDataHelper.masters(cm).map(m -> Integer.parseInt(m));
+        Optional<Integer> maybeWorkers = HasDataHelper.workers(cm).map(w -> Integer.parseInt(w));
+        return createCluster(name, maybeImage, maybeMasters, maybeWorkers);
+    }
+
+    private boolean createCluster(String name, Optional<String> maybeImage, Optional<Integer> maybeMasters, Optional<Integer> maybeWorkers) {
         StringBuilder sb = getCommonParams();
-        image.ifPresent(value -> sb.append(" --image=").append(value));
-        masters.ifPresent(value -> sb.append(" --masters=").append(value));
-        workers.ifPresent(value -> sb.append(" --workers=").append(value));
+        maybeImage.ifPresent(value -> sb.append(" --image=").append(value));
+        maybeMasters.ifPresent(value -> sb.append(" --masters=").append(value));
+        maybeWorkers.ifPresent(value -> sb.append(" --workers=").append(value));
         return runOshinko("create " + name + sb.toString());
     }
 
