@@ -5,7 +5,7 @@ metadata:
   labels:
     radanalytics.io/kind: cluster  # compulsory
 data:
-  worker-nodes: "2"                # optional defaults to 1
-  master-nodes: "1"                # optional defaults to 1
-#  custom-image: ""                # optional defaults to radanalyticsio/openshift-spark
+  workerNodes: "2"                # optional defaults to 1
+  masterNodes: "1"                # optional defaults to 1
+#  customImage: ""                 # optional defaults to radanalyticsio/openshift-spark
   
