@@ -11,7 +11,6 @@ import io.fabric8.kubernetes.client.Watcher;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.kubernetes.client.dsl.Watchable;
-import io.radanalytics.operator.resource.HasDataHelper;
 import io.radanalytics.operator.resource.LabelsHelper;
 import io.radanalytics.operator.resource.ResourceHelper;
 import io.vertx.core.AbstractVerticle;
@@ -22,9 +21,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Map;
-import java.util.Optional;
-
-import static io.radanalytics.operator.OperatorConfig.DEFAULT_SPARK_IMAGE;
 
 public class SparkOperator extends AbstractVerticle {
 
@@ -148,6 +144,9 @@ public class SparkOperator extends AbstractVerticle {
 
     private void addCluster(ConfigMap cm, boolean isOpenshift) {
         ClusterInfo cluster = ClusterInfo.fromCM(cm);
+        if (cluster == null) {
+            log.error("something went wrong, unable to parse cluster definition");
+        }
         String name = cluster.getName();
         log.info("creating cluster:  \n{}\n", name);
         if (isOpenshift) {
@@ -166,6 +165,9 @@ public class SparkOperator extends AbstractVerticle {
 
     private void deleteCluster(ConfigMap cm, boolean isOpenshift) {
         ClusterInfo cluster = ClusterInfo.fromCM(cm);
+        if (cluster == null) {
+            log.error("something went wrong, unable to parse cluster definition");
+        }
         String name = cluster.getName();
         log.info("deleting cluster:  \n{}\n", name);
 
@@ -186,16 +188,19 @@ public class SparkOperator extends AbstractVerticle {
 
     private void modifyCluster(ConfigMap cm, boolean isOpenshift) {
         ClusterInfo newCluster = ClusterInfo.fromCM(cm);
+        if (newCluster == null) {
+            log.error("something went wrong, unable to parse cluster definition");
+        }
         String name = newCluster.getName();
         log.info("modifying cluster:  \n{}\n", name);
-        String newImage = newCluster.getImage();
-        int newMasters = newCluster.getMasters();
-        int newWorkers = newCluster.getWorkers();
+        String newImage = newCluster.getCustomImage();
+        int newMasters = newCluster.getMasterNodes();
+        int newWorkers = newCluster.getWorkerNodes();
         ClusterInfo existingCluster = clusters.getCluster(name);
-        log.info("scaling from {} worker replicas to {}", existingCluster.getWorkers(), newWorkers);
+        log.info("scaling from {} worker replicas to {}", existingCluster.getWorkerNodes(), newWorkers);
 
         if (isOpenshift) {
-            if (existingCluster.getWorkers() != newWorkers) {
+            if (existingCluster.getWorkerNodes() != newWorkers) {
                 ProcessRunner pr = new ProcessRunner();
                 boolean success = pr.scaleCluster(name, newWorkers);
                 if (success) {
@@ -204,7 +209,7 @@ public class SparkOperator extends AbstractVerticle {
             }
             // todo: image change, masters # change for OpenShift
         } else {
-            if (existingCluster.getWorkers() != newWorkers) {
+            if (existingCluster.getWorkerNodes() != newWorkers) {
                 client.replicationControllers().withName(name + "-w-1").scale(newWorkers);
                 clusters.put(newCluster);
                 log.info("Cluster {} has been modified", name);

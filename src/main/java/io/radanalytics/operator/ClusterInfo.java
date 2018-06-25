@@ -2,57 +2,99 @@ package io.radanalytics.operator;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.radanalytics.operator.resource.HasDataHelper;
-import io.radanalytics.operator.resource.ResourceHelper;
 
-import java.util.Optional;
+import java.util.Collections;
+import java.util.List;
 
 import static io.radanalytics.operator.OperatorConfig.DEFAULT_SPARK_IMAGE;
 
 public class ClusterInfo {
-    private final String name;
-    private final String image;
-    private final int masters;
-    private final int workers;
+    public static class DL {
+        private String url;
+        private String to;
 
+        public DL() {
+            // has to be there because of the snakeyaml library
+        }
 
-    private ClusterInfo(String name, Optional<String> maybeImage, Optional<Integer> maybeMasters, Optional<Integer> maybeWorkers) {
-        this.name = name;
-        this.image = maybeImage.orElse(DEFAULT_SPARK_IMAGE);
-        this.masters = maybeMasters.orElse(1);
-        this.workers = maybeWorkers.orElse(1);
+        public String getUrl() {
+            return url;
+        }
+
+        public String getTo() {
+            return to;
+        }
+
+        public void setUrl(String url) {
+            this.url = url;
+        }
+
+        public void setTo(String to) {
+            this.to = to;
+        }
+    }
+
+    private String name;
+    private String customImage;
+    private int masterNodes;
+    private int workerNodes;
+    private List<DL> downloadData;
+
+    public ClusterInfo() {
+        // has to be there because of the snakeyaml library
     }
 
     public static ClusterInfo fromCM(ConfigMap cm) {
-        String name = ResourceHelper.name(cm);
-        Optional<String> maybeImage = HasDataHelper.image(cm);
-        Optional<Integer> maybeMasters = HasDataHelper.masters(cm).map(m -> Integer.parseInt(m));
-        Optional<Integer> maybeWorkers = HasDataHelper.workers(cm).map(w -> Integer.parseInt(w));
-        return new ClusterInfo(name, maybeImage, maybeMasters, maybeWorkers);
+        return HasDataHelper.parseCM(cm);
     }
 
     public String getName() {
         return name;
     }
 
-    public String getImage() {
-        return image;
+    public String getCustomImage() {
+        return customImage != null ? customImage : DEFAULT_SPARK_IMAGE;
     }
 
-    public int getMasters() {
-        return masters;
+    public int getMasterNodes() {
+        return masterNodes <= 0 ? 1 : masterNodes;
     }
 
-    public int getWorkers() {
-        return workers;
+    public int getWorkerNodes() {
+        return workerNodes <= 0 ? 1 : workerNodes;
+    }
+
+    public List<DL> getDownloadData() {
+        return downloadData == null ? Collections.EMPTY_LIST : downloadData;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setCustomImage(String customImage) {
+        this.customImage = customImage;
+    }
+
+    public void setMasterNodes(int masterNodes) {
+        this.masterNodes = masterNodes;
+    }
+
+    public void setWorkerNodes(int workerNodes) {
+        this.workerNodes = workerNodes;
+    }
+
+    public void setDownloadData(List<DL> downloadData) {
+        this.downloadData = downloadData;
     }
 
     @Override
     public String toString() {
         return "ClusterInfo{" +
-                "name='" + name + '\'' +
-                ", image='" + image + '\'' +
-                ", masters=" + masters +
-                ", workers=" + workers +
+                "name='" + getName() + '\'' +
+                ", customImage='" + getCustomImage() + '\'' +
+                ", masterNodes=" + getMasterNodes() +
+                ", workerNodes=" + getWorkerNodes() +
                 '}';
     }
 
