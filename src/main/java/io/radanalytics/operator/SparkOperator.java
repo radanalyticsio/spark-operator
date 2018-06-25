@@ -151,7 +151,7 @@ public class SparkOperator extends AbstractVerticle {
         log.info("creating cluster:  \n{}\n", name);
         if (isOpenshift) {
             ProcessRunner pr = new ProcessRunner();
-            boolean success = pr.createCluster(cm);
+            boolean success = pr.createCluster(cluster);
             if (success) {
                 clusters.put(cluster);
             }
