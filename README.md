@@ -55,7 +55,8 @@ metadata:
   labels:
     radanalytics.io/kind: cluster
 data:
-  worker-nodes: "2"
+  config: |-
+    workerNodes: "2"
 EOF
 ```
 

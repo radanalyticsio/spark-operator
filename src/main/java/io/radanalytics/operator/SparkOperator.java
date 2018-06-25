@@ -11,7 +11,6 @@ import io.fabric8.kubernetes.client.Watcher;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.kubernetes.client.dsl.Watchable;
-import io.radanalytics.operator.resource.HasDataHelper;
 import io.radanalytics.operator.resource.LabelsHelper;
 import io.radanalytics.operator.resource.ResourceHelper;
 import io.vertx.core.AbstractVerticle;
@@ -22,9 +21,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Map;
-import java.util.Optional;
-
-import static io.radanalytics.operator.OperatorConfig.DEFAULT_SPARK_IMAGE;
 
 public class SparkOperator extends AbstractVerticle {
 
@@ -147,27 +143,32 @@ public class SparkOperator extends AbstractVerticle {
     }
 
     private void addCluster(ConfigMap cm, boolean isOpenshift) {
-        String name = ResourceHelper.name(cm);
+        ClusterInfo cluster = ClusterInfo.fromCM(cm);
+        if (cluster == null) {
+            log.error("something went wrong, unable to parse cluster definition");
+        }
+        String name = cluster.getName();
         log.info("creating cluster:  \n{}\n", name);
-        Optional<String> maybeImage = HasDataHelper.image(cm);
-        Optional<Integer> maybeMasters = HasDataHelper.masters(cm).map(m -> Integer.parseInt(m));
-        Optional<Integer> maybeWorkers = HasDataHelper.workers(cm).map(w -> Integer.parseInt(w));
         if (isOpenshift) {
             ProcessRunner pr = new ProcessRunner();
-            boolean success = pr.createCluster(name, maybeImage, maybeMasters, maybeWorkers);
+            boolean success = pr.createCluster(cluster);
             if (success) {
-                clusters.put(name, maybeImage, maybeMasters, maybeWorkers);
+                clusters.put(cluster);
             }
         } else {
-            KubernetesResourceList list = KubernetesDeployer.getResourceList(name, maybeImage, maybeMasters, maybeWorkers);
+            KubernetesResourceList list = KubernetesDeployer.getResourceList(cluster);
             client.resourceList(list).createOrReplace();
-            clusters.put(name, maybeImage, maybeMasters, maybeWorkers);
+            clusters.put(cluster);
             log.info("Cluster {} has been created", name);
         }
     }
 
     private void deleteCluster(ConfigMap cm, boolean isOpenshift) {
-        String name = ResourceHelper.name(cm);
+        ClusterInfo cluster = ClusterInfo.fromCM(cm);
+        if (cluster == null) {
+            log.error("something went wrong, unable to parse cluster definition");
+        }
+        String name = cluster.getName();
         log.info("deleting cluster:  \n{}\n", name);
 
         if (isOpenshift) {
@@ -186,30 +187,34 @@ public class SparkOperator extends AbstractVerticle {
     }
 
     private void modifyCluster(ConfigMap cm, boolean isOpenshift) {
-        String name = ResourceHelper.name(cm);
+        ClusterInfo newCluster = ClusterInfo.fromCM(cm);
+        if (newCluster == null) {
+            log.error("something went wrong, unable to parse cluster definition");
+        }
+        String name = newCluster.getName();
         log.info("modifying cluster:  \n{}\n", name);
-        Optional<String> maybeImage = HasDataHelper.image(cm);
-        Optional<Integer> maybeMasters = HasDataHelper.masters(cm).map(m -> Integer.parseInt(m));
-        Optional<Integer> maybeWorkers = HasDataHelper.workers(cm).map(w -> Integer.parseInt(w));
-        String image = maybeImage.orElse(DEFAULT_SPARK_IMAGE);
-        int masters = maybeMasters.orElse(1);
-        int workers = maybeWorkers.orElse(1);
-        RunningClusters.ClusterInfo cluster = clusters.getCluster(name);
-        log.info("scaling from {} worker replicas to {}", cluster.getWorkers(), workers);
+        String newImage = newCluster.getCustomImage();
+        int newMasters = newCluster.getMasterNodes();
+        int newWorkers = newCluster.getWorkerNodes();
+        ClusterInfo existingCluster = clusters.getCluster(name);
+        if (null == existingCluster) {
+            log.error("something went wrong, unable to scale existing cluster. Perhaps it wasn't deployed properly.");
+        }
+        log.info("scaling from {} worker replicas to {}", existingCluster.getWorkerNodes(), newWorkers);
 
         if (isOpenshift) {
-            if (cluster.getWorkers() != workers) {
+            if (existingCluster.getWorkerNodes() != newWorkers) {
                 ProcessRunner pr = new ProcessRunner();
-                boolean success = pr.scaleCluster(name, workers);
+                boolean success = pr.scaleCluster(name, newWorkers);
                 if (success) {
-                    clusters.put(name, maybeImage, maybeMasters, maybeWorkers);
+                    clusters.put(newCluster);
                 }
             }
             // todo: image change, masters # change for OpenShift
         } else {
-            if (cluster.getWorkers() != workers) {
-                client.replicationControllers().withName(name + "-w-1").scale(workers);
-                clusters.put(name, maybeImage, maybeMasters, maybeWorkers);
+            if (existingCluster.getWorkerNodes() != newWorkers) {
+                client.replicationControllers().withName(name + "-w-1").scale(newWorkers);
+                clusters.put(newCluster);
                 log.info("Cluster {} has been modified", name);
             }
             // todo: image change, masters # change for k8s

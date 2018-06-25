@@ -5,33 +5,57 @@
 package io.radanalytics.operator.resource;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
+import io.radanalytics.operator.ClusterInfo;
+import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.constructor.Constructor;
+import org.yaml.snakeyaml.representer.Representer;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * A helper for parsing the data section inside the K8s resource
  */
 public class HasDataHelper {
 
+    private static Yaml snake = new Yaml(new Constructor(ClusterInfo.class));
+
     /**
-     * Returns the value of the {@code data.worker-nodes} of the given {@code resource}.
+     * Returns the value of the {@code data.workerNodes} of the given {@code resource}.
      */
     public static Optional<String> workers(ConfigMap cm) {
-        return getValue(cm, "worker-nodes");
+        return getValue(cm, "workerNodes");
     }
 
     /**
-     * Returns the value of the {@code data.master-nodes} of the given {@code resource}.
+     * Returns the value of the {@code data.masterNodes} of the given {@code resource}.
      */
     public static Optional<String> masters(ConfigMap cm) {
-        return getValue(cm, "master-nodes");
+        return getValue(cm, "masterNodes");
     }
 
     /**
-     * Returns the value of the {@code data.custom-image} of the given {@code resource}.
+     * Returns the value of the {@code data.customImage} of the given {@code resource}.
      */
     public static Optional<String> image(ConfigMap cm) {
-        return getValue(cm, "custom-image");
+        return getValue(cm, "customImage");
+    }
+
+    public static ClusterInfo parseCM(ConfigMap cm) {
+        String yaml = cm.getData().get("config");
+        Representer representer = new Representer();
+        representer.getPropertyUtils().setSkipMissingProperties(true);
+        snake = new Yaml(new Constructor(ClusterInfo.class), representer);
+        try {
+            ClusterInfo cluster = snake.load(yaml);
+            cluster.setName(cm.getMetadata().getName());
+            return cluster;
+        } catch (NullPointerException npe) {
+            throw new IllegalArgumentException("Unable to parse yaml definition of configmap, check if you don't have typo: \n" +
+            cm.getData().get("config"));
+        }
     }
 
     private static Optional<String> getValue(ConfigMap cm, String key) {

@@ -7,7 +7,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Arrays;
-import java.util.Optional;
 
 import static io.radanalytics.operator.AnsiColors.*;
 
@@ -15,12 +14,12 @@ public class ProcessRunner {
 
     private static final Logger log = LoggerFactory.getLogger(ProcessRunner.class.getName());
 
-    public boolean createCluster(String name, Optional<String> image, Optional<Integer> masters, Optional<Integer> workers) {
+    public boolean createCluster(ClusterInfo cluster) {
         StringBuilder sb = getCommonParams();
-        image.ifPresent(value -> sb.append(" --image=").append(value));
-        masters.ifPresent(value -> sb.append(" --masters=").append(value));
-        workers.ifPresent(value -> sb.append(" --workers=").append(value));
-        return runOshinko("create " + name + sb.toString());
+        sb.append(" --image=").append(cluster.getCustomImage());
+        sb.append(" --masters=").append(cluster.getMasterNodes());
+        sb.append(" --workers=").append(cluster.getWorkerNodes());
+        return runOshinko("create " + cluster.getName() + sb.toString());
     }
 
     public boolean deleteCluster(String name) {
@@ -48,7 +47,7 @@ public class ProcessRunner {
             }
             String stdOutput = sb.toString();
             if (!stdOutput.isEmpty()) {
-                log.info("{}{}{}",ANSI_G, stdOutput, ANSI_RESET);
+                log.info("{}{}{}", ANSI_G, stdOutput, ANSI_RESET);
             }
             in.close();
 
@@ -58,8 +57,8 @@ public class ProcessRunner {
             }
             String errOutput = sb.toString();
             if (!errOutput.isEmpty()) {
-                log.error("{}{}{}",ANSI_R, stdOutput, ANSI_RESET);
-                return false;
+                log.error("{}'{}'{}", ANSI_R, stdOutput, ANSI_RESET);
+                return p.exitValue() != 0;
             }
             err.close();
             return true;
