@@ -197,6 +197,9 @@ public class SparkOperator extends AbstractVerticle {
         int newMasters = newCluster.getMasterNodes();
         int newWorkers = newCluster.getWorkerNodes();
         ClusterInfo existingCluster = clusters.getCluster(name);
+        if (null == existingCluster) {
+            log.error("something went wrong, unable to scale existing cluster. Perhaps it wasn't deployed properly.");
+        }
         log.info("scaling from {} worker replicas to {}", existingCluster.getWorkerNodes(), newWorkers);
 
         if (isOpenshift) {
