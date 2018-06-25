@@ -15,7 +15,7 @@ public class ClusterInfo {
     private final int workers;
 
 
-    public ClusterInfo(String name, Optional<String> maybeImage, Optional<Integer> maybeMasters, Optional<Integer> maybeWorkers) {
+    private ClusterInfo(String name, Optional<String> maybeImage, Optional<Integer> maybeMasters, Optional<Integer> maybeWorkers) {
         this.name = name;
         this.image = maybeImage.orElse(DEFAULT_SPARK_IMAGE);
         this.masters = maybeMasters.orElse(1);
