@@ -77,6 +77,9 @@ oc create -f https://raw.githubusercontent.com/Jiri-Kremser/spark-operator/dist/
 ```
 (or even http://bit.ly/oc-spark)
 
+### Demo
+<a href="https://asciinema.org/a/188744?autoplay=1"><img src="https://asciinema.org/a/188744.png" width="836"/></a>
+
 ### Images
 [![Layers info](https://images.microbadger.com/badges/image/jkremser/spark-operator.svg)](https://microbadger.com/images/jkremser/spark-operator)
 `jkremser/spark-operator:latest`
