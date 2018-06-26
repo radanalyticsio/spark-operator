@@ -35,7 +35,7 @@
         <fabric8.zjsonpatch.version>0.3.0</fabric8.zjsonpatch.version>
         <snakeyaml.version>1.21</snakeyaml.version>
         <vertx.version>3.5.1</vertx.version>
-        <slf4j.version>1.7.22</slf4j.version>
+        <slf4j.version>1.7.25</slf4j.version>
         <junit.version>4.12</junit.version>
     </properties>
 
