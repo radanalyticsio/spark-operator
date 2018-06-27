@@ -54,6 +54,10 @@ public class LabelsHelper {
         return forKind(OPERATOR_KIND_APP_LABEL);
     }
 
+    public static Map<String, String> forNotebook() {
+        return forKind(OPERATOR_KIND_NOTEBOOK_LABEL);
+    }
+
     private static Map<String, String> forKind(String kind) {
         return Collections.singletonMap(OPERATOR_KIND_LABEL, kind);
     }

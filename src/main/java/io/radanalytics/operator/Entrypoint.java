@@ -4,6 +4,11 @@ import com.jcabi.manifests.Manifests;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.openshift.client.OpenShiftClient;
+import io.radanalytics.operator.app.AppOperator;
+import io.radanalytics.operator.cluster.ClusterOperator;
+import io.radanalytics.operator.common.AbstractOperator;
+import io.radanalytics.operator.common.EntityInfo;
+import io.radanalytics.operator.common.OperatorConfig;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
@@ -15,8 +20,9 @@ import org.slf4j.LoggerFactory;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
-import static io.radanalytics.operator.AnsiColors.*;
+import static io.radanalytics.operator.common.AnsiColors.*;
 
 public class Entrypoint {
 
@@ -66,22 +72,26 @@ public class Entrypoint {
     }
 
     private static Future runForNamespace(Vertx vertx, KubernetesClient client, boolean isOpenShift, String namespace) {
-        Future<String> future = Future.future();
 
-        ClusterOperator operator = new ClusterOperator(namespace,
-                isOpenShift,
-                client);
-        vertx.deployVerticle(operator,
-                res -> {
-                    if (res.succeeded()) {
-                        log.info("Cluster Operator verticle started in namespace {}", namespace);
-                    } else {
-                        log.error("Cluster Operator verticle in namespace {} failed to start", namespace, res.cause());
-                        System.exit(1);
-                    }
-                    future.completer().handle(res);
-                });
-        return future;
+        ClusterOperator clusterOperator = new ClusterOperator(namespace, isOpenShift, client);
+        AppOperator appOperator = new AppOperator(namespace, isOpenShift, client);
+
+        List<Future> futures = new ArrayList<>();
+        Stream.of(clusterOperator, appOperator).forEach(operator -> {
+            Future<String> future = Future.future();
+            futures.add(future);
+            vertx.deployVerticle(operator,
+                    res -> {
+                        if (res.succeeded()) {
+                            log.info("{} verticle started in namespace {}", operator.getName(), namespace);
+                        } else {
+                            log.error("{} verticle in namespace {} failed to start", operator.getName(), namespace, res.cause());
+                            System.exit(1);
+                        }
+                        future.completer().handle(res);
+                    });
+        });
+        return CompositeFuture.join(futures);
     }
 
     private static Future<Boolean> isOnOpenShift(Vertx vertx, KubernetesClient client)  {

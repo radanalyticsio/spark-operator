@@ -2,7 +2,7 @@
  * Copyright 2017-2018
  * License: Apache License 2.0 (see the file LICENSE or http://apache.org/licenses/LICENSE-2.0.html).
  */
-package io.radanalytics.operator;
+package io.radanalytics.operator.common;
 
 import java.util.HashSet;
 import java.util.Map;

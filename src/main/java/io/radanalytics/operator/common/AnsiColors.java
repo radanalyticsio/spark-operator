@@ -1,4 +1,4 @@
-package io.radanalytics.operator;
+package io.radanalytics.operator.common;
 
 public class AnsiColors {
     public static final String ANSI_R = "\u001B[31m";

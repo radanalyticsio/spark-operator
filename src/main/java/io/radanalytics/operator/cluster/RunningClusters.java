@@ -1,11 +1,10 @@
-package io.radanalytics.operator;
+package io.radanalytics.operator.cluster;
 
 import java.util.HashMap;
 import java.util.Map;
 
 
 public class RunningClusters {
-
 
     private final Map<String, ClusterInfo> clusters = new HashMap<>();
 

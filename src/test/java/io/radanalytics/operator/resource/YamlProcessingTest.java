@@ -1,10 +1,11 @@
 package io.radanalytics.operator.resource;
 
 
+import io.fabric8.kubernetes.api.model.Cluster;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.radanalytics.operator.ClusterInfo;
+import io.radanalytics.operator.cluster.ClusterInfo;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -13,7 +14,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
-import static io.radanalytics.operator.OperatorConfig.DEFAULT_SPARK_IMAGE;
+import static io.radanalytics.operator.common.OperatorConfig.DEFAULT_SPARK_IMAGE;
 import static org.junit.Assert.*;
 
 public class YamlProcessingTest {
@@ -37,7 +38,7 @@ public class YamlProcessingTest {
     @Test
     public void testParseCM1() {
         ConfigMap cm1 = client.configMaps().load(path1).get();
-        ClusterInfo clusterInfo = HasDataHelper.parseCM(cm1);
+        ClusterInfo clusterInfo = HasDataHelper.parseCM(ClusterInfo.class, cm1);
 
         assertEquals(clusterInfo.getName(), "my-spark-cluster");
         assertEquals(clusterInfo.getWorkerNodes(), 2);
@@ -47,7 +48,7 @@ public class YamlProcessingTest {
     @Test
     public void testParseCM2() {
         ConfigMap cm2 = client.configMaps().load(path2).get();
-        ClusterInfo clusterInfo = HasDataHelper.parseCM(cm2);
+        ClusterInfo clusterInfo = HasDataHelper.parseCM(ClusterInfo.class, cm2);
 
         assertEquals(clusterInfo.getMasterNodes(), 1);
         assertEquals(clusterInfo.getDownloadData().size(), 2);
@@ -56,7 +57,7 @@ public class YamlProcessingTest {
 
     @Test
     public void testParseYaml1() {
-        ClusterInfo clusterInfo = HasDataHelper.parseYaml(cluster1, "foo");
+        ClusterInfo clusterInfo = HasDataHelper.parseYaml(ClusterInfo.class, cluster1, "foo");
 
         assertEquals(clusterInfo.getName(), "foo");
         assertEquals(clusterInfo.getWorkerNodes(), 2);
@@ -65,7 +66,7 @@ public class YamlProcessingTest {
 
     @Test
     public void testParseYaml2() {
-        ClusterInfo clusterInfo = HasDataHelper.parseYaml(cluster2, "bar");
+        ClusterInfo clusterInfo = HasDataHelper.parseYaml(ClusterInfo.class, cluster2, "bar");
 
         assertEquals(clusterInfo.getName(), "bar");
         assertEquals(clusterInfo.getMasterNodes(), 1);
@@ -74,11 +75,11 @@ public class YamlProcessingTest {
 
     @Test
     public void testParseGeneral() {
-        ClusterInfo clusterInfo1 = HasDataHelper.parseYaml(cluster1, "foobar");
+        ClusterInfo clusterInfo1 = HasDataHelper.parseYaml(ClusterInfo.class, cluster1, "foobar");
         ConfigMap cm1 = client.configMaps().load(path1).get();
 
-        ClusterInfo clusterInfo2 = HasDataHelper.parseCM(cm1);
-        ClusterInfo clusterInfo3 = HasDataHelper.parseYaml(cluster1, "my-spark-cluster");
+        ClusterInfo clusterInfo2 = HasDataHelper.parseCM(ClusterInfo.class, cm1);
+        ClusterInfo clusterInfo3 = HasDataHelper.parseYaml(ClusterInfo.class, cluster1, "my-spark-cluster");
 
         // different name
         assertNotEquals(clusterInfo1, clusterInfo2);

@@ -1,9 +1,8 @@
-package io.radanalytics.operator;
+package io.radanalytics.operator.common;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapList;
 import io.fabric8.kubernetes.api.model.DoneableConfigMap;
-import io.fabric8.kubernetes.api.model.KubernetesResourceList;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.Watch;
@@ -11,8 +10,6 @@ import io.fabric8.kubernetes.client.Watcher;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.kubernetes.client.dsl.Watchable;
-import io.radanalytics.operator.resource.LabelsHelper;
-import io.radanalytics.operator.resource.ResourceHelper;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
@@ -22,52 +19,71 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 
-import static io.radanalytics.operator.AnsiColors.*;
+import static io.radanalytics.operator.common.AnsiColors.ANSI_G;
+import static io.radanalytics.operator.common.AnsiColors.ANSI_RESET;
 
-public class ClusterOperator extends AbstractVerticle {
+public abstract class AbstractOperator<T extends EntityInfo> extends AbstractVerticle {
 
-    private static final Logger log = LoggerFactory.getLogger(ClusterOperator.class.getName());
+    private static final Logger log = LoggerFactory.getLogger(AbstractOperator.class.getName());
 
-    private final KubernetesClient client;
+    protected final KubernetesClient client;
     private final Map<String, String> selector;
+    private final String entityName;
+    private final String operatorName;
     private final String namespace;
     private final boolean isOpenshift;
-    private final RunningClusters clusters;
+
     private volatile Watch configMapWatch;
 
-    public ClusterOperator(String namespace,
-                           boolean isOpenshift,
-                           KubernetesClient client) {
+    public AbstractOperator(String namespace,
+                            boolean isOpenshift,
+                            KubernetesClient client,
+                            String entityName,
+                            Map<String, String> selector) {
         this.namespace = namespace;
         this.isOpenshift = isOpenshift;
-        this.clusters = new RunningClusters();
         this.client = client;
-        this.selector = LabelsHelper.forCluster();
+        this.entityName = entityName;
+        this.selector = selector;
+        this.operatorName = entityName + " Operator";
+    }
+
+    abstract protected void onAdd(T entity, boolean isOpenshift);
+
+    abstract protected void onDelete(T entity, boolean isOpenshift);
+
+    abstract protected void onModify(T entity, boolean isOpenshift);
+
+    abstract protected boolean isSupported(ConfigMap cm);
+
+    abstract protected T convert(ConfigMap cm);
+
+    public String getName() {
+        return operatorName;
     }
 
     @Override
     public void start(Future<Void> start) {
-        log.info("Starting ClusterOperator for namespace {}", namespace);
+        log.info("Starting {} for namespace {}", operatorName, namespace);
 
         createConfigMapWatch(res -> {
             if (res.succeeded()) {
                 configMapWatch = res.result();
-                log.info("ClusterOperator running for namespace {}", namespace);
+                log.info("{} running for namespace {}", operatorName, namespace);
 
                 start.complete();
             } else {
-                log.error("ClusterOperator startup failed for namespace {}", namespace, res.cause());
-                start.fail("ClusterOperator startup failed for namespace " + namespace);
+                log.error("{} startup failed for namespace {}", operatorName, namespace, res.cause());
+                start.fail(operatorName + " startup failed for namespace {}" + namespace);
             }
         });
     }
 
     @Override
     public void stop(Future<Void> stop) {
-        log.info("Stopping ClusterOperator for namespace {}", namespace);
+        log.info("Stopping {} for namespace {}", operatorName, namespace);
         configMapWatch.close();
         client.close();
-
         stop.complete();
     }
 
@@ -79,17 +95,28 @@ public class ClusterOperator extends AbstractVerticle {
                     Watch watch = watchable.watch(new Watcher<ConfigMap>() {
                         @Override
                         public void eventReceived(Action action, ConfigMap cm) {
-                            if (ResourceHelper.isCluster(cm)) {
+                            if (isSupported(cm)) {
                                 log.info("ConfigMap \n{}\n in namespace {} was {}", cm, namespace, action);
+                                T entity = convert(cm);
+                                if (entity == null) {
+                                    log.error("something went wrong, unable to parse {} definition", entityName);
+                                }
+                                String name = entity.getName();
                                 switch (action) {
                                     case ADDED:
-                                        addCluster(cm, isOpenshift);
+                                        log.info("{}creating{} {}:  \n{}\n", ANSI_G, ANSI_RESET, entityName, name);
+                                        onAdd(entity, isOpenshift);
+                                        log.info("{} {} has been {}created{}", entityName, name, ANSI_G, ANSI_RESET);
                                         break;
                                     case DELETED:
-                                        deleteCluster(cm, isOpenshift);
+                                        log.info("{}deleting{} {}:  \n{}\n", ANSI_G, ANSI_RESET, entityName, name);
+                                        onDelete(entity, isOpenshift);
+                                        log.info("{} {} has been {}deleted{}", entityName, name, ANSI_G, ANSI_RESET);
                                         break;
                                     case MODIFIED:
-                                        modifyCluster(cm, isOpenshift);
+                                        log.info("{}modifying{} {}:  \n{}\n", ANSI_G, ANSI_RESET, entityName, name);
+                                        onModify(entity, isOpenshift);
+                                        log.info("{} {} has been {}modified{}", entityName, name, ANSI_G, ANSI_RESET);
                                         break;
                                     case ERROR:
                                         log.error("Failed ConfigMap {} in namespace{} ", cm, namespace);
@@ -97,6 +124,8 @@ public class ClusterOperator extends AbstractVerticle {
                                     default:
                                         log.error("Unknown action: {} in namespace {}", action, namespace);
                                 }
+                            } else {
+                                log.error("Unknown CM kind: {}", cm.toString());
                             }
                         }
 
@@ -121,58 +150,6 @@ public class ClusterOperator extends AbstractVerticle {
                     }
                 }
         );
-    }
-
-    private void addCluster(ConfigMap cm, boolean isOpenshift) {
-        ClusterInfo cluster = ClusterInfo.fromCM(cm);
-        if (cluster == null) {
-            log.error("something went wrong, unable to parse cluster definition");
-        }
-        String name = cluster.getName();
-        log.info("{}creating{} cluster:  \n{}\n", ANSI_G, ANSI_RESET, name);
-        KubernetesResourceList list = KubernetesDeployer.getResourceList(cluster);
-        client.resourceList(list).createOrReplace();
-        clusters.put(cluster);
-        log.info("Cluster {} has been created", name);
-    }
-
-    private void deleteCluster(ConfigMap cm, boolean isOpenshift) {
-        ClusterInfo cluster = ClusterInfo.fromCM(cm);
-        if (cluster == null) {
-            log.error("something went wrong, unable to parse cluster definition");
-        }
-        String name = cluster.getName();
-        log.info("{}deleting{} cluster:  \n{}\n", ANSI_G, ANSI_RESET, name);
-        client.services().withLabels(KubernetesDeployer.getClusterLabels(name)).delete();
-        client.replicationControllers().withLabels(KubernetesDeployer.getClusterLabels(name)).delete();
-        client.pods().withLabels(KubernetesDeployer.getClusterLabels(name)).delete();
-        clusters.delete(name);
-        log.info("Cluster {} has been deleted", name);
-    }
-
-    private void modifyCluster(ConfigMap cm, boolean isOpenshift) {
-        ClusterInfo newCluster = ClusterInfo.fromCM(cm);
-        if (newCluster == null) {
-            log.error("something went wrong, unable to parse cluster definition");
-        }
-        String name = newCluster.getName();
-        log.info("modifying cluster:  \n{}\n", name);
-        String newImage = newCluster.getCustomImage();
-        int newMasters = newCluster.getMasterNodes();
-        int newWorkers = newCluster.getWorkerNodes();
-        ClusterInfo existingCluster = clusters.getCluster(name);
-        if (null == existingCluster) {
-            log.error("something went wrong, unable to scale existing cluster. Perhaps it wasn't deployed properly.");
-        }
-
-        if (existingCluster.getWorkerNodes() != newWorkers) {
-            log.info("{}scaling{} from {}{}{} worker replicas to {}{}{}", ANSI_G, ANSI_RESET, ANSI_Y,
-                    existingCluster.getWorkerNodes(), ANSI_RESET, ANSI_Y, newWorkers, ANSI_RESET);
-            client.replicationControllers().withName(name + "-w-1").scale(newWorkers);
-            clusters.put(newCluster);
-            log.info("Cluster {} has been modified", name);
-        }
-        // todo: image change, masters # change for k8s
     }
 
     private void recreateConfigMapWatch() {
