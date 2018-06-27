@@ -1,16 +1,14 @@
 /*
- * Copyright 2017-2018, OSHINKO authors.
+ * Copyright 2017-2018
  * License: Apache License 2.0 (see the file LICENSE or http://apache.org/licenses/LICENSE-2.0.html).
  */
 package io.radanalytics.operator;
 
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
 import static java.util.Arrays.asList;
-import static java.util.Collections.unmodifiableSet;
 
 /**
  * Cluster Operator configuration
