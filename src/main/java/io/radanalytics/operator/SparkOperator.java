@@ -22,6 +22,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 
+import static io.radanalytics.operator.AnsiColors.*;
+
 public class SparkOperator extends AbstractVerticle {
 
     private static final Logger log = LoggerFactory.getLogger(SparkOperator.class.getName());
@@ -148,7 +150,7 @@ public class SparkOperator extends AbstractVerticle {
             log.error("something went wrong, unable to parse cluster definition");
         }
         String name = cluster.getName();
-        log.info("creating cluster:  \n{}\n", name);
+        log.info("{}creating{} cluster:  \n{}\n", ANSI_G, ANSI_RESET, name);
         KubernetesResourceList list = KubernetesDeployer.getResourceList(cluster);
         client.resourceList(list).createOrReplace();
         clusters.put(cluster);
@@ -161,7 +163,7 @@ public class SparkOperator extends AbstractVerticle {
             log.error("something went wrong, unable to parse cluster definition");
         }
         String name = cluster.getName();
-        log.info("deleting cluster:  \n{}\n", name);
+        log.info("{}deleting{} cluster:  \n{}\n", ANSI_G, ANSI_RESET, name);
         client.services().withLabels(KubernetesDeployer.getClusterLabels(name)).delete();
         client.replicationControllers().withLabels(KubernetesDeployer.getClusterLabels(name)).delete();
         client.pods().withLabels(KubernetesDeployer.getClusterLabels(name)).delete();
@@ -183,9 +185,10 @@ public class SparkOperator extends AbstractVerticle {
         if (null == existingCluster) {
             log.error("something went wrong, unable to scale existing cluster. Perhaps it wasn't deployed properly.");
         }
-        log.info("scaling from {} worker replicas to {}", existingCluster.getWorkerNodes(), newWorkers);
 
         if (existingCluster.getWorkerNodes() != newWorkers) {
+            log.info("{}scaling{} from {}{}{} worker replicas to {}{}{}", ANSI_G, ANSI_RESET, ANSI_Y,
+                    existingCluster.getWorkerNodes(), ANSI_RESET, ANSI_Y, newWorkers, ANSI_RESET);
             client.replicationControllers().withName(name + "-w-1").scale(newWorkers);
             clusters.put(newCluster);
             log.info("Cluster {} has been modified", name);
