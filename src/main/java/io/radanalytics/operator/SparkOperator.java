@@ -149,18 +149,10 @@ public class SparkOperator extends AbstractVerticle {
         }
         String name = cluster.getName();
         log.info("creating cluster:  \n{}\n", name);
-        if (isOpenshift) {
-            ProcessRunner pr = new ProcessRunner();
-            boolean success = pr.createCluster(cluster);
-            if (success) {
-                clusters.put(cluster);
-            }
-        } else {
-            KubernetesResourceList list = KubernetesDeployer.getResourceList(cluster);
-            client.resourceList(list).createOrReplace();
-            clusters.put(cluster);
-            log.info("Cluster {} has been created", name);
-        }
+        KubernetesResourceList list = KubernetesDeployer.getResourceList(cluster);
+        client.resourceList(list).createOrReplace();
+        clusters.put(cluster);
+        log.info("Cluster {} has been created", name);
     }
 
     private void deleteCluster(ConfigMap cm, boolean isOpenshift) {
@@ -170,20 +162,11 @@ public class SparkOperator extends AbstractVerticle {
         }
         String name = cluster.getName();
         log.info("deleting cluster:  \n{}\n", name);
-
-        if (isOpenshift) {
-            ProcessRunner pr = new ProcessRunner();
-            boolean success = pr.deleteCluster(name);
-            if (success) {
-                clusters.delete(name);
-            }
-        } else {
-            client.services().withLabels(KubernetesDeployer.getClusterLabels(name)).delete();
-            client.replicationControllers().withLabels(KubernetesDeployer.getClusterLabels(name)).delete();
-            client.pods().withLabels(KubernetesDeployer.getClusterLabels(name)).delete();
-            clusters.delete(name);
-            log.info("Cluster {} has been deleted", name);
-        }
+        client.services().withLabels(KubernetesDeployer.getClusterLabels(name)).delete();
+        client.replicationControllers().withLabels(KubernetesDeployer.getClusterLabels(name)).delete();
+        client.pods().withLabels(KubernetesDeployer.getClusterLabels(name)).delete();
+        clusters.delete(name);
+        log.info("Cluster {} has been deleted", name);
     }
 
     private void modifyCluster(ConfigMap cm, boolean isOpenshift) {
@@ -202,23 +185,12 @@ public class SparkOperator extends AbstractVerticle {
         }
         log.info("scaling from {} worker replicas to {}", existingCluster.getWorkerNodes(), newWorkers);
 
-        if (isOpenshift) {
-            if (existingCluster.getWorkerNodes() != newWorkers) {
-                ProcessRunner pr = new ProcessRunner();
-                boolean success = pr.scaleCluster(name, newWorkers);
-                if (success) {
-                    clusters.put(newCluster);
-                }
-            }
-            // todo: image change, masters # change for OpenShift
-        } else {
-            if (existingCluster.getWorkerNodes() != newWorkers) {
-                client.replicationControllers().withName(name + "-w-1").scale(newWorkers);
-                clusters.put(newCluster);
-                log.info("Cluster {} has been modified", name);
-            }
-            // todo: image change, masters # change for k8s
+        if (existingCluster.getWorkerNodes() != newWorkers) {
+            client.replicationControllers().withName(name + "-w-1").scale(newWorkers);
+            clusters.put(newCluster);
+            log.info("Cluster {} has been modified", name);
         }
+        // todo: image change, masters # change for k8s
     }
 
     private void recreateConfigMapWatch() {

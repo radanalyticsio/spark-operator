@@ -1,5 +1,5 @@
 /*
- * Copyright 2018, OSHINKO authors.
+ * Copyright 2018
  * License: Apache License 2.0 (see the file LICENSE or http://apache.org/licenses/LICENSE-2.0.html).
  */
 package io.radanalytics.operator.resource;
