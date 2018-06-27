@@ -24,30 +24,22 @@ import java.util.Map;
 
 import static io.radanalytics.operator.AnsiColors.*;
 
-public class SparkOperator extends AbstractVerticle {
+public class ClusterOperator extends AbstractVerticle {
 
-    private static final Logger log = LoggerFactory.getLogger(SparkOperator.class.getName());
-
-    private static final int HEALTH_SERVER_PORT = 8080;
+    private static final Logger log = LoggerFactory.getLogger(ClusterOperator.class.getName());
 
     private final KubernetesClient client;
     private final Map<String, String> selector;
     private final String namespace;
     private final boolean isOpenshift;
-    private final long reconciliationInterval;
     private final RunningClusters clusters;
-
     private volatile Watch configMapWatch;
 
-    private long reconcileTimer;
-
-    public SparkOperator(String namespace,
-                         boolean isOpenshift,
-                         long reconciliationInterval,
-                         KubernetesClient client) {
+    public ClusterOperator(String namespace,
+                           boolean isOpenshift,
+                           KubernetesClient client) {
         this.namespace = namespace;
         this.isOpenshift = isOpenshift;
-        this.reconciliationInterval = reconciliationInterval;
         this.clusters = new RunningClusters();
         this.client = client;
         this.selector = LabelsHelper.forCluster();
@@ -55,35 +47,24 @@ public class SparkOperator extends AbstractVerticle {
 
     @Override
     public void start(Future<Void> start) {
-        log.info("Starting SparkOperator for namespace {}", namespace);
+        log.info("Starting ClusterOperator for namespace {}", namespace);
 
         createConfigMapWatch(res -> {
             if (res.succeeded()) {
                 configMapWatch = res.result();
-
-                log.info("Setting up periodical reconciliation for namespace {}", namespace);
-                this.reconcileTimer = vertx.setPeriodic(this.reconciliationInterval, res2 -> {
-                    log.info("Triggering periodic reconciliation for namespace {}...", namespace);
-                    reconcileAll("timer");
-                });
-
-                log.info("SparkOperator running for namespace {}", namespace);
-
-                // start the HTTP server for health checks
-                this.startHealthServer();
+                log.info("ClusterOperator running for namespace {}", namespace);
 
                 start.complete();
             } else {
-                log.error("SparkOperator startup failed for namespace {}", namespace, res.cause());
-                start.fail("SparkOperator startup failed for namespace " + namespace);
+                log.error("ClusterOperator startup failed for namespace {}", namespace, res.cause());
+                start.fail("ClusterOperator startup failed for namespace " + namespace);
             }
         });
     }
 
     @Override
     public void stop(Future<Void> stop) {
-        log.info("Stopping SparkOperator for namespace {}", namespace);
-        vertx.cancelTimer(reconcileTimer);
+        log.info("Stopping ClusterOperator for namespace {}", namespace);
         configMapWatch.close();
         client.close();
 
@@ -112,11 +93,9 @@ public class SparkOperator extends AbstractVerticle {
                                         break;
                                     case ERROR:
                                         log.error("Failed ConfigMap {} in namespace{} ", cm, namespace);
-                                        reconcileAll("watch error");
                                         break;
                                     default:
                                         log.error("Unknown action: {} in namespace {}", action, namespace);
-                                        reconcileAll("watch unknown");
                                 }
                             }
                         }
@@ -207,30 +186,6 @@ public class SparkOperator extends AbstractVerticle {
                 vertx.close();
             }
         });
-    }
-
-    /**
-     * Periodical reconciliation (in case we lost some event)
-     */
-    private void reconcileAll(String trigger) {
-
-    }
-
-    /**
-     * Start an HTTP health server
-     */
-    private void startHealthServer() {
-
-        this.vertx.createHttpServer()
-                .requestHandler(request -> {
-
-                    if (request.path().equals("/healthy")) {
-                        request.response().setStatusCode(200).end();
-                    } else if (request.path().equals("/ready")) {
-                        request.response().setStatusCode(200).end();
-                    }
-                })
-                .listen(HEALTH_SERVER_PORT);
     }
 
 }

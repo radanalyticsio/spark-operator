@@ -54,23 +54,22 @@ public class Entrypoint {
         List<Future> futures = new ArrayList<>();
         if (null == config.getNamespaces()) { // get the current namespace
             String namespace = client.getNamespace();
-            Future<String> future = runForNamespace(vertx, client, isOpenShift, namespace, config.getReconciliationIntervalMs());
+            Future<String> future = runForNamespace(vertx, client, isOpenShift, namespace);
             futures.add(future);
         } else {
             for (String namespace : config.getNamespaces()) {
-                Future<String> future = runForNamespace(vertx, client, isOpenShift, namespace, config.getReconciliationIntervalMs());
+                Future<String> future = runForNamespace(vertx, client, isOpenShift, namespace);
                 futures.add(future);
             }
         }
         return CompositeFuture.join(futures);
     }
 
-    private static Future runForNamespace(Vertx vertx, KubernetesClient client, boolean isOpenShift, String namespace, long interval) {
+    private static Future runForNamespace(Vertx vertx, KubernetesClient client, boolean isOpenShift, String namespace) {
         Future<String> future = Future.future();
 
-        SparkOperator operator = new SparkOperator(namespace,
+        ClusterOperator operator = new ClusterOperator(namespace,
                 isOpenShift,
-                interval,
                 client);
         vertx.deployVerticle(operator,
                 res -> {
