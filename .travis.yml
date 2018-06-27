@@ -3,8 +3,16 @@ language: java
 services:
   - docker
 
+matrix:
+  include:
+    - env: OPENSHIFT_VERSION=v3.9
+
+before_install:
+  - ./.travis/.travis.prepare.sh
+
 script:
   - make test
+  - ./.travis/.travis.test-oc.sh
 
 after_success:
   - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
