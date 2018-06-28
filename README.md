@@ -34,14 +34,13 @@ Once you don't need the cluster anymore, you can delete it by deleting the confi
 kubectl delete cm my-spark-cluster
 ```
 
-### OpenShift
-
-For deployment on OpenShift use the same commands as above.
-
 # Very Quick Start
 
 ```bash
-kubectl create -f https://git.io/vhtr9
+# create operator
+kubectl create -f http://bit.ly/sparkop
+
+# create cluster
 cat <<EOF | kubectl create -f -
 apiVersion: v1
 kind: ConfigMap
@@ -54,6 +53,10 @@ data:
     workerNodes: "2"
 EOF
 ```
+
+### OpenShift
+
+For deployment on OpenShift use the same commands as above, but with `oc` instead of `kubectl`.
 
 ### Demo
 <a href="https://asciinema.org/a/188744?autoplay=1"><img src="https://asciinema.org/a/188744.png" width="836"/></a>
