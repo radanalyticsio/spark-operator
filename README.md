@@ -59,6 +59,8 @@ EOF
 For deployment on OpenShift use the same commands as above, but with `oc` instead of `kubectl`.
 
 ### Demo
+[![Watch the full asciicast](./ascii.gif)](https://asciinema.org/a/189204?&cols=105&rows=23&theme=monokai)
+
 <a href="https://asciinema.org/a/188744?autoplay=1"><img src="https://asciinema.org/a/188744.png" width="836"/></a>
 
 ### Images
