@@ -13,7 +13,7 @@ tear_down() {
 }
 
 setup_testing_framework() {
-  source "$(dirname "${BASH_SOURCE}")/../hack/lib/init.sh"
+  source "$(dirname "${BASH_SOURCE}")/../test/lib/init.sh"
   os::util::environment::setup_time_vars
 }
 
