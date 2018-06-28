@@ -25,10 +25,10 @@ readonly -f os::util::ensure::system_binary_exists
 # given binary exists on the system in the local output
 # directory for the current platform. If it doesn't, we
 # will attempt to build it if we can determine the correct
-# hack/build-go.sh target for the binary.
+# test/build-go.sh target for the binary.
 #
 # This function will attempt to determine the correct
-# hack/build-go.sh target for the binary, but may not
+# test/build-go.sh target for the binary, but may not
 # be able to do so if the target doesn't live under
 # cmd/ or tools/. In that case, one should be given.
 #
@@ -56,8 +56,8 @@ function os::util::ensure::built_binary_exists() {
 
 		if [[ -n "${target}" ]]; then
 			os::log::warn "No compiled \`${binary}\` binary was found. Attempting to build one using:
-  $ hack/build-go.sh ${target}"
-			"${OS_ROOT}/hack/build-go.sh" "${target}"
+  $ test/build-go.sh ${target}"
+			"${OS_ROOT}/test/build-go.sh" "${target}"
 		else
 			os::log::fatal "No compiled \`${binary}\` binary was found and no build target could be determined.
 Provide the binary and try running $0 again."

@@ -287,7 +287,7 @@ function os::cmd::internal::determine_caller() {
 	local call_depth=
 	local len_sources="${#BASH_SOURCE[@]}"
 	for (( i=0; i<${len_sources}; i++ )); do
-		if [ ! $(echo "${BASH_SOURCE[i]}" | grep "hack/lib/cmd\.sh$") ]; then
+		if [ ! $(echo "${BASH_SOURCE[i]}" | grep "test/lib/cmd\.sh$") ]; then
 			call_depth=i
 			break
 		fi
@@ -402,7 +402,7 @@ readonly -f os::cmd::internal::mark_attempt
 function os::cmd::internal::compress_output() {
 	local logfile=$1
 
-	awk -f ${OS_ROOT}/hack/compress.awk $logfile
+	awk -f ${OS_ROOT}/test/compress.awk $logfile
 }
 readonly -f os::cmd::internal::compress_output
 
