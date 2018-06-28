@@ -59,9 +59,11 @@ EOF
 For deployment on OpenShift use the same commands as above, but with `oc` instead of `kubectl`.
 
 ### Demo
-[![Watch the full asciicast](./ascii.gif)](https://asciinema.org/a/189204?&cols=105&rows=23&theme=monokai)
-
-<a href="https://asciinema.org/a/188744?autoplay=1"><img src="https://asciinema.org/a/188744.png" width="836"/></a>
+<!--
+asciinema rec -i 3
+docker run -\-rm -v $PWD:/data asciinema/asciicast2gif -s 1.18 -w 104 -h 27 -t monokai 189204.cast demo.gif
+-->
+[![Watch the full asciicast](./ascii.gif)](https://asciinema.org/a/189204?&cols=104&rows=27&theme=monokai)
 
 ### Images
 [![Layers info](https://images.microbadger.com/badges/image/jkremser/spark-operator.svg)](https://microbadger.com/images/jkremser/spark-operator)
