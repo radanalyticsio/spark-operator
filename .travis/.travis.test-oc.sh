@@ -19,7 +19,7 @@ setup_testing_framework() {
 
 testCreateOperator() {
   os::test::junit::declare_suite_start "operator/create"
-  os::cmd::expect_success_and_text "oc create -f $DIR/../manifest/openshift/" 'deployment "spark-operator" created'
+  os::cmd::expect_success_and_text "oc create -f $DIR/../manifest/" 'deployment "spark-operator" created'
   os::cmd::try_until_text "oc get pod -l app.kubernetes.io/name=spark-operator -o yaml" 'ready: true'
   os::test::junit::declare_suite_end
 }

@@ -43,7 +43,7 @@ image-publish-all: image-build-all image-publish image-publish-slim
 devel: build
 	-docker kill `docker ps -q` || true
 	oc cluster up
-	oc create -f manifest/openshift/
+	oc create -f manifest/
 	until [ "true" = "`oc get pod -l app.kubernetes.io/name=spark-operator -o json 2> /dev/null | grep \"\\\"ready\\\": \" | sed -e 's;.*\(true\|false\),;\1;'`" ]; do printf "."; sleep 1; done
 	oc logs -f `oc get pods --no-headers -l app.kubernetes.io/name=spark-operator | cut -f1 -d' '`
 
@@ -52,6 +52,6 @@ devel-kubernetes:
 	-minikube delete
 	minikube start --vm-driver kvm2
 	eval `minikube docker-env` && $(MAKE) build
-	kubectl create -f manifest/kubernetes/
+	kubectl create -f manifest/
 	until [ "true" = "`kubectl get pod -l app.kubernetes.io/name=spark-operator -o json 2> /dev/null | grep \"\\\"ready\\\": \" | sed -e 's;.*\(true\|false\),;\1;'`" ]; do printf "."; sleep 1; done
 	kubectl logs -f `kubectl get pods --no-headers -l app.kubernetes.io/name=spark-operator | cut -f1 -d' '`

@@ -23,6 +23,3 @@ after_success:
   # release x.y.z or x.y.z-centos if there is a release
   - ./.travis/.travis.release.images.sh
   - docker logout
-
-  # pushes the latest manifests for k8s and OpenShift into 'dist' branch
-  - ./.travis/.travis.push.manifests.sh
