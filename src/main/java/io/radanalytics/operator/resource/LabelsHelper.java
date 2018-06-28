@@ -20,12 +20,15 @@ public class LabelsHelper {
     /**
      * The kind of a ConfigMap:
      * <ul>
-     *     <li>{@code radanalytics.io/kind=spark-cluster}
+     *     <li>{@code radanalytics.io/kind=cluster}
      *         identifies a ConfigMap that is intended to be consumed by
      *         the cluster operator.</li>
      *     <li>{@code radanalytics.io/kind=app}
      *         identifies a ConfigMap that is intended to be consumed
      *         by the app operator.</li>
+     *     <li>{@code radanalytics.io/kind=notebook}
+     *         identifies a ConfigMap that is intended to be consumed
+     *         by the notebook operator.</li>
      * </ul>
      */
     public static final String OPERATOR_KIND_LABEL = OPERATOR_DOMAIN + "kind";
@@ -33,6 +36,8 @@ public class LabelsHelper {
     public static final String OPERATOR_KIND_CLUSTER_LABEL = "cluster";
 
     public static final String OPERATOR_KIND_APP_LABEL = "app";
+
+    public static final String OPERATOR_KIND_NOTEBOOK_LABEL = "notebook";
 
     public static final Optional<String> getKind(HasMetadata resource) {
         return Optional.ofNullable(resource)
@@ -47,6 +52,10 @@ public class LabelsHelper {
 
     public static Map<String, String> forApp() {
         return forKind(OPERATOR_KIND_APP_LABEL);
+    }
+
+    public static Map<String, String> forNotebook() {
+        return forKind(OPERATOR_KIND_NOTEBOOK_LABEL);
     }
 
     private static Map<String, String> forKind(String kind) {

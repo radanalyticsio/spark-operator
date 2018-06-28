@@ -1,6 +1,7 @@
 package io.radanalytics.operator;
 
 import io.fabric8.kubernetes.api.model.*;
+import io.radanalytics.operator.cluster.ClusterInfo;
 
 import java.util.*;
 

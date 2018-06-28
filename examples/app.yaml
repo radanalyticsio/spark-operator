@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: my-spark-app
+  labels:
+    radanalytics.io/kind: app
+data:
+  config: |-
+    image: "foo"
+    mainApplicationFile: "bar"
+    mainClass: "baz"
+  

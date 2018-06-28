@@ -1,14 +1,15 @@
-package io.radanalytics.operator;
+package io.radanalytics.operator.cluster;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
+import io.radanalytics.operator.common.EntityInfo;
 import io.radanalytics.operator.resource.HasDataHelper;
 
 import java.util.Collections;
 import java.util.List;
 
-import static io.radanalytics.operator.OperatorConfig.DEFAULT_SPARK_IMAGE;
+import static io.radanalytics.operator.common.OperatorConfig.DEFAULT_SPARK_IMAGE;
 
-public class ClusterInfo {
+public class ClusterInfo implements EntityInfo {
     public static class DL {
         private String url;
         private String to;
@@ -45,7 +46,7 @@ public class ClusterInfo {
     }
 
     public static ClusterInfo fromCM(ConfigMap cm) {
-        return HasDataHelper.parseCM(cm);
+        return HasDataHelper.parseCM(ClusterInfo.class, cm);
     }
 
     public String getName() {
