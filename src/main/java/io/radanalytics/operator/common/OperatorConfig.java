@@ -54,7 +54,7 @@ public class OperatorConfig {
         if (namespacesList == null || namespacesList.isEmpty()) {
             namespaces = null; //Collections.singleton("*");
         } else {
-            namespaces = new HashSet(asList(namespacesList.trim().split("\\s*,+\\s*")));
+            namespaces = new HashSet<>(asList(namespacesList.trim().split("\\s*,+\\s*")));
         }
 
         long reconciliationInterval = DEFAULT_FULL_RECONCILIATION_INTERVAL_MS;
