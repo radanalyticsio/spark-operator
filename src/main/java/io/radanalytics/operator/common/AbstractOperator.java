@@ -30,7 +30,7 @@ public abstract class AbstractOperator<T extends EntityInfo> extends AbstractVer
     private final Map<String, String> selector;
     private final String entityName;
     private final String operatorName;
-    private final String namespace;
+    protected final String namespace;
     private final boolean isOpenshift;
 
     private volatile Watch configMapWatch;

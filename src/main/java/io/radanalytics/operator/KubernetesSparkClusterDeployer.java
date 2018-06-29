@@ -43,7 +43,7 @@ public class KubernetesSparkClusterDeployer {
         return masterService;
     }
 
-    private static EnvVar env(String key, String value) {
+    public static EnvVar env(String key, String value) {
         return new EnvVarBuilder().withName(key).withValue(value).build();
     }
 
@@ -158,6 +158,7 @@ public class KubernetesSparkClusterDeployer {
 
     public static Map<String, String> getDefaultLabels(String name) {
         Map<String, String> map = new HashMap<>(3);
+        map.put(OPERATOR_KIND_LABEL, OPERATOR_KIND_APP_LABEL);
         map.put(OPERATOR_DOMAIN + OPERATOR_KIND_CLUSTER_LABEL, name);
         return map;
     }

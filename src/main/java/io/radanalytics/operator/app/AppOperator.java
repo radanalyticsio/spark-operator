@@ -1,7 +1,9 @@
 package io.radanalytics.operator.app;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
+import io.fabric8.kubernetes.api.model.KubernetesResourceList;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.radanalytics.operator.KubernetesAppDeployer;
 import io.radanalytics.operator.common.AbstractOperator;
 import io.radanalytics.operator.resource.LabelsHelper;
 import io.radanalytics.operator.resource.ResourceHelper;
@@ -22,9 +24,8 @@ public class AppOperator extends AbstractOperator<AppInfo> {
     }
 
     protected void onAdd(AppInfo app, boolean isOpenshift) {
-        String name = app.getName();
-//        KubernetesResourceList list = KubernetesSparkClusterDeployer.getResourceList(cluster);
-//        client.resourceList(list).createOrReplace();
+        KubernetesResourceList list = KubernetesAppDeployer.getResourceList(app, namespace);
+        client.resourceList(list).createOrReplace();
 //        apps.put(app);
     }
 

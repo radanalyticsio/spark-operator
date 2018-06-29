@@ -6,7 +6,6 @@ metadata:
     radanalytics.io/kind: app
 data:
   config: |-
-    image: "foo"
-    mainApplicationFile: "bar"
-    mainClass: "baz"
-  
+    image: jkremser/openshift-spark:2.3-latest
+    mainApplicationFile: local:///opt/spark/examples/jars/spark-examples_2.11-2.3.0.jar
+    mainClass: org.apache.spark.examples.SparkPi
