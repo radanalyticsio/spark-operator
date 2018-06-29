@@ -9,7 +9,7 @@ package:
 
 .PHONY: test
 test:
-	./mvnw test -B
+	./mvnw test
 
 .PHONY: image-build
 image-build:
