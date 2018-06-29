@@ -31,9 +31,9 @@ public class AppOperator extends AbstractOperator<AppInfo> {
     protected void onDelete(AppInfo app, boolean isOpenshift) {
 //        ClusterInfo cluster = ClusterInfo.fromCM(cm);
 //        String name = cluster.getName();
-//        client.services().withLabels(KubernetesDeployer.getClusterLabels(name)).delete();
-//        client.replicationControllers().withLabels(KubernetesDeployer.getClusterLabels(name)).delete();
-//        client.pods().withLabels(KubernetesDeployer.getClusterLabels(name)).delete();
+//        client.services().withLabels(KubernetesDeployer.getDefaultLabels(name)).delete();
+//        client.replicationControllers().withLabels(KubernetesDeployer.getDefaultLabels(name)).delete();
+//        client.pods().withLabels(KubernetesDeployer.getDefaultLabels(name)).delete();
 //        clusters.delete(name);
     }
 

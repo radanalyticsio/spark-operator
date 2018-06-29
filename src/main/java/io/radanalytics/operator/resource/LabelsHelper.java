@@ -33,11 +33,21 @@ public class LabelsHelper {
      */
     public static final String OPERATOR_KIND_LABEL = OPERATOR_DOMAIN + "kind";
 
+    // the values
     public static final String OPERATOR_KIND_CLUSTER_LABEL = "cluster";
-
     public static final String OPERATOR_KIND_APP_LABEL = "app";
-
     public static final String OPERATOR_KIND_NOTEBOOK_LABEL = "notebook";
+
+    public static final String OPERATOR_SEVICE_TYPE_LABEL = OPERATOR_DOMAIN + "service";
+    //the values
+    public static final String OPERATOR_TYPE_UI_LABEL = "ui";
+
+    public static final String OPERATOR_RC_TYPE_LABEL = OPERATOR_DOMAIN + "rcType";
+    public static final String OPERATOR_POD_TYPE_LABEL = OPERATOR_DOMAIN + "podType";
+    public static final String OPERATOR_DEPLOYMENT_LABEL = OPERATOR_DOMAIN + "deployment";
+    //the values
+    public static final String OPERATOR_TYPE_MASTER_LABEL = "master";
+    public static final String OPERATOR_TYPE_WORKER_LABEL = "worker";
 
     public static final Optional<String> getKind(HasMetadata resource) {
         return Optional.ofNullable(resource)
