@@ -18,8 +18,8 @@ public class KubernetesDeployer {
         List<ClusterInfo.DL> downloadData = cluster.getDownloadData();
         ReplicationController masterRc = getRCforMaster(name, masters, image, downloadData);
         ReplicationController workerRc = getRCforWorker(name, workers, image, downloadData);
-        Service masterService = getService(name, name, name + "-m-1", 7077);
-        Service masterUiService = getService(name + "-ui", name, name + "-m-1", 8080);
+        Service masterService = getService(name, name, name + "-m", 7077);
+        Service masterUiService = getService(name + "-ui", name, name + "-m", 8080);
         KubernetesList resources = new KubernetesListBuilder().withItems(masterRc, workerRc, masterService, masterUiService).build();
         return resources;
     }
@@ -45,7 +45,7 @@ public class KubernetesDeployer {
     }
 
     private static ReplicationController getRCforMasterOrWorker(boolean isMaster, String name, int replicas, String image, List<ClusterInfo.DL> downloadData) {
-        String podName = name + (isMaster ? "-m-1" : "-w-1");
+        String podName = name + (isMaster ? "-m" : "-w");
         Map<String, String> labels = getSelector(name, podName);
 
         List<ContainerPort> ports = new ArrayList<>(2);

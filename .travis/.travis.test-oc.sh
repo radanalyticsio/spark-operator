@@ -27,22 +27,22 @@ testCreateOperator() {
 testCreateCluster1() {
   os::test::junit::declare_suite_start "cluster/create1"
   os::cmd::expect_success_and_text "oc create -f $DIR/../examples/cluster.yaml" 'configmap "my-spark-cluster" created'
-  os::cmd::try_until_text "oc get pod -l deployment=my-spark-cluster-w-1 -o yaml" 'ready: true'
-  os::cmd::try_until_text "oc get pod -l deployment=my-spark-cluster-m-1 -o yaml" 'ready: true'
+  os::cmd::try_until_text "oc get pod -l deployment=my-spark-cluster-w -o yaml" 'ready: true'
+  os::cmd::try_until_text "oc get pod -l deployment=my-spark-cluster-m -o yaml" 'ready: true'
   os::test::junit::declare_suite_end
 }
 
 testCreateCluster2() {
   os::test::junit::declare_suite_start "cluster/create2"
   os::cmd::expect_success_and_text "oc create -f $DIR/../examples/with-prepared-data.yaml" 'configmap "spark-cluster-with-data" created'
-  os::cmd::try_until_text "oc get pod -l deployment=spark-cluster-with-data-w-1 -o yaml" 'ready: true'
-  os::cmd::try_until_text "oc get pod -l deployment=spark-cluster-with-data-m-1 -o yaml" 'ready: true'
+  os::cmd::try_until_text "oc get pod -l deployment=spark-cluster-with-data-w -o yaml" 'ready: true'
+  os::cmd::try_until_text "oc get pod -l deployment=spark-cluster-with-data-m -o yaml" 'ready: true'
   os::test::junit::declare_suite_end
 }
 
 testDownloadedData() {
   os::test::junit::declare_suite_start "cluster/downloaded"
-  local worker_pod=`oc get pod -l deployment=spark-cluster-with-data-w-1 -o='jsonpath="{.items[0].metadata.name}"' | sed 's/"//g'`
+  local worker_pod=`oc get pod -l deployment=spark-cluster-with-data-w -o='jsonpath="{.items[0].metadata.name}"' | sed 's/"//g'`
 
   os::cmd::expect_success_and_text "oc exec $worker_pod ls" 'LA.csv'
   os::cmd::expect_success_and_text "oc exec $worker_pod ls" 'rows.csv'

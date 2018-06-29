@@ -52,7 +52,7 @@ public class ClusterOperator extends AbstractOperator<ClusterInfo> {
         if (existingCluster.getWorkerNodes() != newWorkers) {
             log.info("{}scaling{} from {}{}{} worker replicas to {}{}{}", ANSI_G, ANSI_RESET, ANSI_Y,
                     existingCluster.getWorkerNodes(), ANSI_RESET, ANSI_Y, newWorkers, ANSI_RESET);
-            client.replicationControllers().withName(name + "-w-1").scale(newWorkers);
+            client.replicationControllers().withName(name + "-w").scale(newWorkers);
             clusters.put(newCluster);
         }
         // todo: image change, masters # change for k8s

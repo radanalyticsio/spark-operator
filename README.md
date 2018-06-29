@@ -23,9 +23,9 @@ After issuing the commands above, you should be able to see a new Spark cluster 
 ```bash
 kubectl get pods
 NAME                               READY     STATUS    RESTARTS   AGE
-my-spark-cluster-m-1-5kjtj         1/1       Running   0          10s
-my-spark-cluster-w-1-m8knz         1/1       Running   0          10s
-my-spark-cluster-w-1-vg9k2         1/1       Running   0          10s
+my-spark-cluster-m-5kjtj           1/1       Running   0          10s
+my-spark-cluster-w-m8knz           1/1       Running   0          10s
+my-spark-cluster-w-vg9k2           1/1       Running   0          10s
 spark-operator-510388731-852b2     1/1       Running   0          27s
 ```
 
