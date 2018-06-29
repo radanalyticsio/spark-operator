@@ -70,7 +70,7 @@ run_tests() {
   testDeleteCluster
 
   testCreateCluster2
-  testDownloadedData
+  #testDownloadedData
 }
 
 main() {
