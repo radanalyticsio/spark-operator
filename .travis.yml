@@ -8,6 +8,8 @@ matrix:
     - env: OPENSHIFT_VERSION=v3.9
 
 before_install:
+  # maven colors
+  - export MAVEN_OPTS="-Djansi.passthrough=true -Dplexus.logger.type=ansi $MAVEN_OPTS"
   - ./.travis/.travis.prepare.sh
 
 script:

@@ -29,6 +29,7 @@ logs() {
 }
 
 errorLogs() {
+  echo -e "\n\n(tput setaf 1)BUILD FAILED$(tput sgr0)\n\n:scream: bad things has happened :scream:"
   logs
   exit 1
 }
