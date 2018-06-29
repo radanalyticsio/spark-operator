@@ -17,9 +17,14 @@ setup_insecure_registry() {
   sudo service docker status
 }
 
+setup_manifest() {
+  sed -i'' 's;imagePullPolicy: IfNotPresent;imagePullPolicy: Never;g' manifest/operator.yaml
+}
+
 main() {
   download_openshift
   setup_insecure_registry
+  setup_manifest
 }
 
 main
