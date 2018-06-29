@@ -3,6 +3,7 @@
 DIR="${DIR:-$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )}"
 
 cluster_up() {
+  docker images
   set -x
   oc cluster up
   set +x
@@ -17,11 +18,20 @@ setup_testing_framework() {
   os::util::environment::setup_time_vars
 }
 
+logs() {
+  echo -e "\n$(tput setaf 3)oc get all:$(tput sgr0)\n"
+  oc get all
+  echo -e "\n$(tput setaf 3)Logs:$(tput sgr0)\n"
+  oc logs `oc get pod -l app.kubernetes.io/name=spark-operator -o='jsonpath="{.items[0].metadata.name}"' | sed 's/"//g'`
+  echo
+}
+
 testCreateOperator() {
   os::test::junit::declare_suite_start "operator/create"
   os::cmd::expect_success_and_text "oc create -f $DIR/../manifest/" 'deployment "spark-operator" created'
   os::cmd::try_until_text "oc get pod -l app.kubernetes.io/name=spark-operator -o yaml" 'ready: true'
   os::test::junit::declare_suite_end
+  logs
 }
 
 testCreateCluster1() {
@@ -65,13 +75,14 @@ testDeleteCluster() {
 }
 
 run_tests() {
-  testCreateOperator
-  testCreateCluster1
-  testScaleCluster
-  testDeleteCluster
+  testCreateOperator || logs
+  testCreateCluster1 || logs
+  testScaleCluster || logs
+  testDeleteCluster || logs
 
-  testCreateCluster2
-  testDownloadedData
+  testCreateCluster2 || logs
+  testDownloadedData || logs
+  logs
 }
 
 main() {
