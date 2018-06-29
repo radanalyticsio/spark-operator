@@ -3,8 +3,8 @@ package io.radanalytics.operator.cluster;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.KubernetesResourceList;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.radanalytics.operator.KubernetesSparkClusterDeployer;
 import io.radanalytics.operator.common.AbstractOperator;
-import io.radanalytics.operator.KubernetesDeployer;
 import io.radanalytics.operator.resource.LabelsHelper;
 import io.radanalytics.operator.resource.ResourceHelper;
 import org.slf4j.Logger;
@@ -26,16 +26,16 @@ public class ClusterOperator extends AbstractOperator<ClusterInfo> {
     }
 
     protected void onAdd(ClusterInfo cluster, boolean isOpenshift) {
-        KubernetesResourceList list = KubernetesDeployer.getResourceList(cluster);
+        KubernetesResourceList list = KubernetesSparkClusterDeployer.getResourceList(cluster);
         client.resourceList(list).createOrReplace();
         clusters.put(cluster);
     }
 
     protected void onDelete(ClusterInfo cluster, boolean isOpenshift) {
         String name = cluster.getName();
-        client.services().withLabels(KubernetesDeployer.getClusterLabels(name)).delete();
-        client.replicationControllers().withLabels(KubernetesDeployer.getClusterLabels(name)).delete();
-        client.pods().withLabels(KubernetesDeployer.getClusterLabels(name)).delete();
+        client.services().withLabels(KubernetesSparkClusterDeployer.getDefaultLabels(name)).delete();
+        client.replicationControllers().withLabels(KubernetesSparkClusterDeployer.getDefaultLabels(name)).delete();
+        client.pods().withLabels(KubernetesSparkClusterDeployer.getDefaultLabels(name)).delete();
         clusters.delete(name);
     }
 
@@ -52,7 +52,7 @@ public class ClusterOperator extends AbstractOperator<ClusterInfo> {
         if (existingCluster.getWorkerNodes() != newWorkers) {
             log.info("{}scaling{} from {}{}{} worker replicas to {}{}{}", ANSI_G, ANSI_RESET, ANSI_Y,
                     existingCluster.getWorkerNodes(), ANSI_RESET, ANSI_Y, newWorkers, ANSI_RESET);
-            client.replicationControllers().withName(name + "-w-1").scale(newWorkers);
+            client.replicationControllers().withName(name + "-w").scale(newWorkers);
             clusters.put(newCluster);
         }
         // todo: image change, masters # change for k8s

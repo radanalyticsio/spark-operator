@@ -6,8 +6,7 @@ metadata:
     radanalytics.io/kind: cluster
 data:
   config: |-
-    workerNodes: "2"
-    masterNodes: "1"
+    workerNodes: "1"
     downloadData:
     - url: https://data.cityofnewyork.us/api/views/kku6-nxdu/rows.csv
       to: /tmp/

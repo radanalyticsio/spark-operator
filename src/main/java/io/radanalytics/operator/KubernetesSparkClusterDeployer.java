@@ -5,10 +5,9 @@ import io.radanalytics.operator.cluster.ClusterInfo;
 
 import java.util.*;
 
-import static io.radanalytics.operator.resource.LabelsHelper.OPERATOR_DOMAIN;
-import static io.radanalytics.operator.resource.LabelsHelper.OPERATOR_KIND_CLUSTER_LABEL;
+import static io.radanalytics.operator.resource.LabelsHelper.*;
 
-public class KubernetesDeployer {
+public class KubernetesSparkClusterDeployer {
 
     public static KubernetesResourceList getResourceList(ClusterInfo cluster) {
         String name = cluster.getName();
@@ -18,8 +17,8 @@ public class KubernetesDeployer {
         List<ClusterInfo.DL> downloadData = cluster.getDownloadData();
         ReplicationController masterRc = getRCforMaster(name, masters, image, downloadData);
         ReplicationController workerRc = getRCforWorker(name, workers, image, downloadData);
-        Service masterService = getService(name, name, name + "-m-1", 7077);
-        Service masterUiService = getService(name + "-ui", name, name + "-m-1", 8080);
+        Service masterService = getService(false, name, 7077);
+        Service masterUiService = getService(true, name, 8080);
         KubernetesList resources = new KubernetesListBuilder().withItems(masterRc, workerRc, masterService, masterUiService).build();
         return resources;
     }
@@ -32,10 +31,14 @@ public class KubernetesDeployer {
         return getRCforMasterOrWorker(false, name, replicas, image, downloadData);
     }
 
-    private static Service getService(String name, String clusterName, String label, int port) {
-        Service masterService = new ServiceBuilder().withNewMetadata().withName(name).withLabels(getClusterLabels(name)).endMetadata()
-                .withNewSpec().withSelector(getSelector(clusterName, label))
-                .withPorts(new ServicePortBuilder().withPort(port).withNewTargetPort().withIntVal(port).endTargetPort().withProtocol("TCP").build())
+    private static Service getService(boolean isUi, String name, int port) {
+        Map<String, String> labels = getDefaultLabels(name);
+        labels.put(OPERATOR_SEVICE_TYPE_LABEL, isUi ? OPERATOR_TYPE_UI_LABEL : OPERATOR_TYPE_WORKER_LABEL);
+        Service masterService = new ServiceBuilder().withNewMetadata().withName(isUi ? name + "-ui" : name)
+                .withLabels(labels).endMetadata()
+                .withNewSpec().withSelector(getSelector(name, name + "-m"))
+                .withPorts(new ServicePortBuilder().withPort(port).withNewTargetPort()
+                        .withIntVal(port).endTargetPort().withProtocol("TCP").build())
                 .endSpec().build();
         return masterService;
     }
@@ -45,8 +48,8 @@ public class KubernetesDeployer {
     }
 
     private static ReplicationController getRCforMasterOrWorker(boolean isMaster, String name, int replicas, String image, List<ClusterInfo.DL> downloadData) {
-        String podName = name + (isMaster ? "-m-1" : "-w-1");
-        Map<String, String> labels = getSelector(name, podName);
+        String podName = name + (isMaster ? "-m" : "-w");
+        Map<String, String> selector = getSelector(name, podName);
 
         List<ContainerPort> ports = new ArrayList<>(2);
         List<EnvVar> envVars = new ArrayList<>();
@@ -86,65 +89,76 @@ public class KubernetesDeployer {
                 .withTerminationMessagePolicy("File")
                 .withPorts(ports);
 
-        if (!downloadData.isEmpty()) {
-            VolumeMount mount = new VolumeMountBuilder().withName("data-dir").withMountPath("/tmp").build();
-            containerBuilder.withVolumeMounts(mount);
-        }
-
         if (isMaster) {
             containerBuilder = containerBuilder.withReadinessProbe(generalProbe).withLivenessProbe(masterLiveness);
         } else {
             containerBuilder.withLivenessProbe(generalProbe);
         }
 
-        PodTemplateSpecFluent.SpecNested<ReplicationControllerSpecFluent.TemplateNested<ReplicationControllerFluent.SpecNested<ReplicationControllerBuilder>>> aux = new ReplicationControllerBuilder().withNewMetadata()
-                .withName(podName).withLabels(getClusterLabels(name))
+        Map<String, String> labels = getDefaultLabels(name);
+        labels.put(OPERATOR_RC_TYPE_LABEL, isMaster ? OPERATOR_TYPE_MASTER_LABEL : OPERATOR_TYPE_WORKER_LABEL);
+
+        Map<String, String> podLabels = getSelector(name, podName);
+        podLabels.put(OPERATOR_POD_TYPE_LABEL, isMaster ? OPERATOR_TYPE_MASTER_LABEL : OPERATOR_TYPE_WORKER_LABEL);
+        ReplicationController rc = new ReplicationControllerBuilder().withNewMetadata()
+                .withName(podName).withLabels(labels)
                 .endMetadata()
                 .withNewSpec().withReplicas(replicas)
-                .withSelector(labels)
-                .withNewTemplate().withNewMetadata().withLabels(labels).endMetadata()
-                .withNewSpec().withContainers(containerBuilder.build());
+                .withSelector(selector)
+                .withNewTemplate().withNewMetadata().withLabels(podLabels).endMetadata()
+                .withNewSpec().withContainers(containerBuilder.build())
+                .endSpec().endTemplate().endSpec().build();
+
         if (!downloadData.isEmpty()) {
-            VolumeMount mount = new VolumeMountBuilder().withName("data-dir").withMountPath("/tmp").build();
-
-            StringBuilder command = new StringBuilder();
-            downloadData.forEach(dl -> {
-                String url = dl.getUrl();
-                String to = dl.getTo();
-                // if 'to' ends with slash, we know it's a directory and we use the -P switch to change the prefix,
-                // otherwise using -O for renaming the downloaded file
-                String param = to.endsWith("/") ? " -P " : " -O ";
-                command.append("wget ");
-                command.append(url);
-                command.append(param);
-                command.append(to);
-                command.append(" && ");
-            });
-            command.delete(command.length() - 4, command.length());
-
-            Container initContainer = new ContainerBuilder()
-                    .withName("downloader")
-                    .withImage("busybox")
-                    .withCommand("/bin/sh", "-c")
-                    .withArgs(command.toString())
-                    .withVolumeMounts(mount)
-                    .build();
-            Volume volume = new VolumeBuilder().withName("data-dir").withNewEmptyDir().endEmptyDir().build();
-            aux.withInitContainers(initContainer).withVolumes(volume);
+            addInitContainers(rc, downloadData);
         }
+        return rc;
+    }
 
-        ReplicationController rc = aux.endSpec().endTemplate().endSpec().build();
+    private static ReplicationController addInitContainers(ReplicationController rc, List<ClusterInfo.DL> downloadData) {
+        VolumeMount mount = new VolumeMountBuilder().withName("data-dir").withMountPath("/tmp").build();
+
+        StringBuilder command = new StringBuilder();
+        downloadData.forEach(dl -> {
+            String url = dl.getUrl();
+            String to = dl.getTo();
+            // if 'to' ends with slash, we know it's a directory and we use the -P switch to change the prefix,
+            // otherwise using -O for renaming the downloaded file
+            String param = to.endsWith("/") ? " -P " : " -O ";
+            command.append("wget ");
+            command.append(url);
+            command.append(param);
+            command.append(to);
+            command.append(" && ");
+        });
+        command.delete(command.length() - 4, command.length());
+
+        Container initContainer = new ContainerBuilder()
+                .withName("downloader")
+                .withImage("busybox")
+                .withCommand("/bin/sh", "-c")
+                .withArgs(command.toString())
+                .withVolumeMounts(mount)
+                .build();
+        Volume volume = new VolumeBuilder().withName("data-dir").withNewEmptyDir().endEmptyDir().build();
+
+        PodSpec spec = rc.getSpec().getTemplate().getSpec();
+        spec.getContainers().get(0).setVolumeMounts(Arrays.asList(mount));
+        spec.setInitContainers(Arrays.asList(initContainer));
+        spec.setVolumes(Arrays.asList(volume));
+        rc.getSpec().getTemplate().setSpec(spec);
         return rc;
     }
 
     private static Map<String, String> getSelector(String clusterName, String podName) {
-        Map<String, String> map = new HashMap<>(2);
-        map.put("deployment", podName);
-        map.put(OPERATOR_DOMAIN + OPERATOR_KIND_CLUSTER_LABEL, clusterName);
+        Map<String, String> map = getDefaultLabels(clusterName);
+        map.put(OPERATOR_DEPLOYMENT_LABEL, podName);
         return map;
     }
 
-    public static Map<String, String> getClusterLabels(String name) {
-        return Collections.singletonMap(OPERATOR_DOMAIN + OPERATOR_KIND_CLUSTER_LABEL, name);
+    public static Map<String, String> getDefaultLabels(String name) {
+        Map<String, String> map = new HashMap<>(3);
+        map.put(OPERATOR_DOMAIN + OPERATOR_KIND_CLUSTER_LABEL, name);
+        return map;
     }
 }

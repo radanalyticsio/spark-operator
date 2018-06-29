@@ -23,7 +23,7 @@ public class AppOperator extends AbstractOperator<AppInfo> {
 
     protected void onAdd(AppInfo app, boolean isOpenshift) {
         String name = app.getName();
-//        KubernetesResourceList list = KubernetesDeployer.getResourceList(cluster);
+//        KubernetesResourceList list = KubernetesSparkClusterDeployer.getResourceList(cluster);
 //        client.resourceList(list).createOrReplace();
 //        apps.put(app);
     }
@@ -31,9 +31,9 @@ public class AppOperator extends AbstractOperator<AppInfo> {
     protected void onDelete(AppInfo app, boolean isOpenshift) {
 //        ClusterInfo cluster = ClusterInfo.fromCM(cm);
 //        String name = cluster.getName();
-//        client.services().withLabels(KubernetesDeployer.getClusterLabels(name)).delete();
-//        client.replicationControllers().withLabels(KubernetesDeployer.getClusterLabels(name)).delete();
-//        client.pods().withLabels(KubernetesDeployer.getClusterLabels(name)).delete();
+//        client.services().withLabels(KubernetesSparkClusterDeployer.getDefaultLabels(name)).delete();
+//        client.replicationControllers().withLabels(KubernetesSparkClusterDeployer.getDefaultLabels(name)).delete();
+//        client.pods().withLabels(KubernetesSparkClusterDeployer.getDefaultLabels(name)).delete();
 //        clusters.delete(name);
     }
 
@@ -51,7 +51,7 @@ public class AppOperator extends AbstractOperator<AppInfo> {
 //        if (existingCluster.getWorkerNodes() != newWorkers) {
 //            log.info("{}scaling{} from {}{}{} worker replicas to {}{}{}", ANSI_G, ANSI_RESET, ANSI_Y,
 //                    existingCluster.getWorkerNodes(), ANSI_RESET, ANSI_Y, newWorkers, ANSI_RESET);
-//            client.replicationControllers().withName(name + "-w-1").scale(newWorkers);
+//            client.replicationControllers().withName(name + "-w").scale(newWorkers);
 //            clusters.put(newCluster);
 //        }
 //        // todo: image change, masters # change for k8s
