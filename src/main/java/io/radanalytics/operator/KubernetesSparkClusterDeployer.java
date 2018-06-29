@@ -7,7 +7,7 @@ import java.util.*;
 
 import static io.radanalytics.operator.resource.LabelsHelper.*;
 
-public class KubernetesDeployer {
+public class KubernetesSparkClusterDeployer {
 
     public static KubernetesResourceList getResourceList(ClusterInfo cluster) {
         String name = cluster.getName();

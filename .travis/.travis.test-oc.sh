@@ -42,7 +42,7 @@ testCreateCluster2() {
 
 testDownloadedData() {
   os::test::junit::declare_suite_start "cluster/downloaded"
-  sleep 10
+  sleep 3
   local worker_pod=`oc get pod -l radanalytics.io/deployment=spark-cluster-with-data-w -o='jsonpath="{.items[0].metadata.name}"' | sed 's/"//g'`
 
   os::cmd::expect_success_and_text "oc exec $worker_pod ls" 'LA.csv'
