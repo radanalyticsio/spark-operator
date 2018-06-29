@@ -28,6 +28,11 @@ logs() {
   echo
 }
 
+errorLogs() {
+  logs
+  exit 1
+}
+
 testCreateOperator() {
   os::test::junit::declare_suite_start "operator/create"
   os::cmd::expect_success_and_text "oc create -f $DIR/../manifest/" 'deployment "spark-operator" created'
@@ -77,13 +82,13 @@ testDeleteCluster() {
 }
 
 run_tests() {
-  testCreateOperator || logs && exit 1
-  testCreateCluster1 || logs && exit 1
-  testScaleCluster || logs && exit 1
-  testDeleteCluster || logs && exit 1
+  testCreateOperator || errorLogs
+  testCreateCluster1 || errorLogs
+  testScaleCluster || errorLogs
+  testDeleteCluster || errorLogs
 
-  testCreateCluster2 || logs && exit 1
-  testDownloadedData || logs && exit 1
+  testCreateCluster2 || errorLogs
+  testDownloadedData || errorLogs
   logs
 }
 
