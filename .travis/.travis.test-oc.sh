@@ -3,7 +3,9 @@
 DIR="${DIR:-$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )}"
 
 cluster_up() {
+  echo -e "\n$(tput setaf 3)docker images:$(tput sgr0)\n"
   docker images
+  echo
   set -x
   oc cluster up
   set +x
@@ -75,13 +77,13 @@ testDeleteCluster() {
 }
 
 run_tests() {
-  testCreateOperator || logs
-  testCreateCluster1 || logs
-  testScaleCluster || logs
-  testDeleteCluster || logs
+  testCreateOperator || logs && exit 1
+  testCreateCluster1 || logs && exit 1
+  testScaleCluster || logs && exit 1
+  testDeleteCluster || logs && exit 1
 
-  testCreateCluster2 || logs
-  testDownloadedData || logs
+  testCreateCluster2 || logs && exit 1
+  testDownloadedData || logs && exit 1
   logs
 }
 
