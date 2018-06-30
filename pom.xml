@@ -141,6 +141,14 @@
                                     <mainClass>io.radanalytics.operator.Entrypoint</mainClass>
                                 </transformer>
                             </transformers>
+                            <filters>
+                                <filter>
+                                    <artifact>io.fabric8:openshift-client</artifact>
+                                    <excludes>
+                                        <exclude>io/fabric8/kubernetes/client/Config*</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
                         </configuration>
                     </execution>
                 </executions>

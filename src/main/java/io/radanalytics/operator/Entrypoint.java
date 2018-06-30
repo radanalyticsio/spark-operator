@@ -60,11 +60,11 @@ public class Entrypoint {
         List<Future> futures = new ArrayList<>();
         if (null == config.getNamespaces()) { // get the current namespace
             String namespace = client.getNamespace();
-            Future<String> future = runForNamespace(vertx, client, isOpenShift, namespace);
+            Future future = runForNamespace(vertx, client, isOpenShift, namespace);
             futures.add(future);
         } else {
             for (String namespace : config.getNamespaces()) {
-                Future<String> future = runForNamespace(vertx, client, isOpenShift, namespace);
+                Future future = runForNamespace(vertx, client, isOpenShift, namespace);
                 futures.add(future);
             }
         }

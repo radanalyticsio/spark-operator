@@ -5,11 +5,11 @@ build: package image-build-slim
 
 .PHONY: package
 package:
-	./mvnw package -DskipTests
+	./mvnw clean package -DskipTests
 
 .PHONY: test
 test:
-	./mvnw test
+	./mvnw clean test
 
 .PHONY: image-build
 image-build:

@@ -3,7 +3,7 @@
 DIR="${DIR:-$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )}"
 
 cluster_up() {
-  echo -e "\n$(tput setaf 3)docker images:$(tput sgr0)\n"
+  echo -e "\n$(tput setaf 130)docker images:$(tput sgr0)\n"
   docker images
   echo
   set -x
@@ -21,9 +21,9 @@ setup_testing_framework() {
 }
 
 logs() {
-  echo -e "\n$(tput setaf 3)oc get all:$(tput sgr0)\n"
+  echo -e "\n$(tput setaf 130)oc get all:$(tput sgr0)\n"
   oc get all
-  echo -e "\n$(tput setaf 3)Logs:$(tput sgr0)\n"
+  echo -e "\n$(tput setaf 130)Logs:$(tput sgr0)\n"
   oc logs `oc get pod -l app.kubernetes.io/name=spark-operator -o='jsonpath="{.items[0].metadata.name}"' | sed 's/"//g'`
   echo
 }

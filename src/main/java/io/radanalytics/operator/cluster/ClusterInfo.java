@@ -66,7 +66,7 @@ public class ClusterInfo implements EntityInfo {
     }
 
     public List<DL> getDownloadData() {
-        return downloadData == null ? Collections.EMPTY_LIST : downloadData;
+        return downloadData == null ? Collections.emptyList() : downloadData;
     }
 
     public void setName(String name) {
