@@ -1,3 +1,3 @@
 [submodule "test"]
 	path = test
-	url = git@github.com:Jiri-Kremser/openshift-test-kit
+	url = https://github.com/Jiri-Kremser/openshift-test-kit
