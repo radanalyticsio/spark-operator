@@ -219,7 +219,7 @@ function os::cmd::internal::expect_exit_code_run_grep() {
 
 	local return_code
 	if (( cmd_succeeded && test_succeeded )); then
-		os::text::print_green "SUCCESS after ${time_elapsed}s: ${name}"
+		os::text::print_green "✔ SUCCESS after ${time_elapsed}s: ${name}"
 		junit_log+=( "SUCCESS after ${time_elapsed}s: ${name//$'\n'/;}" )
 
 		if [[ -n ${VERBOSE-} ]]; then
@@ -229,7 +229,7 @@ function os::cmd::internal::expect_exit_code_run_grep() {
 	else
 		local cause=$(os::cmd::internal::assemble_causes "${cmd_succeeded}" "${test_succeeded}")
 
-		os::text::print_red_bold "FAILURE after ${time_elapsed}s: ${name}: ${cause}"
+		os::text::print_red_bold "✘ FAILURE after ${time_elapsed}s: ${name}: ${cause}"
 		junit_log+=( "FAILURE after ${time_elapsed}s: ${name//$'\n'/;}: ${cause}" )
 
 		os::text::print_red "$(os::cmd::internal::print_results)"
@@ -512,7 +512,7 @@ function os::cmd::internal::run_until_exit_code() {
 
 	local return_code
 	if (( cmd_succeeded )); then
-		os::text::print_green "SUCCESS after ${time_elapsed}s: ${description}"
+		os::text::print_green "✔ SUCCESS after ${time_elapsed}s: ${description}"
 		junit_log+=( "SUCCESS after ${time_elapsed}s: ${description//$'\n'/;}" )
 
 		if [[ -n ${VERBOSE-} ]]; then
@@ -520,7 +520,7 @@ function os::cmd::internal::run_until_exit_code() {
 		fi
 		return_code=0
 	else
-		os::text::print_red_bold "FAILURE after ${time_elapsed}s: ${description}: the command timed out"
+		os::text::print_red_bold "✘ FAILURE after ${time_elapsed}s: ${description}: the command timed out"
 		junit_log+=( "FAILURE after ${time_elapsed}s: ${description//$'\n'/;}: the command timed out" )
 
 		os::text::print_red "$(os::cmd::internal::print_results)"
@@ -598,7 +598,7 @@ function os::cmd::internal::run_until_text() {
 
 	local return_code
 	if (( test_succeeded )); then
-		os::text::print_green "SUCCESS after ${time_elapsed}s: ${description}"
+		os::text::print_green "✔ SUCCESS after ${time_elapsed}s: ${description}"
 		junit_log+=( "SUCCESS after ${time_elapsed}s: ${description//$'\n'/;}" )
 
 		if [[ -n ${VERBOSE-} ]]; then
@@ -606,7 +606,7 @@ function os::cmd::internal::run_until_text() {
 		fi
 		return_code=0
 	else
-		os::text::print_red_bold "FAILURE after ${time_elapsed}s: ${description}: the command timed out"
+		os::text::print_red_bold "✘ FAILURE after ${time_elapsed}s: ${description}: the command timed out"
 		junit_log+=( "FAILURE after ${time_elapsed}s: ${description//$'\n'/;}: the command timed out" )
 
 		os::text::print_red "$(os::cmd::internal::print_results)"
