@@ -52,7 +52,7 @@ testCreateCluster2() {
 }
 
 testDownloadedData() {
-  sleep 3
+  sleep 2
   local worker_pod=`oc get pod -l radanalytics.io/deployment=spark-cluster-with-data-w -o='jsonpath="{.items[0].metadata.name}"' | sed 's/"//g'` && \
   os::cmd::expect_success_and_text "oc exec $worker_pod ls" 'LA.csv' && \
   os::cmd::expect_success_and_text "oc exec $worker_pod ls" 'rows.csv'
@@ -68,6 +68,22 @@ testDeleteCluster() {
   os::cmd::try_until_text "oc get pods --no-headers -l radanalytics.io/cluster=my-spark-cluster 2> /dev/null | wc -l" '0'
 }
 
+testApp() {
+  os::cmd::expect_success_and_text 'oc create -f examples/app.yaml' 'configmap "my-spark-app" created' && \
+  os::cmd::try_until_text "oc get pods --no-headers -l radanalytics.io/app=my-spark-app 2> /dev/null | wc -l" '3'
+}
+
+testAppResult() {
+  sleep 2
+  local driver_pod=`oc get pods --no-headers -l radanalytics.io/app=my-spark-app -l spark-role=driver -o='jsonpath="{.items[0].metadata.name}"' | sed 's/"//g'` && \
+  os::cmd::try_until_text "oc logs $driver_pod" 'Pi is roughly 3.1'
+}
+
+testDeleteApp() {
+  os::cmd::expect_success_and_text 'oc delete cm my-spark-app' 'configmap "my-spark-app" deleted' && \
+  os::cmd::try_until_text "oc get pods --no-headers -l radanalytics.io/app=my-spark-app 2> /dev/null | wc -l" '0'
+}
+
 run_tests() {
   os::test::junit::declare_suite_start "operator/tests"
   testCreateOperator || errorLogs
@@ -77,6 +93,11 @@ run_tests() {
 
   testCreateCluster2 || errorLogs
   testDownloadedData || errorLogs
+
+  testApp || errorLogs
+  testAppResult || errorLogs
+  testDeleteApp || errorLogs
+
   os::test::junit::declare_suite_end
   logs
 }
