@@ -31,10 +31,10 @@ image-publish-slim: image-build-slim
 
 .PHONY: image-publish
 image-publish: image-build
-	docker tag $(IMAGE):centos $(IMAGE):centos-`git rev-parse --short=8 HEAD`
-	docker tag $(IMAGE):centos $(IMAGE):centos-latest
+	docker tag $(IMAGE):centos $(IMAGE):`git rev-parse --short=8 HEAD`-centos
+	docker tag $(IMAGE):centos $(IMAGE):latest-centos
 	#docker push $(IMAGE):centos-`git rev-parse --short=8 HEAD`
-	docker push $(IMAGE):centos-latest
+	docker push $(IMAGE):latest-centos
 
 .PHONY: image-publish-all
 image-publish-all: package image-build-all image-publish image-publish-slim
