@@ -31,20 +31,20 @@ metadata:
   name: spark-operator
   labels:
     app.kubernetes.io/name: spark-operator
-    app.kubernetes.io/version: v0.1.3-v1alpha1
+    app.kubernetes.io/version: v0.1.4-v1alpha1
 spec:
   replicas: 1
   selector:
     matchLabels:
       app.kubernetes.io/name: spark-operator
-      app.kubernetes.io/version: v0.1.3-v1alpha1
+      app.kubernetes.io/version: v0.1.4-v1alpha1
   strategy:
     type: Recreate
   template:
     metadata:
       labels:
         app.kubernetes.io/name: spark-operator
-        app.kubernetes.io/version: v0.1.3-v1alpha1
+        app.kubernetes.io/version: v0.1.4-v1alpha1
       initializers:
         pending: []  
     spec:
