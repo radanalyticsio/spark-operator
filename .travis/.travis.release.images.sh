@@ -8,7 +8,10 @@ IMAGE="${IMAGE:-spark-operator}"
 # if building the release tag
 if [[ "${TRAVIS_TAG}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
 
-  # push the latest and ${TRAVIS_TAG} images
+  # build centos image
+  make package image-build
+
+  # tag and push the latest-released and ${TRAVIS_TAG} images (and also -centos images)
   docker tag $OWNER/$IMAGE:slim $OWNER/$IMAGE:${TRAVIS_TAG}
   docker tag $OWNER/$IMAGE:slim $OWNER/$IMAGE:latest-released
   docker tag $OWNER/$IMAGE:centos $OWNER/$IMAGE:${TRAVIS_TAG}-centos
