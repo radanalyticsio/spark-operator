@@ -66,7 +66,7 @@ EOF
 For deployment on OpenShift use the same commands as above, but with `oc` instead of `kubectl`.
 
 ### Images
-[![Layers info](https://images.microbadger.com/badges/image/jkremser/spark-operator.svg:latest-released)](https://microbadger.com/images/jkremser/spark-operator:latest-released)
+[![Layers info](https://images.microbadger.com/badges/image/jkremser/spark-operator.svg:latest-released.svg)](https://microbadger.com/images/jkremser/spark-operator:latest-released)
 `jkremser/spark-operator:latest-released`
 
 [![Layers info](https://images.microbadger.com/badges/image/jkremser/spark-operator:latest-released-centos.svg)](https://microbadger.com/images/jkremser/spark-operator:latest-released-centos)
