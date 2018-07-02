@@ -5,6 +5,13 @@
 
 `ConfigMap`-based approach for managing the Spark clusters in Kubernetes and OpenShift.
 
+<!--
+asciinema rec -i 3
+docker run -\-rm -v $PWD:/data asciinema/asciicast2gif -s 1.18 -w 104 -h 27 -t monokai 189204.cast demo.gif
+-->
+[![Watch the full asciicast](./ascii.gif)](https://asciinema.org/a/189204?&cols=104&rows=27&theme=monokai)
+
+
 # Quick Start
 
 Run the `spark-operator` deployment:
@@ -58,16 +65,19 @@ EOF
 
 For deployment on OpenShift use the same commands as above, but with `oc` instead of `kubectl`.
 
-### Demo
-<!--
-asciinema rec -i 3
-docker run -\-rm -v $PWD:/data asciinema/asciicast2gif -s 1.18 -w 104 -h 27 -t monokai 189204.cast demo.gif
--->
-[![Watch the full asciicast](./ascii.gif)](https://asciinema.org/a/189204?&cols=104&rows=27&theme=monokai)
-
 ### Images
-[![Layers info](https://images.microbadger.com/badges/image/jkremser/spark-operator.svg)](https://microbadger.com/images/jkremser/spark-operator)
-`jkremser/spark-operator:latest`
+[![Layers info](https://images.microbadger.com/badges/image/jkremser/spark-operator.svg:latest-released)](https://microbadger.com/images/jkremser/spark-operator:latest-released)
+`jkremser/spark-operator:latest-released`
 
-[![Layers info](https://images.microbadger.com/badges/image/jkremser/spark-operator:centos-latest.svg)](https://microbadger.com/images/jkremser/spark-operator:centos-latest)
-`jkremser/spark-operator:centos-latest`
+[![Layers info](https://images.microbadger.com/badges/image/jkremser/spark-operator:latest-released-centos.svg)](https://microbadger.com/images/jkremser/spark-operator:latest-released-centos)
+`jkremser/spark-operator:latest-released-centos`
+
+#### Notes about Images
+
+Image name         | Description
+------------------ | -----------
+`:latest`          | represents the MASTER branch
+`:latest-released` | represents the latest released version
+`:x.y.z`           | one particular version
+
+For each variant there is also available an image with `-centos` suffix based on Centos.
