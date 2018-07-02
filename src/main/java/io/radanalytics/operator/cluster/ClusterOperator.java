@@ -3,7 +3,6 @@ package io.radanalytics.operator.cluster;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.KubernetesResourceList;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.radanalytics.operator.KubernetesSparkClusterDeployer;
 import io.radanalytics.operator.common.AbstractOperator;
 import io.radanalytics.operator.resource.LabelsHelper;
 import io.radanalytics.operator.resource.ResourceHelper;

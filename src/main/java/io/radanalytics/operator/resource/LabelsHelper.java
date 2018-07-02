@@ -35,8 +35,8 @@ public class LabelsHelper {
 
     // the values
     public static final String OPERATOR_KIND_CLUSTER_LABEL = "cluster";
-    public static final String OPERATOR_KIND_APP_LABEL = "app";
     public static final String OPERATOR_KIND_NOTEBOOK_LABEL = "notebook";
+    public static final String OPERATOR_KIND_APP_LABEL = "app";
 
     public static final String OPERATOR_SEVICE_TYPE_LABEL = OPERATOR_DOMAIN + "service";
     //the values
