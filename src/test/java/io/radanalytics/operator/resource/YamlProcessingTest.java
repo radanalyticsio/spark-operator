@@ -1,7 +1,6 @@
 package io.radanalytics.operator.resource;
 
 
-import io.fabric8.kubernetes.api.model.Cluster;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -15,14 +14,17 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 
 import static io.radanalytics.operator.common.OperatorConfig.DEFAULT_SPARK_IMAGE;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 
 public class YamlProcessingTest {
 
     private String path1 = "examples/cluster.yaml";
     private String path2 = "examples/with-prepared-data.yaml";
+    private String path3 = "examples/cluster-with-config.yaml";
     private String cluster1;
     private String cluster2;
+    private String cluster3;
     private KubernetesClient client = new DefaultKubernetesClient();
 
     @Before
@@ -31,8 +33,10 @@ public class YamlProcessingTest {
 //        this.cluster2 = readFile(path2);
         ConfigMap cm1 = client.configMaps().load(path1).get();
         ConfigMap cm2 = client.configMaps().load(path2).get();
+        ConfigMap cm3 = client.configMaps().load(path3).get();
         this.cluster1 = cm1.getData().get("config");
         this.cluster2 = cm2.getData().get("config");
+        this.cluster3 = cm3.getData().get("config");
     }
 
     @Test
@@ -53,6 +57,22 @@ public class YamlProcessingTest {
         assertEquals(clusterInfo.getMasterNodes(), 1);
         assertEquals(clusterInfo.getDownloadData().size(), 2);
         assertEquals(clusterInfo.getDownloadData().get(0).getTo(), "/tmp/");
+    }
+
+    @Test
+    public void testParseCM3() {
+        ConfigMap cm3 = client.configMaps().load(path3).get();
+        ClusterInfo clusterInfo = HasDataHelper.parseCM(ClusterInfo.class, cm3);
+
+        assertEquals(clusterInfo.getMasterNodes(), 1);
+        assertEquals(clusterInfo.getSparkConfiguration().size(), 2);
+        assertEquals(clusterInfo.getSparkConfiguration().get(0).getName(), "spark.executor.memory");
+
+        assertEquals(clusterInfo.getEnv().size(), 2);
+        assertEquals(clusterInfo.getEnv().get(0).getName(), "SPARK_WORKER_CORES");
+        assertEquals(clusterInfo.getEnv().get(0).getValue(), "2");
+
+        assertEquals(clusterInfo.getSparkConfigurationMap(), "my-config");
     }
 
     @Test
