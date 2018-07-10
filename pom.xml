@@ -31,7 +31,7 @@
         <license.maven.version>2.11</license.maven.version>
 
         <fabric8.kubernetes-client.version>4.0.0</fabric8.kubernetes-client.version>
-        <fabric8.kubernetes-model.version>2.1.1</fabric8.kubernetes-model.version>
+        <fabric8.kubernetes-model.version>3.0.0</fabric8.kubernetes-model.version>
         <fabric8.zjsonpatch.version>0.3.0</fabric8.zjsonpatch.version>
         <snakeyaml.version>1.21</snakeyaml.version>
         <vertx.version>3.5.2</vertx.version>
