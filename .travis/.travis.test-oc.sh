@@ -60,7 +60,7 @@ testDownloadedData() {
 }
 
 testFullConfigCluster() {
-  os::cmd::expect_success_and_text "oc create cm my-config --from-file=$DIR/../examples/spark-defalult.conf" 'configmap "my-config" created' && \
+  os::cmd::expect_success_and_text "oc create cm my-config --from-file=$DIR/../examples/spark-defaults.conf" 'configmap "my-config" created' && \
   os::cmd::expect_success_and_text "oc create -f $DIR/../examples/cluster-with-config.yaml" 'configmap "sparky-cluster" created' && \
   os::cmd::try_until_text "oc get pod -l radanalytics.io/deployment=sparky-cluster-w -o yaml" 'ready: true' && \
   os::cmd::try_until_text "oc get pod -l radanalytics.io/deployment=sparky-cluster-m -o yaml" 'ready: true'
@@ -68,8 +68,21 @@ testFullConfigCluster() {
   os::cmd::expect_success_and_text "oc exec $worker_pod ls" 'README.md' && \
   os::cmd::expect_success_and_text "oc exec $worker_pod env" 'FOO=bar' && \
   os::cmd::expect_success_and_text "oc exec $worker_pod env" 'SPARK_WORKER_CORES=2' && \
-  os::cmd::expect_success_and_text "oc exec $worker_pod 'cat /opt/spark/conf/spark-defalult.conf" 'spark.history.retainedApplications 100' && \
-  os::cmd::expect_success_and_text "oc exec $worker_pod 'ps aux | grep spark'" 'autoBroadcastJoinThreshold'
+  os::cmd::expect_success_and_text "oc exec $worker_pod cat /opt/spark/conf/spark-defaults.conf" 'spark.history.retainedApplications 100' && \
+  os::cmd::expect_success_and_text "oc exec $worker_pod cat /opt/spark/conf/spark-defaults.conf" 'autoBroadcastJoinThreshold 20971520'
+}
+
+testConfig1Cluster() {
+#  os::cmd::expect_success_and_text "oc create cm my-config --from-file=$DIR/../examples/spark-defaults.conf" 'configmap "my-config" created' && \
+#  os::cmd::expect_success_and_text "oc create -f $DIR/../examples/cluster-with-config.yaml" 'configmap "sparky-cluster" created' && \
+#  os::cmd::try_until_text "oc get pod -l radanalytics.io/deployment=sparky-cluster-w -o yaml" 'ready: true' && \
+#  os::cmd::try_until_text "oc get pod -l radanalytics.io/deployment=sparky-cluster-m -o yaml" 'ready: true'
+#  local worker_pod=`oc get pod -l radanalytics.io/deployment=sparky-cluster-w -o='jsonpath="{.items[0].metadata.name}"' | sed 's/"//g'` && \
+#  os::cmd::expect_success_and_text "oc exec $worker_pod ls" 'README.md' && \
+#  os::cmd::expect_success_and_text "oc exec $worker_pod env" 'FOO=bar' && \
+#  os::cmd::expect_success_and_text "oc exec $worker_pod env" 'SPARK_WORKER_CORES=2' && \
+#  os::cmd::expect_success_and_text "oc exec $worker_pod cat /opt/spark/conf/spark-defaults.conf" 'spark.history.retainedApplications 100' && \
+#  os::cmd::expect_success_and_text "oc exec $worker_pod cat /opt/spark/conf/spark-defaults.conf" 'autoBroadcastJoinThreshold 20971520'
 }
 
 testScaleCluster() {

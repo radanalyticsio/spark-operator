@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: my-spark-cluster-1
+  labels:
+    radanalytics.io/kind: cluster
+data:
+  config: |-
+    w0rkerNodes: "1"
+    masterNodes: "1"

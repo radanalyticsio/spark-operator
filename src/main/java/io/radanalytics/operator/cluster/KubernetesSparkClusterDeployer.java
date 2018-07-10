@@ -1,21 +1,26 @@
 package io.radanalytics.operator.cluster;
 
 import io.fabric8.kubernetes.api.model.*;
+import io.fabric8.kubernetes.client.KubernetesClient;
 
 import java.util.*;
 
 import static io.radanalytics.operator.resource.LabelsHelper.*;
 
 public class KubernetesSparkClusterDeployer {
+    private static KubernetesClient client;
 
-    public static KubernetesResourceList getResourceList(ClusterInfo cluster) {
-        String name = cluster.getName();
-        ReplicationController masterRc = getRCforMaster(cluster);
-        ReplicationController workerRc = getRCforWorker(cluster);
-        Service masterService = getService(false, name, 7077);
-        Service masterUiService = getService(true, name, 8080);
-        KubernetesList resources = new KubernetesListBuilder().withItems(masterRc, workerRc, masterService, masterUiService).build();
-        return resources;
+    public static KubernetesResourceList getResourceList(ClusterInfo cluster, KubernetesClient client) {
+        KubernetesSparkClusterDeployer.client = client;
+        synchronized (KubernetesSparkClusterDeployer.client) {
+            String name = cluster.getName();
+            ReplicationController masterRc = getRCforMaster(cluster);
+            ReplicationController workerRc = getRCforWorker(cluster);
+            Service masterService = getService(false, name, 7077);
+            Service masterUiService = getService(true, name, 8080);
+            KubernetesList resources = new KubernetesListBuilder().withItems(masterRc, workerRc, masterService, masterUiService).build();
+            return resources;
+        }
     }
 
     private static ReplicationController getRCforMaster(ClusterInfo cluster) {
@@ -108,69 +113,91 @@ public class KubernetesSparkClusterDeployer {
                 .withNewSpec().withContainers(containerBuilder.build())
                 .endSpec().endTemplate().endSpec().build();
 
-        if (!cluster.getDownloadData().isEmpty() || !cluster.getSparkConfiguration().isEmpty()) {
-            addInitContainers(rc, cluster.getDownloadData(), cluster.getSparkConfiguration());
+        final boolean cmExists = cmExists(cluster.getSparkConfigurationMap());
+        if (!cluster.getDownloadData().isEmpty() || !cluster.getSparkConfiguration().isEmpty() || cmExists) {
+            addInitContainers(rc, cluster, cmExists);
         }
-        //if (cluster.getc) only if cm exists
-//        addConfigMapVolume(rc, cluster.getSparkConfigurationMap());
-
         return rc;
     }
 
     private static ReplicationController addInitContainers(ReplicationController rc,
-                                                           List<ClusterInfo.DL> downloadData,
-                                                           List<ClusterInfo.NV> config) {
-        VolumeMount mount = new VolumeMountBuilder().withName("data-dir").withMountPath("/tmp").build();
+                                                           ClusterInfo cluster,
+                                                           boolean cmExists) {
+        final List<ClusterInfo.DL> downloadData = cluster.getDownloadData();
+        final List<ClusterInfo.NV> config = cluster.getSparkConfiguration();
+        final boolean needInitContainer = !downloadData.isEmpty() || !config.isEmpty();
+        final StringBuilder command = new StringBuilder();
+        if (needInitContainer) {
+            downloadData.forEach(dl -> {
+                String url = dl.getUrl();
+                String to = dl.getTo();
+                // if 'to' ends with slash, we know it's a directory and we use the -P switch to change the prefix,
+                // otherwise using -O for renaming the downloaded file
+                String param = to.endsWith("/") ? " -P " : " -O ";
+                command.append("wget ");
+                command.append(url);
+                command.append(param);
+                command.append(to);
+                command.append(" && ");
+            });
+            if (cmExists) {
+                command.append("cp /tmp/config/* /opt/spark/conf");
+                command.append(" && ");
+            }
+            if (!config.isEmpty()) {
+                command.append("echo -e \"");
+                config.forEach(kv -> {
+                    command.append(kv.getName());
+                    command.append(" ");
+                    command.append(kv.getValue());
+                    command.append("\\n");
+                });
+                command.append("\" >> /opt/spark/conf/spark-defaults.conf");
+                command.append(" && ");
+            }
+            command.delete(command.length() - 4, command.length());
+        }
 
-        StringBuilder command = new StringBuilder();
-        downloadData.forEach(dl -> {
-            String url = dl.getUrl();
-            String to = dl.getTo();
-            // if 'to' ends with slash, we know it's a directory and we use the -P switch to change the prefix,
-            // otherwise using -O for renaming the downloaded file
-            String param = to.endsWith("/") ? " -P " : " -O ";
-            command.append("wget ");
-            command.append(url);
-            command.append(param);
-            command.append(to);
-            command.append(" && ");
-        });
-        config.forEach(kv -> {
-            command.append("echo ").append(kv.getName()).append(" ").append(kv.getValue());
-            command.append(" >> /opt/spark/conf/spark-defaults.conf");
-            command.append(" && ");
-        });
-
-        command.delete(command.length() - 4, command.length());
-
-        Container initContainer = new ContainerBuilder()
-                .withName("downloader")
-                .withImage("busybox")
-                .withCommand("/bin/sh", "-c")
-                .withArgs(command.toString())
-                .withVolumeMounts(mount)
-                .build();
-        Volume volume = new VolumeBuilder().withName("data-dir").withNewEmptyDir().endEmptyDir().build();
-
+        final VolumeMount m1 = new VolumeMountBuilder().withName("data-dir").withMountPath("/tmp").build();
+        final VolumeMount m2 = new VolumeMountBuilder().withName("configmap-dir").withMountPath("/tmp/config").build();
+        final VolumeMount m3 = new VolumeMountBuilder().withName("conf-dir").withMountPath("/opt/spark/conf").build();
+        final Volume v1 = new VolumeBuilder().withName("data-dir").withNewEmptyDir().endEmptyDir().build();
+        final Volume v2 = new VolumeBuilder().withName("configmap-dir").withNewConfigMap().withName(cluster.getSparkConfigurationMap()).endConfigMap().build();
+        final Volume v3 = new VolumeBuilder().withName("conf-dir").withNewEmptyDir().endEmptyDir().build();
+        final List<VolumeMount> mounts = new ArrayList<>(2);
+        final List<Volume> volumes = new ArrayList<>(2);
+        if (!downloadData.isEmpty()) {
+            mounts.add(m1);
+            volumes.add(v1);
+        }
+        if (cmExists) {
+            mounts.add(m2);
+            volumes.add(v2);
+        }
+        if (cmExists || !config.isEmpty()) {
+            mounts.add(m3);
+            volumes.add(v3);
+        }
         PodSpec spec = rc.getSpec().getTemplate().getSpec();
-        spec.getContainers().get(0).setVolumeMounts(Arrays.asList(mount));
-        spec.setInitContainers(Arrays.asList(initContainer));
-        spec.setVolumes(Arrays.asList(volume));
+        if (needInitContainer) {
+            Container initContainer = new ContainerBuilder()
+                    .withName("downloader")
+                    .withImage("busybox")
+                    .withCommand("/bin/sh", "-c")
+                    .withArgs(command.toString())
+                    .withVolumeMounts(mounts)
+                    .build();
+            spec.setInitContainers(Arrays.asList(initContainer));
+        }
+        spec.getContainers().get(0).setVolumeMounts(mounts);
+        spec.setVolumes(volumes);
         rc.getSpec().getTemplate().setSpec(spec);
         return rc;
     }
 
-    private static ReplicationController addConfigMapVolume(ReplicationController rc, String configMapName) {
-        final String confPath = "/tmp/conf";
-        VolumeMount mount = new VolumeMountBuilder().withName("config-volume").withMountPath(confPath).build();
-        Volume volume = new VolumeBuilder().withName("config-volume").withNewConfigMap().withName(configMapName).endConfigMap().build();
-        PodSpec spec = rc.getSpec().getTemplate().getSpec();
-        Container container = spec.getContainers().get(0);
-        container.getVolumeMounts().add(mount);
-//        container.getEnv().add(env("UPDATE_SPARK_CONF_DIR", confPath));
-        spec.getVolumes().add(volume);
-        rc.getSpec().getTemplate().setSpec(spec);
-        return rc;
+    private static boolean cmExists(String name) {
+        ConfigMap configMap = KubernetesSparkClusterDeployer.client.configMaps().withName(name).get();
+        return configMap != null && configMap.getData() != null && !configMap.getData().isEmpty();
     }
 
     private static Map<String, String> getSelector(String clusterName, String podName) {

@@ -25,7 +25,7 @@ public class ClusterOperator extends AbstractOperator<ClusterInfo> {
     }
 
     protected void onAdd(ClusterInfo cluster, boolean isOpenshift) {
-        KubernetesResourceList list = KubernetesSparkClusterDeployer.getResourceList(cluster);
+        KubernetesResourceList list = KubernetesSparkClusterDeployer.getResourceList(cluster, client);
         client.resourceList(list).createOrReplace();
         clusters.put(cluster);
     }
