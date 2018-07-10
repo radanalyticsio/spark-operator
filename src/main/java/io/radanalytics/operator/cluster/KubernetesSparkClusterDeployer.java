@@ -108,13 +108,18 @@ public class KubernetesSparkClusterDeployer {
                 .withNewSpec().withContainers(containerBuilder.build())
                 .endSpec().endTemplate().endSpec().build();
 
-        if (!cluster.getDownloadData().isEmpty()) {
-            addInitContainers(rc, cluster.getDownloadData());
+        if (!cluster.getDownloadData().isEmpty() || !cluster.getSparkConfiguration().isEmpty()) {
+            addInitContainers(rc, cluster.getDownloadData(), cluster.getSparkConfiguration());
         }
+        //if (cluster.getc) only if cm exists
+//        addConfigMapVolume(rc, cluster.getSparkConfigurationMap());
+
         return rc;
     }
 
-    private static ReplicationController addInitContainers(ReplicationController rc, List<ClusterInfo.DL> downloadData) {
+    private static ReplicationController addInitContainers(ReplicationController rc,
+                                                           List<ClusterInfo.DL> downloadData,
+                                                           List<ClusterInfo.NV> config) {
         VolumeMount mount = new VolumeMountBuilder().withName("data-dir").withMountPath("/tmp").build();
 
         StringBuilder command = new StringBuilder();
@@ -130,6 +135,12 @@ public class KubernetesSparkClusterDeployer {
             command.append(to);
             command.append(" && ");
         });
+        config.forEach(kv -> {
+            command.append("echo ").append(kv.getName()).append(" ").append(kv.getValue());
+            command.append(" >> /opt/spark/conf/spark-defaults.conf");
+            command.append(" && ");
+        });
+
         command.delete(command.length() - 4, command.length());
 
         Container initContainer = new ContainerBuilder()
@@ -145,6 +156,19 @@ public class KubernetesSparkClusterDeployer {
         spec.getContainers().get(0).setVolumeMounts(Arrays.asList(mount));
         spec.setInitContainers(Arrays.asList(initContainer));
         spec.setVolumes(Arrays.asList(volume));
+        rc.getSpec().getTemplate().setSpec(spec);
+        return rc;
+    }
+
+    private static ReplicationController addConfigMapVolume(ReplicationController rc, String configMapName) {
+        final String confPath = "/tmp/conf";
+        VolumeMount mount = new VolumeMountBuilder().withName("config-volume").withMountPath(confPath).build();
+        Volume volume = new VolumeBuilder().withName("config-volume").withNewConfigMap().withName(configMapName).endConfigMap().build();
+        PodSpec spec = rc.getSpec().getTemplate().getSpec();
+        Container container = spec.getContainers().get(0);
+        container.getVolumeMounts().add(mount);
+//        container.getEnv().add(env("UPDATE_SPARK_CONF_DIR", confPath));
+        spec.getVolumes().add(volume);
         rc.getSpec().getTemplate().setSpec(spec);
         return rc;
     }

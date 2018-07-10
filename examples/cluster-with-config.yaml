@@ -1,26 +1,26 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: sparky-cluster                                # compulsory
+  name: sparky-cluster                                  # compulsory
   labels:
-    radanalytics.io/kind: cluster                     # compulsory
+    radanalytics.io/kind: cluster                       # compulsory
 data:
   config: |-
-    workerNodes: "2"                                  # optional defaults to 1
-    masterNodes: "1"                                  # optional defaults to 1
-    customImage: ""                                   # optional defaults to jkremser/openshift-spark:2.3-latest
-    env:                                              # optional
+    workerNodes: "2"                                    # optional defaults to 1
+    masterNodes: "1"                                    # optional defaults to 1
+    customImage: jkremser/openshift-spark:2.3-latest    # optional defaults to jkremser/openshift-spark:2.3-latest
+    env:                                                # optional
     - name: SPARK_WORKER_CORES
       value: 2
     - name: FOO
       value: bar
-    sparkConfigurationMap: my-config                  # optional defaults to ${name}-config
-                                                      # kubectl create configmap my-config --from-file=example/config.conf
-    sparkConfiguration:                               # optional, it overrides the config defined above, the cm must exist
+    sparkConfigurationMap: my-config                    # optional defaults to ${name}-config
+                                                        # kubectl create configmap my-config --from-file=example/config.conf
+    sparkConfiguration:                                 # optional, it overrides the config defined above, the cm must exist
     - name: spark.executor.memory
       value: 2g
     - name: spark.sql.conf.autoBroadcastJoinThreshold
       value: 20971520
-    downloadData:                                     # optional, it downloads these files to each node
+    downloadData:                                       # optional, it downloads these files to each node
     - url: https://raw.githubusercontent.com/Jiri-Kremser/spark-operator/master/README.md
       to: /tmp/
