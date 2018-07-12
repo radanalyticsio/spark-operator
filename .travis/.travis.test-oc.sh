@@ -60,10 +60,13 @@ testDownloadedData() {
 }
 
 testFullConfigCluster() {
+  sleep 2
   os::cmd::expect_success_and_text "oc create cm my-config --from-file=$DIR/../examples/spark-defaults.conf" 'configmap "my-config" created' && \
   os::cmd::expect_success_and_text "oc create -f $DIR/../examples/cluster-with-config.yaml" 'configmap "sparky-cluster" created' && \
   os::cmd::try_until_text "oc get pod -l radanalytics.io/deployment=sparky-cluster-w -o yaml" 'ready: true' && \
   os::cmd::try_until_text "oc get pod -l radanalytics.io/deployment=sparky-cluster-m -o yaml" 'ready: true' && \
+  os::cmd::try_until_text "oc get pods --no-headers -l radanalytics.io/cluster=sparky-cluster | wc -l" '3' && \
+  sleep 1 && \
   local worker_pod=`oc get pod -l radanalytics.io/deployment=sparky-cluster-w -o='jsonpath="{.items[0].metadata.name}"' | sed 's/"//g'` && \
   os::cmd::expect_success_and_text "oc exec $worker_pod ls" 'README.md' && \
   os::cmd::expect_success_and_text "oc exec $worker_pod env" 'FOO=bar' && \
@@ -148,8 +151,6 @@ run_cusom_test() {
     testCustomCluster5 || errorLogs
 }
 run_tests() {
-  os::test::junit::declare_suite_start "operator/tests"
-  testCreateOperator || errorLogs
   testCreateCluster1 || errorLogs
   testScaleCluster || errorLogs
   testDeleteCluster || errorLogs
@@ -164,8 +165,6 @@ run_tests() {
   testApp || errorLogs
   testAppResult || errorLogs
   testDeleteApp || errorLogs
-
-  os::test::junit::declare_suite_end
   logs
 }
 
@@ -173,15 +172,16 @@ main() {
   tear_down
   cluster_up
   setup_testing_framework
+  os::test::junit::declare_suite_start "operator/tests"
+  testCreateOperator || errorLogs
   export operator_pod=`oc get pod -l app.kubernetes.io/name=spark-operator -o='jsonpath="{.items[0].metadata.name}"' | sed 's/"//g'`
   if [ "$#" -gt 0 ]; then
     # run single test that is passed as arg
-    os::test::junit::declare_suite_start "operator/tests"
     $1
-    os::test::junit::declare_suite_end
   else
     run_tests
   fi
+  os::test::junit::declare_suite_end
   tear_down
 }
 
