@@ -13,25 +13,36 @@ public class ClusterInfo implements EntityInfo {
     public static class DL {
         private String url;
         private String to;
-
-        public DL() {
-            // has to be there because of the snakeyaml library
-        }
-
+        public DL() {}
         public String getUrl() {
             return url;
         }
-
         public String getTo() {
             return to;
         }
-
         public void setUrl(String url) {
             this.url = url;
         }
-
         public void setTo(String to) {
             this.to = to;
+        }
+    }
+
+    public static class NV {
+        private String name;
+        private String value;
+        public NV() {}
+        public String getName() {
+            return name;
+        }
+        public String getValue() {
+            return value;
+        }
+        public void setName(String name) {
+            this.name = name;
+        }
+        public void setValue(String value) {
+            this.value = value;
         }
     }
 
@@ -40,6 +51,9 @@ public class ClusterInfo implements EntityInfo {
     private int masterNodes;
     private int workerNodes;
     private List<DL> downloadData;
+    private List<NV> env;
+    private List<NV> sparkConfiguration;
+    private String sparkConfigurationMap;
 
     public ClusterInfo() {
         // has to be there because of the snakeyaml library
@@ -69,6 +83,18 @@ public class ClusterInfo implements EntityInfo {
         return downloadData == null ? Collections.emptyList() : downloadData;
     }
 
+    public List<NV> getEnv() {
+        return env == null ? Collections.emptyList() : env;
+    }
+
+    public List<NV> getSparkConfiguration() {
+        return sparkConfiguration == null ? Collections.emptyList() : sparkConfiguration;
+    }
+
+    public String getSparkConfigurationMap() {
+        return sparkConfigurationMap != null ? sparkConfigurationMap : getName() + "-config";
+    }
+
     public void setName(String name) {
         this.name = name;
     }
@@ -87,6 +113,18 @@ public class ClusterInfo implements EntityInfo {
 
     public void setDownloadData(List<DL> downloadData) {
         this.downloadData = downloadData;
+    }
+
+    public void setEnv(List<NV> env) {
+        this.env = env;
+    }
+
+    public void setSparkConfiguration(List<NV> sparkConfiguration) {
+        this.sparkConfiguration = sparkConfiguration;
+    }
+
+    public void setSparkConfigurationMap(String sparkConfigurationMap) {
+        this.sparkConfigurationMap = sparkConfigurationMap;
     }
 
     @Override

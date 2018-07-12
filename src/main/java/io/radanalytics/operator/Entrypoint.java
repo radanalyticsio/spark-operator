@@ -29,6 +29,7 @@ public class Entrypoint {
     private static final Logger log = LoggerFactory.getLogger(Entrypoint.class.getName());
 
     public static void main(String[] args) {
+        log.info("Starting..");
         OperatorConfig config = OperatorConfig.fromMap(System.getenv());
         Vertx vertx = Vertx.vertx();
         KubernetesClient client = new DefaultKubernetesClient();
@@ -130,9 +131,16 @@ public class Entrypoint {
     }
 
     private static void printInfo() {
-        String gitSha = Manifests.read("Implementation-Build");
+        String gitSha = "unknown";
+        String version = "unknown";
+        try {
+            gitSha = Manifests.read("Implementation-Build");
+            version = Entrypoint.class.getPackage().getImplementationVersion();
+        } catch (Exception e) {
+            // ignore, not critical
+        }
         log.info("\n{}Spark-operator{} has started in version {}{}{}. {}\n", ANSI_R, ANSI_RESET, ANSI_G,
-                Entrypoint.class.getPackage().getImplementationVersion(), ANSI_RESET, FOO);
+                version, ANSI_RESET, FOO);
         if (!gitSha.isEmpty()) {
             log.info("Git sha: {}{}{}", ANSI_Y, gitSha, ANSI_RESET);
         }

@@ -1,34 +1,34 @@
 package io.radanalytics.operator.cluster;
 
 import io.fabric8.kubernetes.api.model.*;
-import io.radanalytics.operator.cluster.ClusterInfo;
+import io.fabric8.kubernetes.client.KubernetesClient;
 
 import java.util.*;
 
 import static io.radanalytics.operator.resource.LabelsHelper.*;
 
 public class KubernetesSparkClusterDeployer {
+    private static KubernetesClient client;
 
-    public static KubernetesResourceList getResourceList(ClusterInfo cluster) {
-        String name = cluster.getName();
-        String image = cluster.getCustomImage();
-        int masters = cluster.getMasterNodes();
-        int workers = cluster.getWorkerNodes();
-        List<ClusterInfo.DL> downloadData = cluster.getDownloadData();
-        ReplicationController masterRc = getRCforMaster(name, masters, image, downloadData);
-        ReplicationController workerRc = getRCforWorker(name, workers, image, downloadData);
-        Service masterService = getService(false, name, 7077);
-        Service masterUiService = getService(true, name, 8080);
-        KubernetesList resources = new KubernetesListBuilder().withItems(masterRc, workerRc, masterService, masterUiService).build();
-        return resources;
+    public static KubernetesResourceList getResourceList(ClusterInfo cluster, KubernetesClient client) {
+        KubernetesSparkClusterDeployer.client = client;
+        synchronized (KubernetesSparkClusterDeployer.client) {
+            String name = cluster.getName();
+            ReplicationController masterRc = getRCforMaster(cluster);
+            ReplicationController workerRc = getRCforWorker(cluster);
+            Service masterService = getService(false, name, 7077);
+            Service masterUiService = getService(true, name, 8080);
+            KubernetesList resources = new KubernetesListBuilder().withItems(masterRc, workerRc, masterService, masterUiService).build();
+            return resources;
+        }
     }
 
-    private static ReplicationController getRCforMaster(String name, int replicas, String image, List<ClusterInfo.DL> downloadData) {
-        return getRCforMasterOrWorker(true, name, replicas, image, downloadData);
+    private static ReplicationController getRCforMaster(ClusterInfo cluster) {
+        return getRCforMasterOrWorker(true, cluster);
     }
 
-    private static ReplicationController getRCforWorker(String name, int replicas, String image, List<ClusterInfo.DL> downloadData) {
-        return getRCforMasterOrWorker(false, name, replicas, image, downloadData);
+    private static ReplicationController getRCforWorker(ClusterInfo cluster) {
+        return getRCforMasterOrWorker(false, cluster);
     }
 
     private static Service getService(boolean isUi, String name, int port) {
@@ -47,13 +47,17 @@ public class KubernetesSparkClusterDeployer {
         return new EnvVarBuilder().withName(key).withValue(value).build();
     }
 
-    private static ReplicationController getRCforMasterOrWorker(boolean isMaster, String name, int replicas, String image, List<ClusterInfo.DL> downloadData) {
+    private static ReplicationController getRCforMasterOrWorker(boolean isMaster, ClusterInfo cluster) {
+        String name = cluster.getName();
         String podName = name + (isMaster ? "-m" : "-w");
         Map<String, String> selector = getSelector(name, podName);
 
         List<ContainerPort> ports = new ArrayList<>(2);
         List<EnvVar> envVars = new ArrayList<>();
         envVars.add(env("OSHINKO_SPARK_CLUSTER", name));
+        cluster.getEnv().forEach(kv -> {
+            envVars.add(env(kv.getName(), kv.getValue()));
+        });
         if (isMaster) {
             ContainerPort apiPort = new ContainerPortBuilder().withName("spark-master").withContainerPort(7077).withProtocol("TCP").build();
             ContainerPort uiPort = new ContainerPortBuilder().withName("spark-webui").withContainerPort(8080).withProtocol("TCP").build();
@@ -82,7 +86,7 @@ public class KubernetesSparkClusterDeployer {
                 .withSuccessThreshold(1)
                 .withTimeoutSeconds(1).build();
 
-        ContainerBuilder containerBuilder = new ContainerBuilder().withEnv(envVars).withImage(image)
+        ContainerBuilder containerBuilder = new ContainerBuilder().withEnv(envVars).withImage(cluster.getCustomImage())
                 .withImagePullPolicy("IfNotPresent")
                 .withName(name + (isMaster ? "-m" : "-w"))
                 .withTerminationMessagePath("/dev/termination-log")
@@ -103,51 +107,97 @@ public class KubernetesSparkClusterDeployer {
         ReplicationController rc = new ReplicationControllerBuilder().withNewMetadata()
                 .withName(podName).withLabels(labels)
                 .endMetadata()
-                .withNewSpec().withReplicas(replicas)
+                .withNewSpec().withReplicas(isMaster ? cluster.getMasterNodes() : cluster.getWorkerNodes())
                 .withSelector(selector)
                 .withNewTemplate().withNewMetadata().withLabels(podLabels).endMetadata()
                 .withNewSpec().withContainers(containerBuilder.build())
                 .endSpec().endTemplate().endSpec().build();
 
-        if (!downloadData.isEmpty()) {
-            addInitContainers(rc, downloadData);
+        final boolean cmExists = cmExists(cluster.getSparkConfigurationMap());
+        if (!cluster.getDownloadData().isEmpty() || !cluster.getSparkConfiguration().isEmpty() || cmExists) {
+            addInitContainers(rc, cluster, cmExists);
         }
         return rc;
     }
 
-    private static ReplicationController addInitContainers(ReplicationController rc, List<ClusterInfo.DL> downloadData) {
-        VolumeMount mount = new VolumeMountBuilder().withName("data-dir").withMountPath("/tmp").build();
+    private static ReplicationController addInitContainers(ReplicationController rc,
+                                                           ClusterInfo cluster,
+                                                           boolean cmExists) {
+        final List<ClusterInfo.DL> downloadData = cluster.getDownloadData();
+        final List<ClusterInfo.NV> config = cluster.getSparkConfiguration();
+        final boolean needInitContainer = !downloadData.isEmpty() || !config.isEmpty();
+        final StringBuilder command = new StringBuilder();
+        if (needInitContainer) {
+            downloadData.forEach(dl -> {
+                String url = dl.getUrl();
+                String to = dl.getTo();
+                // if 'to' ends with slash, we know it's a directory and we use the -P switch to change the prefix,
+                // otherwise using -O for renaming the downloaded file
+                String param = to.endsWith("/") ? " -P " : " -O ";
+                command.append("wget ");
+                command.append(url);
+                command.append(param);
+                command.append(to);
+                command.append(" && ");
+            });
+            if (cmExists) {
+                command.append("cp /tmp/config/* /opt/spark/conf");
+                command.append(" && ");
+            }
+            if (!config.isEmpty()) {
+                command.append("echo -e \"");
+                config.forEach(kv -> {
+                    command.append(kv.getName());
+                    command.append(" ");
+                    command.append(kv.getValue());
+                    command.append("\\n");
+                });
+                command.append("\" >> /opt/spark/conf/spark-defaults.conf");
+                command.append(" && ");
+            }
+            command.delete(command.length() - 4, command.length());
+        }
 
-        StringBuilder command = new StringBuilder();
-        downloadData.forEach(dl -> {
-            String url = dl.getUrl();
-            String to = dl.getTo();
-            // if 'to' ends with slash, we know it's a directory and we use the -P switch to change the prefix,
-            // otherwise using -O for renaming the downloaded file
-            String param = to.endsWith("/") ? " -P " : " -O ";
-            command.append("wget ");
-            command.append(url);
-            command.append(param);
-            command.append(to);
-            command.append(" && ");
-        });
-        command.delete(command.length() - 4, command.length());
-
-        Container initContainer = new ContainerBuilder()
-                .withName("downloader")
-                .withImage("busybox")
-                .withCommand("/bin/sh", "-c")
-                .withArgs(command.toString())
-                .withVolumeMounts(mount)
-                .build();
-        Volume volume = new VolumeBuilder().withName("data-dir").withNewEmptyDir().endEmptyDir().build();
-
+        final VolumeMount m1 = new VolumeMountBuilder().withName("data-dir").withMountPath("/tmp").build();
+        final VolumeMount m2 = new VolumeMountBuilder().withName("configmap-dir").withMountPath("/tmp/config").build();
+        final VolumeMount m3 = new VolumeMountBuilder().withName("conf-dir").withMountPath("/opt/spark/conf").build();
+        final Volume v1 = new VolumeBuilder().withName("data-dir").withNewEmptyDir().endEmptyDir().build();
+        final Volume v2 = new VolumeBuilder().withName("configmap-dir").withNewConfigMap().withName(cluster.getSparkConfigurationMap()).endConfigMap().build();
+        final Volume v3 = new VolumeBuilder().withName("conf-dir").withNewEmptyDir().endEmptyDir().build();
+        final List<VolumeMount> mounts = new ArrayList<>(2);
+        final List<Volume> volumes = new ArrayList<>(2);
+        if (!downloadData.isEmpty()) {
+            mounts.add(m1);
+            volumes.add(v1);
+        }
+        if (cmExists) {
+            mounts.add(m2);
+            volumes.add(v2);
+        }
+        if (cmExists || !config.isEmpty()) {
+            mounts.add(m3);
+            volumes.add(v3);
+        }
         PodSpec spec = rc.getSpec().getTemplate().getSpec();
-        spec.getContainers().get(0).setVolumeMounts(Arrays.asList(mount));
-        spec.setInitContainers(Arrays.asList(initContainer));
-        spec.setVolumes(Arrays.asList(volume));
+        if (needInitContainer) {
+            Container initContainer = new ContainerBuilder()
+                    .withName("downloader")
+                    .withImage("busybox")
+                    .withCommand("/bin/sh", "-c")
+                    .withArgs(command.toString())
+                    .withVolumeMounts(mounts)
+                    .build();
+            spec.setInitContainers(Arrays.asList(initContainer));
+        }
+        spec.getContainers().get(0).setVolumeMounts(mounts);
+        spec.setVolumes(volumes);
         rc.getSpec().getTemplate().setSpec(spec);
         return rc;
+    }
+
+    private static boolean cmExists(String name) {
+        ConfigMap configMap = KubernetesSparkClusterDeployer.client.configMaps().withName(name).get();
+        return configMap != null && configMap.getData() != null && !configMap.getData().isEmpty();
     }
 
     private static Map<String, String> getSelector(String clusterName, String podName) {

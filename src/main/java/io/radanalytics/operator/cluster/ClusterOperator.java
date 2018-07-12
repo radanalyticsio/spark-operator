@@ -25,7 +25,7 @@ public class ClusterOperator extends AbstractOperator<ClusterInfo> {
     }
 
     protected void onAdd(ClusterInfo cluster, boolean isOpenshift) {
-        KubernetesResourceList list = KubernetesSparkClusterDeployer.getResourceList(cluster);
+        KubernetesResourceList list = KubernetesSparkClusterDeployer.getResourceList(cluster, client);
         client.resourceList(list).createOrReplace();
         clusters.put(cluster);
     }
@@ -46,6 +46,7 @@ public class ClusterOperator extends AbstractOperator<ClusterInfo> {
         ClusterInfo existingCluster = clusters.getCluster(name);
         if (null == existingCluster) {
             log.error("something went wrong, unable to scale existing cluster. Perhaps it wasn't deployed properly.");
+            return;
         }
 
         if (existingCluster.getWorkerNodes() != newWorkers) {
