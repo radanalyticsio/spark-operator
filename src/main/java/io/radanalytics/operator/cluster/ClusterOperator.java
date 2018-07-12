@@ -46,6 +46,7 @@ public class ClusterOperator extends AbstractOperator<ClusterInfo> {
         ClusterInfo existingCluster = clusters.getCluster(name);
         if (null == existingCluster) {
             log.error("something went wrong, unable to scale existing cluster. Perhaps it wasn't deployed properly.");
+            return;
         }
 
         if (existingCluster.getWorkerNodes() != newWorkers) {

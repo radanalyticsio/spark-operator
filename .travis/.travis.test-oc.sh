@@ -34,24 +34,46 @@ errorLogs() {
   exit 1
 }
 
+info() {
+  ((testIndex++))
+  echo "$(tput setaf 3)[$testIndex / $total] - Running ${FUNCNAME[1]}$(tput sgr0)"
+}
+
 testCreateOperator() {
+  info
   os::cmd::expect_success_and_text "oc create -f $DIR/../manifest/" 'deployment "spark-operator" created' && \
   os::cmd::try_until_text "oc get pod -l app.kubernetes.io/name=spark-operator -o yaml" 'ready: true'
 }
 
 testCreateCluster1() {
+  info
   os::cmd::expect_success_and_text "oc create -f $DIR/../examples/cluster.yaml" 'configmap "my-spark-cluster" created' && \
   os::cmd::try_until_text "oc get pod -l radanalytics.io/deployment=my-spark-cluster-w -o yaml" 'ready: true' && \
   os::cmd::try_until_text "oc get pod -l radanalytics.io/deployment=my-spark-cluster-m -o yaml" 'ready: true'
 }
 
+testScaleCluster() {
+  info
+  os::cmd::expect_success_and_text 'oc patch cm my-spark-cluster -p "{\"data\":{\"config\": \"workerNodes: 1\"}}"' 'configmap "my-spark-cluster" patched' && \
+  os::cmd::try_until_text "oc get pods --no-headers -l radanalytics.io/cluster=my-spark-cluster | wc -l" '2'
+}
+
+testDeleteCluster() {
+  info
+  os::cmd::expect_success_and_text 'oc delete cm my-spark-cluster' 'configmap "my-spark-cluster" deleted' && \
+  os::cmd::try_until_text "oc get pods --no-headers -l radanalytics.io/cluster=my-spark-cluster 2> /dev/null | wc -l" '0'
+}
+
 testCreateCluster2() {
+  info
+  sleep 2
   os::cmd::expect_success_and_text "oc create -f $DIR/../examples/with-prepared-data.yaml" 'configmap "spark-cluster-with-data" created' && \
   os::cmd::try_until_text "oc get pod -l radanalytics.io/deployment=spark-cluster-with-data-w -o yaml" 'ready: true' && \
   os::cmd::try_until_text "oc get pod -l radanalytics.io/deployment=spark-cluster-with-data-m -o yaml" 'ready: true'
 }
 
 testDownloadedData() {
+  info
   sleep 2
   local worker_pod=`oc get pod -l radanalytics.io/deployment=spark-cluster-with-data-w -o='jsonpath="{.items[0].metadata.name}"' | sed 's/"//g'` && \
   os::cmd::expect_success_and_text "oc exec $worker_pod ls" 'LA.csv' && \
@@ -60,13 +82,14 @@ testDownloadedData() {
 }
 
 testFullConfigCluster() {
+  info
   sleep 2
   os::cmd::expect_success_and_text "oc create cm my-config --from-file=$DIR/../examples/spark-defaults.conf" 'configmap "my-config" created' && \
   os::cmd::expect_success_and_text "oc create -f $DIR/../examples/cluster-with-config.yaml" 'configmap "sparky-cluster" created' && \
   os::cmd::try_until_text "oc get pod -l radanalytics.io/deployment=sparky-cluster-w -o yaml" 'ready: true' && \
   os::cmd::try_until_text "oc get pod -l radanalytics.io/deployment=sparky-cluster-m -o yaml" 'ready: true' && \
   os::cmd::try_until_text "oc get pods --no-headers -l radanalytics.io/cluster=sparky-cluster | wc -l" '3' && \
-  sleep 1 && \
+  sleep 10 && \
   local worker_pod=`oc get pod -l radanalytics.io/deployment=sparky-cluster-w -o='jsonpath="{.items[0].metadata.name}"' | sed 's/"//g'` && \
   os::cmd::expect_success_and_text "oc exec $worker_pod ls" 'README.md' && \
   os::cmd::expect_success_and_text "oc exec $worker_pod env" 'FOO=bar' && \
@@ -77,73 +100,76 @@ testFullConfigCluster() {
 }
 
 testCustomCluster1() {
+  info
+  sleep 2
   os::cmd::expect_success_and_text "oc create -f $DIR/../examples/test/cluster-1.yaml" 'configmap "my-spark-cluster-1" created' && \
   os::cmd::try_until_text "oc logs $operator_pod" $'Unable to find property \'w0rkerNodes\'' && \
   os::cmd::expect_success_and_text 'oc delete cm my-spark-cluster-1' 'configmap "my-spark-cluster-1" deleted'
 }
 
 testCustomCluster2() {
+  info
+  sleep 2
   os::cmd::expect_success_and_text "oc create -f $DIR/../examples/test/cluster-2.yaml" 'configmap "my-spark-cluster-2" created' && \
-  os::cmd::try_until_text "oc logs $operator_pod" "Cluster my-spark-cluster-2 has been created" && \
+  os::cmd::try_until_text "oc logs $operator_pod | grep my-spark-cluster-2" "created" && \
   os::cmd::try_until_text "oc get pods --no-headers -l radanalytics.io/cluster=my-spark-cluster-2 | wc -l" '3' && \
   os::cmd::expect_success_and_text 'oc delete cm my-spark-cluster-2' 'configmap "my-spark-cluster-2" deleted' && \
-  os::cmd::try_until_text "oc logs $operator_pod" "Cluster my-spark-cluster-2 has been deleted" && \
+  os::cmd::try_until_text "oc logs $operator_pod | grep my-spark-cluster-2" "deleted" && \
   os::cmd::try_until_text "oc get pods --no-headers -l radanalytics.io/cluster=my-spark-cluster-2 | wc -l" '0'
 }
 
 testCustomCluster3() {
+  info
+  sleep 2
   os::cmd::expect_success_and_text "oc create -f $DIR/../examples/test/cluster-with-config-1.yaml" 'configmap "sparky-cluster-1" created' && \
   os::cmd::try_until_text "oc get pods --no-headers -l radanalytics.io/cluster=sparky-cluster-1 | wc -l" '2' && \
   local worker_pod=`oc get pod -l radanalytics.io/deployment=sparky-cluster-1-w -o='jsonpath="{.items[0].metadata.name}"' | sed 's/"//g'` && \
-  os::cmd::expect_success_and_text "oc exec $worker_pod cat /opt/spark/conf/spark-defaults.conf" 'spark.executor.memory 1g' && \
+  os::cmd::try_until_text "oc exec $worker_pod cat /opt/spark/conf/spark-defaults.conf" 'spark.executor.memory 1g' && \
   os::cmd::expect_success_and_text "oc exec $worker_pod ls" 'README.md' && \
   os::cmd::expect_success_and_text 'oc delete cm sparky-cluster-1' 'configmap "sparky-cluster-1" deleted'
 }
 
 testCustomCluster4() {
+  info
+  sleep 2
   os::cmd::expect_success_and_text "oc create -f $DIR/../examples/test/cluster-with-config-2.yaml" 'configmap "sparky-cluster-2" created' && \
   os::cmd::try_until_text "oc get pods --no-headers -l radanalytics.io/cluster=sparky-cluster-2 | wc -l" '2' && \
   local worker_pod=`oc get pod -l radanalytics.io/deployment=sparky-cluster-2-w -o='jsonpath="{.items[0].metadata.name}"' | sed 's/"//g'` && \
-  os::cmd::expect_success_and_text "oc exec $worker_pod cat /opt/spark/conf/spark-defaults.conf" 'spark.executor.memory 3g' && \
+  os::cmd::try_until_text "oc exec $worker_pod cat /opt/spark/conf/spark-defaults.conf" 'spark.executor.memory 3g' && \
   os::cmd::expect_success_and_text 'oc delete cm sparky-cluster-2' 'configmap "sparky-cluster-2" deleted'
 }
 
 testCustomCluster5() {
   # empty config map should just works with the defaults
+  info
+  sleep 2
   os::cmd::expect_success_and_text "oc create -f $DIR/../examples/test/cluster-with-config-3.yaml" 'configmap "sparky-cluster-3" created' && \
   os::cmd::try_until_text "oc get pods --no-headers -l radanalytics.io/cluster=sparky-cluster-3 | wc -l" '2' && \
-  os::cmd::try_until_text "oc logs $operator_pod" "Cluster sparky-cluster-3 has been created" && \
+  os::cmd::try_until_text "oc logs $operator_pod | grep sparky-cluster-3" "created" && \
   os::cmd::expect_success_and_text 'oc delete cm sparky-cluster-3' 'configmap "sparky-cluster-3" deleted' && \
   os::cmd::try_until_text "oc get pods --no-headers -l radanalytics.io/cluster=my-spark-cluster-3 | wc -l" '0'
 }
 
-testScaleCluster() {
-  os::cmd::expect_success_and_text 'oc patch cm my-spark-cluster -p "{\"data\":{\"config\": \"workerNodes: 1\"}}"' 'configmap "my-spark-cluster" patched' && \
-  os::cmd::try_until_text "oc get pods --no-headers -l radanalytics.io/cluster=my-spark-cluster | wc -l" '2'
-}
-
-testDeleteCluster() {
-  os::cmd::expect_success_and_text 'oc delete cm my-spark-cluster' 'configmap "my-spark-cluster" deleted' && \
-  os::cmd::try_until_text "oc get pods --no-headers -l radanalytics.io/cluster=my-spark-cluster 2> /dev/null | wc -l" '0'
-}
-
 testApp() {
+  info
   os::cmd::expect_success_and_text 'oc create -f examples/app.yaml' 'configmap "my-spark-app" created' && \
   os::cmd::try_until_text "oc get pods --no-headers -l radanalytics.io/app=my-spark-app 2> /dev/null | wc -l" '3'
 }
 
 testAppResult() {
+  info
   sleep 2
   local driver_pod=`oc get pods --no-headers -l radanalytics.io/app=my-spark-app -l spark-role=driver -o='jsonpath="{.items[0].metadata.name}"' | sed 's/"//g'` && \
   os::cmd::try_until_text "oc logs $driver_pod" 'Pi is roughly 3.1'
 }
 
 testDeleteApp() {
+  info
   os::cmd::expect_success_and_text 'oc delete cm my-spark-app' 'configmap "my-spark-app" deleted' && \
   os::cmd::try_until_text "oc get pods --no-headers -l radanalytics.io/app=my-spark-app 2> /dev/null | wc -l" '0'
 }
 
-run_cusom_test() {
+run_custom_test() {
     testCustomCluster1 || errorLogs
     testCustomCluster2 || errorLogs
     testCustomCluster3 || errorLogs
@@ -154,14 +180,18 @@ run_tests() {
   testCreateCluster1 || errorLogs
   testScaleCluster || errorLogs
   testDeleteCluster || errorLogs
+  sleep 5
 
   testCreateCluster2 || errorLogs
   testDownloadedData || errorLogs
+  sleep 5
 
   testFullConfigCluster || errorLogs
+  sleep 5
 
-  run_cusom_test || errorLogs
+  run_custom_test || errorLogs
 
+  sleep 10
   testApp || errorLogs
   testAppResult || errorLogs
   testDeleteApp || errorLogs
@@ -169,6 +199,8 @@ run_tests() {
 }
 
 main() {
+  export total=15
+  export testIndex=0
   tear_down
   cluster_up
   setup_testing_framework
