@@ -63,19 +63,19 @@ testFullConfigCluster() {
   os::cmd::expect_success_and_text "oc create cm my-config --from-file=$DIR/../examples/spark-defaults.conf" 'configmap "my-config" created' && \
   os::cmd::expect_success_and_text "oc create -f $DIR/../examples/cluster-with-config.yaml" 'configmap "sparky-cluster" created' && \
   os::cmd::try_until_text "oc get pod -l radanalytics.io/deployment=sparky-cluster-w -o yaml" 'ready: true' && \
-  os::cmd::try_until_text "oc get pod -l radanalytics.io/deployment=sparky-cluster-m -o yaml" 'ready: true'
+  os::cmd::try_until_text "oc get pod -l radanalytics.io/deployment=sparky-cluster-m -o yaml" 'ready: true' && \
   local worker_pod=`oc get pod -l radanalytics.io/deployment=sparky-cluster-w -o='jsonpath="{.items[0].metadata.name}"' | sed 's/"//g'` && \
   os::cmd::expect_success_and_text "oc exec $worker_pod ls" 'README.md' && \
   os::cmd::expect_success_and_text "oc exec $worker_pod env" 'FOO=bar' && \
   os::cmd::expect_success_and_text "oc exec $worker_pod env" 'SPARK_WORKER_CORES=2' && \
   os::cmd::expect_success_and_text "oc exec $worker_pod cat /opt/spark/conf/spark-defaults.conf" 'spark.history.retainedApplications 100' && \
-  os::cmd::expect_success_and_text "oc exec $worker_pod cat /opt/spark/conf/spark-defaults.conf" 'autoBroadcastJoinThreshold 20971520'
+  os::cmd::expect_success_and_text "oc exec $worker_pod cat /opt/spark/conf/spark-defaults.conf" 'autoBroadcastJoinThreshold 20971520' && \
   os::cmd::expect_success_and_text 'oc delete cm sparky-cluster' 'configmap "sparky-cluster" deleted'
 }
 
 testCustomCluster1() {
   os::cmd::expect_success_and_text "oc create -f $DIR/../examples/test/cluster-1.yaml" 'configmap "my-spark-cluster-1" created' && \
-  os::cmd::try_until_text "oc logs $operator_pod" "Unable to find property 'w0rkerNodes'" && \
+  os::cmd::try_until_text "oc logs $operator_pod" $'Unable to find property \'w0rkerNodes\'' && \
   os::cmd::expect_success_and_text 'oc delete cm my-spark-cluster-1' 'configmap "my-spark-cluster-1" deleted'
 }
 
@@ -170,11 +170,19 @@ run_tests() {
 }
 
 main() {
+  tear_down
   cluster_up
   setup_testing_framework
   export operator_pod=`oc get pod -l app.kubernetes.io/name=spark-operator -o='jsonpath="{.items[0].metadata.name}"' | sed 's/"//g'`
-  run_tests
+  if [ "$#" -gt 0 ]; then
+    # run single test that is passed as arg
+    os::test::junit::declare_suite_start "operator/tests"
+    $1
+    os::test::junit::declare_suite_end
+  else
+    run_tests
+  fi
   tear_down
 }
 
-main
+main $@
