@@ -7,21 +7,20 @@ env:
   # maven colors
   - MAVEN_OPTS="-Djansi.passthrough=true -Dplexus.logger.type=ansi $MAVEN_OPTS"
   - CHANGE_MINIKUBE_NONE_USER=true
+  - OPENSHIFT_VERSION=v3.9
+  - OPENSHIFT_VERSION=v3.7
 
 stages:
-  - mvn-test
+  - test
   - test-oc-and-k8s
   - deploy
 
 jobs:
   include:
-    - stage: mvn-test
+    - stage: test
       script: make build test
 
     - stage: test-oc-and-k8s
-      env:
-        - OPENSHIFT_VERSION=v3.9
-        - OPENSHIFT_VERSION=v3.7
       script:
         - make build
         - ./.travis/.travis.prepare.openshift.sh
