@@ -67,11 +67,6 @@ For deployment on OpenShift use the same commands as above, but with `oc` instea
 
 ### Images
 
-
-[![Layers info](https://images.microbadger.com/badges/image/jkremser/spark-operator:latest-released-centos.svg)](https://microbadger.com/images/jkremser/spark-operator:latest-released-centos) 
-
-#### Images
-
 Image name         | Layers | Description
 ------------------ | ------ | -----------
 `:latest`          | [![Layers info](https://images.microbadger.com/badges/image/jkremser/spark-operator:latest.svg)](https://microbadger.com/images/jkremser/spark-operator:latest) | represents the master branch
