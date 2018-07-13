@@ -30,7 +30,7 @@
         <jacoco.version>0.7.9</jacoco.version>
         <license.maven.version>2.11</license.maven.version>
 
-        <fabric8.kubernetes-client.version>4.0.0</fabric8.kubernetes-client.version>
+        <fabric8.kubernetes-client.version>4.0.3</fabric8.kubernetes-client.version>
         <fabric8.kubernetes-model.version>3.0.0</fabric8.kubernetes-model.version>
         <fabric8.zjsonpatch.version>0.3.0</fabric8.zjsonpatch.version>
         <snakeyaml.version>1.21</snakeyaml.version>
