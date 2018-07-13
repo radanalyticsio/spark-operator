@@ -3,25 +3,45 @@ language: java
 services:
   - docker
 
-matrix:
-  include:
-    - env: OPENSHIFT_VERSION=v3.9
-
-before_install:
+env:
   # maven colors
-  - export MAVEN_OPTS="-Djansi.passthrough=true -Dplexus.logger.type=ansi $MAVEN_OPTS"
-  - ./.travis/.travis.prepare.sh
+  - MAVEN_OPTS="-Djansi.passthrough=true -Dplexus.logger.type=ansi $MAVEN_OPTS"
+  - CHANGE_MINIKUBE_NONE_USER=true
 
-script:
-  - make build test
-  - ./.travis/.travis.test-oc.sh
+stages:
+  - mvn-test
+  - test-oc-and-k8s
+  - deploy
 
-after_success:
-  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+jobs:
+  include:
+    - stage: mvn-test
+        script: make build test
 
-  # release :latest and :centos-latest
-  - if [ "$TRAVIS_BRANCH" = "master" -a "$TRAVIS_PULL_REQUEST" = "false" ]; then make image-publish-all; fi
+    - stage: test-oc-and-k8s
+      env:
+        - OPENSHIFT_VERSION=v3.9
+        - OPENSHIFT_VERSION=v3.7
+      script:
+        - make build
+        - ./.travis/.travis.prepare.openshift.sh
+        - BIN="oc" ./.travis/.travis.test-oc-and-k8s.sh
 
-  # release x.y.z or x.y.z-centos if there is a release
-  - ./.travis/.travis.release.images.sh
-  - docker logout
+    - stage: test-oc-and-k8s
+      env:
+        - MINIKUBE_VERSION=v0.25.2 KUBECTL_VERSION=v1.9.0
+      script:
+        - make build
+        - ./.travis/.travis.prepare.minikube.sh
+        - BIN="kubectl" ./.travis/.travis.test-oc-and-k8s.sh
+
+    - stage: deploy
+      script:
+        - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+
+        # release :latest and :centos-latest
+        - if [ "$TRAVIS_BRANCH" = "master" -a "$TRAVIS_PULL_REQUEST" = "false" ]; then make image-publish-all; fi
+
+        # release x.y.z or x.y.z-centos if there is a release
+        - ./.travis/.travis.release.images.sh
+        - docker logout
