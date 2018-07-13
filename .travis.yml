@@ -3,13 +3,6 @@ language: java
 services:
   - docker
 
-env:
-  # maven colors
-  - MAVEN_OPTS="-Djansi.passthrough=true -Dplexus.logger.type=ansi $MAVEN_OPTS"
-  - CHANGE_MINIKUBE_NONE_USER=true
-  - OPENSHIFT_VERSION=v3.9
-  - OPENSHIFT_VERSION=v3.7
-
 stages:
   - test
   - test-oc-and-k8s
@@ -18,9 +11,15 @@ stages:
 jobs:
   include:
     - stage: test
+      env:
+        # maven colors
+        - MAVEN_OPTS="-Djansi.passthrough=true -Dplexus.logger.type=ansi $MAVEN_OPTS"
       script: make build test
 
     - stage: test-oc-and-k8s
+      env:
+        - OPENSHIFT_VERSION=v3.9
+        - OPENSHIFT_VERSION=v3.7
       script:
         - make build
         - ./.travis/.travis.prepare.openshift.sh
@@ -28,7 +27,7 @@ jobs:
 
     - stage: test-oc-and-k8s
       env:
-        - MINIKUBE_VERSION=v0.25.2 KUBECTL_VERSION=v1.9.0
+        - MINIKUBE_VERSION=v0.25.2 KUBECTL_VERSION=v1.9.0 CHANGE_MINIKUBE_NONE_USER=true
       script:
         - make build
         - ./.travis/.travis.prepare.minikube.sh
