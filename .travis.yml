@@ -16,7 +16,7 @@ stages:
 jobs:
   include:
     - stage: mvn-test
-        script: make build test
+      script: make build test
 
     - stage: test-oc-and-k8s
       env:
