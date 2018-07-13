@@ -28,7 +28,7 @@ jobs:
       env: OPENSHIFT_VERSION=v3.9 BIN=oc
 
     - stage:
-      env: KUBECTL_VERSION=v1.9.0 MINIKUBE_VERSION=v0.25.2 CHANGE_MINIKUBE_NONE_USER=true BIN=kubectl
+      env: KUBECTL_VERSION=v1.9.0 MINIKUBE_VERSION=v0.25.2 BIN=kubectl
 
     - stage: deploy
       script:
