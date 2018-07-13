@@ -3,6 +3,9 @@ language: java
 services:
   - docker
 
+# skip install step
+install: true
+
 stages:
   - test
   - test-oc-and-k8s
