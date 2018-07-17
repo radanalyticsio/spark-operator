@@ -12,6 +12,7 @@ cluster_up() {
     oc cluster up
     set +x
   else
+    echo "minikube"
     start_minikube
   fi
 }
@@ -71,7 +72,7 @@ info() {
 
 testCreateOperator() {
   info
-  os::cmd::expect_success_and_text "${BIN} create -f $DIR/../manifest/" 'deployment "spark-operator" created' && \
+  os::cmd::expect_success_and_text "${BIN} create -f $DIR/../manifest/" '"spark-operator" created' && \
   os::cmd::try_until_text "${BIN} get pod -l app.kubernetes.io/name=spark-operator -o yaml" 'ready: true'
 }
 
