@@ -135,7 +135,8 @@ testCustomCluster1() {
   info
   sleep 2
   os::cmd::expect_success_and_text "${BIN} create -f $DIR/../examples/test/cluster-1.yaml" 'configmap "my-spark-cluster-1" created' && \
-  os::cmd::try_until_text "${BIN} logs $operator_pod" $'Unable to find property \'w0rkerNodes\'' && \
+  os::cmd::try_until_text "${BIN} logs $operator_pod" 'Unable to parse yaml definition of configmap' && \
+  os::cmd::try_until_text "${BIN} logs $operator_pod" 'w0rkerNodes' && \
   os::cmd::expect_success_and_text '${BIN} delete cm my-spark-cluster-1' 'configmap "my-spark-cluster-1" deleted'
 }
 
