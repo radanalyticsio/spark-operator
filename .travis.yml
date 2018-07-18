@@ -3,37 +3,47 @@ language: java
 services:
   - docker
 
-env:
-  # maven colors
-  - MAVEN_OPTS="-Djansi.passthrough=true -Dplexus.logger.type=ansi $MAVEN_OPTS"
-  - CHANGE_MINIKUBE_NONE_USER=true
+# skip install step
+install: true
 
 stages:
-  - mvn-test
+  - test
   - test-oc-and-k8s
   - deploy
 
 jobs:
   include:
-    - stage: mvn-test
-        script: make build test
+    - stage: test
+      language: java
+      script: make build test
 
     - stage: test-oc-and-k8s
-      env:
-        - OPENSHIFT_VERSION=v3.9
-        - OPENSHIFT_VERSION=v3.7
+      env: BIN=oc OPENSHIFT_VERSION=v3.9.0
       script:
         - make build
         - ./.travis/.travis.prepare.openshift.sh
-        - BIN="oc" ./.travis/.travis.test-oc-and-k8s.sh
+        - ./.travis/.travis.test-oc-and-k8s.sh
 
-    - stage: test-oc-and-k8s
-      env:
-        - MINIKUBE_VERSION=v0.25.2 KUBECTL_VERSION=v1.9.0
+    - stage:
+      env: BIN=oc OPENSHIFT_VERSION=v3.10.0
+      script:
+        - make build
+        - ./.travis/.travis.prepare.openshift.sh
+        - ./.travis/.travis.test-oc-and-k8s.sh
+
+    - stage:
+      env: BIN=kubectl KUBECTL_VERSION=v1.9.0 MINIKUBE_VERSION=v0.25.2
       script:
         - make build
         - ./.travis/.travis.prepare.minikube.sh
-        - BIN="kubectl" ./.travis/.travis.test-oc-and-k8s.sh
+        - ./.travis/.travis.test-oc-and-k8s.sh
+
+    - stage:
+      env: BIN=kubectl KUBECTL_VERSION=v1.11.0 MINIKUBE_VERSION=v0.28.1
+      script:
+        - make build
+        - ./.travis/.travis.prepare.minikube.sh
+        - ./.travis/.travis.test-oc-and-k8s.sh
 
     - stage: deploy
       script:

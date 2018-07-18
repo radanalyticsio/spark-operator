@@ -12,18 +12,21 @@ cluster_up() {
     oc cluster up
     set +x
   else
+    echo "minikube"
     start_minikube
+    eval `minikube docker-env`
   fi
 }
 
 start_minikube() {
+  export CHANGE_MINIKUBE_NONE_USER=true
   sudo minikube start --vm-driver=none --kubernetes-version=${KUBECTL_VERSION} && \
   minikube update-context
   JSONPATH='{range .items[*]}{@.metadata.name}:{range @.status.conditions[*]}{@.type}={@.status};{end}{end}'
   until kubectl get nodes -o jsonpath="$JSONPATH" 2>&1 | grep -q "Ready=True"; do sleep 1; done
   kubectl cluster-info
 
-  # kube-addon-manager is responsible for managing other kubernetes components, such as kube-dns, dashboard, storage-provisioner..
+  # kube-addon-manager is responsible for managing other k8s components, such as kube-dns, dashboard, storage-provisioner..
   JSONPATH='{range .items[*]}{@.metadata.name}:{range @.status.conditions[*]}{@.type}={@.status};{end}{end}'
   until kubectl -n kube-system get pods -lcomponent=kube-addon-manager -o jsonpath="$JSONPATH" 2>&1 | grep -q "Ready=True"; do
     sleep 1
@@ -70,7 +73,7 @@ info() {
 
 testCreateOperator() {
   info
-  os::cmd::expect_success_and_text "${BIN} create -f $DIR/../manifest/" 'deployment "spark-operator" created' && \
+  os::cmd::expect_success_and_text "${BIN} create -f $DIR/../manifest/" '"spark-operator" created' && \
   os::cmd::try_until_text "${BIN} get pod -l app.kubernetes.io/name=spark-operator -o yaml" 'ready: true'
 }
 
@@ -132,7 +135,8 @@ testCustomCluster1() {
   info
   sleep 2
   os::cmd::expect_success_and_text "${BIN} create -f $DIR/../examples/test/cluster-1.yaml" 'configmap "my-spark-cluster-1" created' && \
-  os::cmd::try_until_text "${BIN} logs $operator_pod" $'Unable to find property \'w0rkerNodes\'' && \
+  os::cmd::try_until_text "${BIN} logs $operator_pod" 'Unable to parse yaml definition of configmap' && \
+  os::cmd::try_until_text "${BIN} logs $operator_pod" 'w0rkerNodes' && \
   os::cmd::expect_success_and_text '${BIN} delete cm my-spark-cluster-1' 'configmap "my-spark-cluster-1" deleted'
 }
 
@@ -234,7 +238,7 @@ main() {
   cluster_up
   setup_testing_framework
   os::test::junit::declare_suite_start "operator/tests"
-  testCreateOperator || errorLogs
+  testCreateOperator || { ${BIN} get events; $(BIN) get pods; exit 1; }
   export operator_pod=`${BIN} get pod -l app.kubernetes.io/name=spark-operator -o='jsonpath="{.items[0].metadata.name}"' | sed 's/"//g'`
   if [ "$#" -gt 0 ]; then
     # run single test that is passed as arg

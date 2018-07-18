@@ -28,7 +28,6 @@ public class HasDataHelper {
             String msg = "Unable to parse yaml definition of configmap, check if you don't have typo: \n'\n" +
                     yamlDoc + "\n'\n";
             log.error(msg);
-            throw ex;
         }
         if (cluster == null) {
             String msg = "Unable to parse yaml definition of configmap, check if you don't have typo: \n'\n" +

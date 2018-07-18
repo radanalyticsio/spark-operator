@@ -5,11 +5,11 @@ build: package image-build-slim
 
 .PHONY: package
 package:
-	./mvnw clean package -DskipTests
+	MAVEN_OPTS="-Djansi.passthrough=true -Dplexus.logger.type=ansi $(MAVEN_OPTS)" ./mvnw clean package -DskipTests
 
 .PHONY: test
 test:
-	./mvnw clean test
+	MAVEN_OPTS="-Djansi.passthrough=true -Dplexus.logger.type=ansi $(MAVEN_OPTS)" ./mvnw clean test
 
 .PHONY: image-build
 image-build:

@@ -15,6 +15,7 @@ setup_insecure_registry() {
   sudo cat /etc/default/docker
   sudo service docker start
   sudo service docker status
+  sudo mount --make-rshared /
 }
 
 setup_manifest() {
