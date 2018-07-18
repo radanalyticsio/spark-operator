@@ -18,14 +18,6 @@ jobs:
       script: make build test
 
     - stage: test-oc-and-k8s
-      language: bash
-      env: BIN=oc OPENSHIFT_VERSION=v3.7.0
-      script:
-        - make build
-        - ./.travis/.travis.prepare.openshift.sh
-        - ./.travis/.travis.test-oc-and-k8s.sh
-
-    - stage:
       env: BIN=oc OPENSHIFT_VERSION=v3.9.0
       script:
         - make build
