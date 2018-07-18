@@ -9,7 +9,7 @@ package:
 
 .PHONY: test
 test:
-	./mvnw clean test
+	MAVEN_OPTS="-Djansi.passthrough=true -Dplexus.logger.type=ansi $(MAVEN_OPTS)" ./mvnw clean test
 
 .PHONY: image-build
 image-build:
