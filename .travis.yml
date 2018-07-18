@@ -38,12 +38,12 @@ jobs:
         - ./.travis/.travis.prepare.minikube.sh
         - ./.travis/.travis.test-oc-and-k8s.sh
 
-    - stage:
-      env: BIN=kubectl KUBECTL_VERSION=v1.11.0 MINIKUBE_VERSION=v0.28.1
-      script:
-        - make build
-        - ./.travis/.travis.prepare.minikube.sh
-        - ./.travis/.travis.test-oc-and-k8s.sh
+#    - stage:
+#      env: BIN=kubectl KUBECTL_VERSION=v1.11.0 MINIKUBE_VERSION=v0.28.1
+#      script:
+#        - make build
+#        - ./.travis/.travis.prepare.minikube.sh
+#        - ./.travis/.travis.test-oc-and-k8s.sh
 
     - stage: deploy
       script:
