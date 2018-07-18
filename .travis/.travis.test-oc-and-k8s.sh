@@ -20,7 +20,7 @@ cluster_up() {
 
 start_minikube() {
   export CHANGE_MINIKUBE_NONE_USER=true
-  sudo minikube start --vm-driver=none --kubernetes-version=${KUBECTL_VERSION} && \
+  sudo minikube start --vm-driver=none --kubernetes-version=${VERSION} && \
   minikube update-context
   JSONPATH='{range .items[*]}{@.metadata.name}:{range @.status.conditions[*]}{@.type}={@.status};{end}{end}'
   until kubectl get nodes -o jsonpath="$JSONPATH" 2>&1 | grep -q "Ready=True"; do sleep 1; done

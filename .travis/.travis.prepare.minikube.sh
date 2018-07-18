@@ -3,8 +3,8 @@
 set -xe
 
 download_kubectl() {
-  echo "Downloading kubectl binary for KUBECTL_VERSION=${KUBECTL_VERSION}"
-  curl -Lo kubectl https://storage.googleapis.com/kubernetes-release/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl && \
+  echo "Downloading kubectl binary for VERSION=${VERSION}"
+  curl -Lo kubectl https://storage.googleapis.com/kubernetes-release/release/${VERSION}/bin/linux/amd64/kubectl && \
   chmod +x kubectl && \
   sudo mv kubectl /usr/local/bin/ && \
   kubectl version || true

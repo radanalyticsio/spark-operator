@@ -3,8 +3,8 @@
 set -xe
 
 download_openshift() {
-  echo "Downloading oc binary for OPENSHIFT_VERSION=${OPENSHIFT_VERSION}"
-  sudo docker cp $(docker create docker.io/openshift/origin:$OPENSHIFT_VERSION):/bin/oc /usr/local/bin/oc
+  echo "Downloading oc binary for VERSION=${VERSION}"
+  sudo docker cp $(docker create docker.io/openshift/origin:$VERSION):/bin/oc /usr/local/bin/oc
   oc version
 }
 
