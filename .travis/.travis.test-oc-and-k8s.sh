@@ -238,7 +238,7 @@ main() {
   cluster_up
   setup_testing_framework
   os::test::junit::declare_suite_start "operator/tests"
-  testCreateOperator || errorLogs
+  testCreateOperator || ${BIN} get events
   export operator_pod=`${BIN} get pod -l app.kubernetes.io/name=spark-operator -o='jsonpath="{.items[0].metadata.name}"' | sed 's/"//g'`
   if [ "$#" -gt 0 ]; then
     # run single test that is passed as arg

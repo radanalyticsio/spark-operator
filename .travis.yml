@@ -15,20 +15,18 @@ jobs:
   include:
     - stage: test
       language: java
-      env:
-        # maven colors
-        - MAVEN_OPTS="-Djansi.passthrough=true -Dplexus.logger.type=ansi $MAVEN_OPTS"
       script: make build test
 
     - stage: test-oc-and-k8s
-      env: OPENSHIFT_VERSION=v3.7 BIN=oc
+      language: bash
+      env: OPENSHIFT_VERSION=v3.7.0 BIN=oc
       script:
         - make build
         - ./.travis/.travis.prepare.openshift.sh
         - ./.travis/.travis.test-oc-and-k8s.sh
 
     - stage:
-      env: OPENSHIFT_VERSION=v3.9 BIN=oc
+      env: OPENSHIFT_VERSION=v3.9.0 BIN=oc
       script:
         - make build
         - ./.travis/.travis.prepare.openshift.sh
