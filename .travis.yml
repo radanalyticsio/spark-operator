@@ -33,6 +33,13 @@ jobs:
         - ./.travis/.travis.test-oc-and-k8s.sh
 
     - stage:
+      env: OPENSHIFT_VERSION=v3.10.0 BIN=oc
+      script:
+        - make build
+        - ./.travis/.travis.prepare.openshift.sh
+        - ./.travis/.travis.test-oc-and-k8s.sh
+
+    - stage:
       env: KUBECTL_VERSION=v1.9.0 MINIKUBE_VERSION=v0.25.2 BIN=kubectl
       script:
         - make build
