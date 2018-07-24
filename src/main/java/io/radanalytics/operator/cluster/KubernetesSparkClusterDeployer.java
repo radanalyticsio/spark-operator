@@ -208,7 +208,7 @@ public class KubernetesSparkClusterDeployer {
 
     public static Map<String, String> getDefaultLabels(String name) {
         Map<String, String> map = new HashMap<>(3);
-        map.put(OPERATOR_KIND_LABEL, OPERATOR_KIND_APP_LABEL);
+        map.put(OPERATOR_KIND_LABEL, OPERATOR_KIND_CLUSTER_LABEL);
         map.put(OPERATOR_DOMAIN + OPERATOR_KIND_CLUSTER_LABEL, name);
         return map;
     }
