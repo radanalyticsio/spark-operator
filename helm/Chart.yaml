@@ -1,7 +1,0 @@
-name: spark-operator
-description: ConfigMap-based approach for managing the Spark clusters in Kubernetes and OpenShift
-version: 0.0.1
-home: https://github.com/jiri-kremser/spark-operator
-sources:
-  - https://github.com/jiri-kremser/spark-operator
-appVersion: 0.1.3
