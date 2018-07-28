@@ -13,7 +13,7 @@ main() {
     pushLatestImagesDockerIo
     loginQuayIo
     pushLatestImagesQuayIo
-  else if [[ "${TRAVIS_TAG}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+  elif [[ "${TRAVIS_TAG}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
     echo "Pushing the '${TRAVIS_TAG}' and :latest-released images to docker.io and quay.io"
     buildReleaseImages
     loginDockerIo
