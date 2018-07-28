@@ -4,18 +4,24 @@ import com.jcabi.manifests.Manifests;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.Watch;
-import io.fabric8.openshift.client.OpenShiftClient;
 import io.radanalytics.operator.app.AppOperator;
 import io.radanalytics.operator.cluster.ClusterOperator;
-import io.radanalytics.operator.common.AbstractOperator;
-import io.radanalytics.operator.common.EntityInfo;
 import io.radanalytics.operator.common.OperatorConfig;
-import okhttp3.*;
+import okhttp3.HttpUrl;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.X509TrustManager;
 import java.io.IOException;
 import java.net.URL;
+import java.security.SecureRandom;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -35,15 +41,9 @@ public class Entrypoint {
     public static void main(String[] args) {
         log.info("Starting..");
         OperatorConfig config = OperatorConfig.fromMap(System.getenv());
+//        KubernetesClient client = new DefaultKubernetesClient(getUnsafeOkHttpClient(), new ConfigBuilder().build());
         KubernetesClient client = new DefaultKubernetesClient();
-        boolean isOpenshift = false;
-        try {
-            isOpenshift = isOnOpenShift(client);
-        } catch (IOException e) {
-            e.printStackTrace();
-            log.error("Failed to distinguish between Kubernetes and OpenShift", e.getCause());
-            log.warn("Let's assume we are on K8s");
-        }
+        boolean isOpenshift = isOnOpenShift(client);
         run(client, isOpenshift, config).exceptionally(ex -> {
             log.error("Unable to start operator for 1 or more namespace", ex);
             System.exit(1);
@@ -94,7 +94,7 @@ public class Entrypoint {
         return CompletableFuture.allOf(futures.toArray(new CompletableFuture[]{}));
     }
 
-    private static boolean isOnOpenShift(KubernetesClient client) throws IOException {
+    private static boolean isOnOpenShift(KubernetesClient client) {
         URL kubernetesApi = client.getMasterUrl();
 
         HttpUrl.Builder urlBuilder = new HttpUrl.Builder();
@@ -105,22 +105,27 @@ public class Entrypoint {
         } else {
             urlBuilder.port(kubernetesApi.getPort());
         }
-
-        OkHttpClient.Builder httpClientBuilder = new OkHttpClient.Builder();
         if (kubernetesApi.getProtocol().equals("https")) {
             urlBuilder.scheme("https");
-            httpClientBuilder.hostnameVerifier((hostname, session) -> true);
         }
         urlBuilder.addPathSegment("/oapi");
 
-        OkHttpClient httpClient = httpClientBuilder.build();
+        OkHttpClient httpClient = getOkHttpClient();
         HttpUrl url = urlBuilder.build();
-        Response response = httpClient.newCall(new Request.Builder().url(url).build()).execute();
+        Response response;
+        try {
+            response = httpClient.newCall(new Request.Builder().url(url).build()).execute();
+        } catch (IOException e) {
+            e.printStackTrace();
+            log.error("Failed to distinguish between Kubernetes and OpenShift");
+            log.warn("Let's assume we are on K8s");
+            return false;
+        }
         boolean success = response.isSuccessful();
         if (success) {
             log.debug("{} returned {}. We are on OpenShift.", url, response.code());
         } else {
-            log.debug("{} returned {}. We are not on OpenShift.", url, response.code());
+            log.debug("{} returned {}. We are not on OpenShift. Assuming, we are on Kubernetes.", url, response.code());
         }
         return success;
     }
@@ -140,5 +145,28 @@ public class Entrypoint {
             log.info("Git sha: {}{}{}", ANSI_Y, gitSha, ANSI_RESET);
         }
         log.info("==================\n");
+    }
+
+    private static OkHttpClient getOkHttpClient() {
+        try {
+            // Create a trust manager that does not validate certificate chains
+            final X509TrustManager trustAllCerts = new X509TrustManager() {
+                public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {}
+                public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {}
+                public X509Certificate[] getAcceptedIssuers() {
+                    return new X509Certificate[]{};
+                }
+            };
+            final SSLContext sslContext = SSLContext.getInstance("SSL");
+            sslContext.init(null, new X509TrustManager[]{trustAllCerts}, new SecureRandom());
+            final SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
+            OkHttpClient.Builder builder = new OkHttpClient.Builder();
+            builder.sslSocketFactory(sslSocketFactory, trustAllCerts);
+            builder.hostnameVerifier((hostname, session) -> true);
+            OkHttpClient okHttpClient = builder.build();
+            return okHttpClient;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 }
