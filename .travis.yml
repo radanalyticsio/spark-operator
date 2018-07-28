@@ -37,11 +37,6 @@ jobs:
 
     - stage: deploy
       script:
-        - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-
-        # release :latest and :centos-latest
-        - if [ "$TRAVIS_BRANCH" = "master" -a "$TRAVIS_PULL_REQUEST" = "false" ]; then make image-publish-all; fi
-
         # release x.y.z or x.y.z-centos if there is a release
+        # or release the latest image if building the master branch
         - ./.travis/.travis.release.images.sh
-        - docker logout
