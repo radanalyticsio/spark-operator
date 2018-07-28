@@ -10,16 +10,16 @@ main() {
   if [[ "$LATEST" = "1" ]]; then
     echo "Pushing the :latest and :latest-centos images to docker.io and quay.io"
     loginDockerIo
-    pushLatestImages
+    pushLatestImagesDockerIo
     loginQuayIo
-    pushLatestImages
+    pushLatestImagesQuayIo
   else if [[ "${TRAVIS_TAG}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
     echo "Pushing the '${TRAVIS_TAG}' and :latest-released images to docker.io and quay.io"
     buildReleaseImages
     loginDockerIo
-    pushReleaseImages
+    pushReleaseImages "docker.io"
     loginQuayIo
-    pushReleaseImages
+    pushReleaseImages "quay.io"
   else
     echo "Not doing the docker push, because the tag '${TRAVIS_TAG}' is not of form x.y.z.Final"
     echo "and also it's not a build of the master branch"
@@ -38,27 +38,39 @@ loginQuayIo() {
   set -x
 }
 
-pushLatestImages() {
+pushLatestImagesDockerIo() {
   make image-publish-all
   docker logout
+}
+
+pushLatestImagesQuayIo() {
+  docker tag $OWNER/$IMAGE:latest "quay.io/"$OWNER/$IMAGE:latest
+  docker tag $OWNER/$IMAGE:latest-centos "quay.io/"$OWNER/$IMAGE:latest-centos
+  docker push "quay.io/"$OWNER/$IMAGE:latest
+  docker push "quay.io/"$OWNER/$IMAGE:latest-centos
 }
 
 buildReleaseImages() {
   # build centos image
   make package image-build
-
-  docker tag $OWNER/$IMAGE:slim $OWNER/$IMAGE:${TRAVIS_TAG}
-  docker tag $OWNER/$IMAGE:slim $OWNER/$IMAGE:latest-released
-  docker tag $OWNER/$IMAGE:centos $OWNER/$IMAGE:${TRAVIS_TAG}-centos
-  docker tag $OWNER/$IMAGE:centos $OWNER/$IMAGE:latest-released-centos
 }
 
 pushReleaseImages() {
+  if [[ $# != 1 ]] && [[ $# != 2 ]]; then
+    echo "Usage: pushReleaseImages image_repo" && exit
+  fi
+  REPO="$1"
+
+  docker tag $OWNER/$IMAGE:slim $REPO/$OWNER/$IMAGE:${TRAVIS_TAG}
+  docker tag $OWNER/$IMAGE:slim $REPO/$OWNER/$IMAGE:latest-released
+  docker tag $OWNER/$IMAGE:centos $REPO/$OWNER/$IMAGE:${TRAVIS_TAG}-centos
+  docker tag $OWNER/$IMAGE:centos $REPO/$OWNER/$IMAGE:latest-released-centos
+
   # push the latest-released and ${TRAVIS_TAG} images (and also -centos images)
-  docker push $OWNER/$IMAGE:${TRAVIS_TAG}
-  docker push $OWNER/$IMAGE:latest-released
-  docker push $OWNER/$IMAGE:${TRAVIS_TAG}-centos
-  docker push $OWNER/$IMAGE:latest-released-centos
+  docker push $REPO/$OWNER/$IMAGE:${TRAVIS_TAG}
+  docker push $REPO/$OWNER/$IMAGE:latest-released
+  docker push $REPO/$OWNER/$IMAGE:${TRAVIS_TAG}-centos
+  docker push $REPO/$OWNER/$IMAGE:latest-released-centos
   docker logout
 }
 
