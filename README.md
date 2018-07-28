@@ -71,6 +71,6 @@ Image name         | Layers | Description
 ------------------ | ------ | -----------
 `:latest`          | [![Layers info](https://images.microbadger.com/badges/image/jkremser/spark-operator:latest.svg)](https://microbadger.com/images/jkremser/spark-operator:latest) | represents the master branch
 `:latest-released` | [![Layers info](https://images.microbadger.com/badges/image/jkremser/spark-operator:latest-released.svg)](https://microbadger.com/images/jkremser/spark-operator:latest-released) | represents the latest released version
-`:x.y.z`           | [![Layers info](https://images.microbadger.com/badges/image/jkremser/spark-operator:0.1.3.svg)](https://microbadger.com/images/jkremser/spark-operator:0.1.3) | one particular version
+`:x.y.z`           | [![Layers info](https://images.microbadger.com/badges/image/jkremser/spark-operator:0.1.4.svg)](https://microbadger.com/images/jkremser/spark-operator:0.1.4) | one particular version
 
 For each variant there is also available an image with `-centos` suffix based on Centos for instance [![Layers info](https://images.microbadger.com/badges/image/jkremser/spark-operator:latest-released-centos.svg)](https://microbadger.com/images/jkremser/spark-operator:latest-released-centos)
