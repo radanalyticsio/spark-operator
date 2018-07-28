@@ -34,7 +34,6 @@
         <fabric8.kubernetes-model.version>3.0.1</fabric8.kubernetes-model.version>
         <fabric8.zjsonpatch.version>0.3.0</fabric8.zjsonpatch.version>
         <snakeyaml.version>1.21</snakeyaml.version>
-        <vertx.version>3.5.3</vertx.version>
         <slf4j.version>1.7.25</slf4j.version>
         <junit.version>4.12</junit.version>
     </properties>
@@ -45,11 +44,12 @@
             <artifactId>kubernetes-client</artifactId>
 	        <version>${fabric8.kubernetes-client.version}</version>
         </dependency>
-        <dependency>
+<!--        <dependency>
             <groupId>io.fabric8</groupId>
             <artifactId>openshift-client</artifactId>
 	        <version>${fabric8.kubernetes-client.version}</version>
         </dependency>
+-->
         <dependency>
             <groupId>io.fabric8</groupId>
             <artifactId>kubernetes-model</artifactId>
@@ -69,11 +69,6 @@
           <groupId>org.yaml</groupId>
           <artifactId>snakeyaml</artifactId>
           <version>${snakeyaml.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.vertx</groupId>
-            <artifactId>vertx-core</artifactId>
-	        <version>${vertx.version}</version>
         </dependency>
         <dependency>
             <groupId>com.jcabi</groupId>

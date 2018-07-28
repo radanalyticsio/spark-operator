@@ -3,23 +3,31 @@ package io.radanalytics.operator;
 import com.jcabi.manifests.Manifests;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.openshift.client.OpenShiftClient;
+import io.fabric8.kubernetes.client.Watch;
 import io.radanalytics.operator.app.AppOperator;
 import io.radanalytics.operator.cluster.ClusterOperator;
-import io.radanalytics.operator.common.AbstractOperator;
-import io.radanalytics.operator.common.EntityInfo;
 import io.radanalytics.operator.common.OperatorConfig;
-import io.vertx.core.CompositeFuture;
-import io.vertx.core.Future;
-import io.vertx.core.Vertx;
-import io.vertx.core.http.HttpClient;
-import io.vertx.core.http.HttpClientOptions;
+import okhttp3.HttpUrl;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.X509TrustManager;
+import java.io.IOException;
 import java.net.URL;
+import java.security.SecureRandom;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.stream.Stream;
 
 import static io.radanalytics.operator.common.AnsiColors.*;
@@ -28,28 +36,22 @@ public class Entrypoint {
 
     private static final Logger log = LoggerFactory.getLogger(Entrypoint.class.getName());
 
+    public static ExecutorService EXECUTORS = Executors.newFixedThreadPool(10);
+
     public static void main(String[] args) {
         log.info("Starting..");
         OperatorConfig config = OperatorConfig.fromMap(System.getenv());
-        Vertx vertx = Vertx.vertx();
+//        KubernetesClient client = new DefaultKubernetesClient(getUnsafeOkHttpClient(), new ConfigBuilder().build());
         KubernetesClient client = new DefaultKubernetesClient();
-
-        isOnOpenShift(vertx, client).setHandler(os -> {
-            if (os.succeeded()) {
-                run(vertx, client, os.result().booleanValue(), config).setHandler(ar -> {
-                    if (ar.failed()) {
-                        log.error("Unable to start operator for 1 or more namespace", ar.cause());
-                        System.exit(1);
-                    }
-                });
-            } else {
-                log.error("Failed to distinguish between Kubernetes and OpenShift", os.cause());
-                System.exit(1);
-            }
+        boolean isOpenshift = isOnOpenShift(client);
+        run(client, isOpenshift, config).exceptionally(ex -> {
+            log.error("Unable to start operator for 1 or more namespace", ex);
+            System.exit(1);
+            return null;
         });
     }
 
-    private static CompositeFuture run(Vertx vertx, KubernetesClient client, boolean isOpenShift, OperatorConfig config) {
+    private static CompletableFuture<Void> run(KubernetesClient client, boolean isOpenShift, OperatorConfig config) {
         printInfo();
 
         if (isOpenShift) {
@@ -58,76 +60,74 @@ public class Entrypoint {
             log.info("Kubernetes environment detected.");
         }
 
-        List<Future> futures = new ArrayList<>();
+        List<CompletableFuture> futures = new ArrayList<>();
         if (null == config.getNamespaces()) { // get the current namespace
             String namespace = client.getNamespace();
-            Future future = runForNamespace(vertx, client, isOpenShift, namespace);
+            CompletableFuture future = runForNamespace(client, isOpenShift, namespace);
             futures.add(future);
         } else {
             for (String namespace : config.getNamespaces()) {
-                Future future = runForNamespace(vertx, client, isOpenShift, namespace);
+                CompletableFuture future = runForNamespace(client, isOpenShift, namespace);
                 futures.add(future);
             }
         }
-        return CompositeFuture.join(futures);
+        return CompletableFuture.allOf(futures.toArray(new CompletableFuture[]{}));
     }
 
-    private static Future runForNamespace(Vertx vertx, KubernetesClient client, boolean isOpenShift, String namespace) {
+    private static CompletableFuture<Void> runForNamespace(KubernetesClient client, boolean isOpenShift, String namespace) {
 
         ClusterOperator clusterOperator = new ClusterOperator(namespace, isOpenShift, client);
         AppOperator appOperator = new AppOperator(namespace, isOpenShift, client);
 
         List<Future> futures = new ArrayList<>();
         Stream.of(clusterOperator, appOperator).forEach(operator -> {
-            Future<String> future = Future.future();
+            CompletableFuture<Watch> future = operator.start().thenApply(res -> {
+                log.info("{} started in namespace {}", operator.getName(), namespace);
+                return res;
+            }).exceptionally(e -> {
+                log.error("{} in namespace {} failed to start", operator.getName(), namespace, e.getCause());
+                System.exit(1);
+                return null;
+            });
             futures.add(future);
-            vertx.deployVerticle(operator,
-                    res -> {
-                        if (res.succeeded()) {
-                            log.info("{} verticle started in namespace {}", operator.getName(), namespace);
-                        } else {
-                            log.error("{} verticle in namespace {} failed to start", operator.getName(), namespace, res.cause());
-                            System.exit(1);
-                        }
-                        future.completer().handle(res);
-                    });
         });
-        return CompositeFuture.join(futures);
+        return CompletableFuture.allOf(futures.toArray(new CompletableFuture[]{}));
     }
 
-    private static Future<Boolean> isOnOpenShift(Vertx vertx, KubernetesClient client)  {
+    private static boolean isOnOpenShift(KubernetesClient client) {
         URL kubernetesApi = client.getMasterUrl();
-        Future<Boolean> fut = Future.future();
 
-        HttpClientOptions httpClientOptions = new HttpClientOptions();
-        httpClientOptions.setDefaultHost(kubernetesApi.getHost());
+        HttpUrl.Builder urlBuilder = new HttpUrl.Builder();
+        urlBuilder.host(kubernetesApi.getHost());
 
         if (kubernetesApi.getPort() == -1) {
-            httpClientOptions.setDefaultPort(kubernetesApi.getDefaultPort());
+            urlBuilder.port(kubernetesApi.getDefaultPort());
         } else {
-            httpClientOptions.setDefaultPort(kubernetesApi.getPort());
+            urlBuilder.port(kubernetesApi.getPort());
         }
-
         if (kubernetesApi.getProtocol().equals("https")) {
-            httpClientOptions.setSsl(true);
-            httpClientOptions.setTrustAll(true);
+            urlBuilder.scheme("https");
         }
+        urlBuilder.addPathSegment("/oapi");
 
-        HttpClient httpClient = vertx.createHttpClient(httpClientOptions);
-
-        httpClient.getNow("/oapi", res -> {
-            if (res.statusCode() == 200) {
-                log.debug("{} returned {}. We are on OpenShift.", res.request().absoluteURI(), res.statusCode());
-                // We should be on OpenShift based on the /oapi result. We can now safely try isAdaptable() to be 100% sure.
-                Boolean isOpenShift = Boolean.TRUE.equals(client.isAdaptable(OpenShiftClient.class));
-                fut.complete(isOpenShift);
-            } else {
-                log.debug("{} returned {}. We are not on OpenShift.", res.request().absoluteURI(), res.statusCode());
-                fut.complete(Boolean.FALSE);
-            }
-        });
-
-        return fut;
+        OkHttpClient httpClient = getOkHttpClient();
+        HttpUrl url = urlBuilder.build();
+        Response response;
+        try {
+            response = httpClient.newCall(new Request.Builder().url(url).build()).execute();
+        } catch (IOException e) {
+            e.printStackTrace();
+            log.error("Failed to distinguish between Kubernetes and OpenShift");
+            log.warn("Let's assume we are on K8s");
+            return false;
+        }
+        boolean success = response.isSuccessful();
+        if (success) {
+            log.debug("{} returned {}. We are on OpenShift.", url, response.code());
+        } else {
+            log.debug("{} returned {}. We are not on OpenShift. Assuming, we are on Kubernetes.", url, response.code());
+        }
+        return success;
     }
 
     private static void printInfo() {
@@ -145,5 +145,28 @@ public class Entrypoint {
             log.info("Git sha: {}{}{}", ANSI_Y, gitSha, ANSI_RESET);
         }
         log.info("==================\n");
+    }
+
+    private static OkHttpClient getOkHttpClient() {
+        try {
+            // Create a trust manager that does not validate certificate chains
+            final X509TrustManager trustAllCerts = new X509TrustManager() {
+                public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {}
+                public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {}
+                public X509Certificate[] getAcceptedIssuers() {
+                    return new X509Certificate[]{};
+                }
+            };
+            final SSLContext sslContext = SSLContext.getInstance("SSL");
+            sslContext.init(null, new X509TrustManager[]{trustAllCerts}, new SecureRandom());
+            final SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
+            OkHttpClient.Builder builder = new OkHttpClient.Builder();
+            builder.sslSocketFactory(sslSocketFactory, trustAllCerts);
+            builder.hostnameVerifier((hostname, session) -> true);
+            OkHttpClient okHttpClient = builder.build();
+            return okHttpClient;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 }
