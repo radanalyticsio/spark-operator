@@ -67,10 +67,10 @@ For deployment on OpenShift use the same commands as above, but with `oc` instea
 
 ### Images
 
-Image name         | Layers | Description
------------------- | ------ | -----------
-`:latest`          | [![Layers info](https://images.microbadger.com/badges/image/jkremser/spark-operator:latest.svg)](https://microbadger.com/images/jkremser/spark-operator:latest) | represents the master branch
-`:latest-released` | [![Layers info](https://images.microbadger.com/badges/image/jkremser/spark-operator:latest-released.svg)](https://microbadger.com/images/jkremser/spark-operator:latest-released) | represents the latest released version
-`:x.y.z`           | [![Layers info](https://images.microbadger.com/badges/image/jkremser/spark-operator:0.1.4.svg)](https://microbadger.com/images/jkremser/spark-operator:0.1.4) | one particular version
+Image name         | Description | Layers | quay.io | docker.io
+------------------ | ----------- | ------ | ------- | ----------
+`:latest-released` | represents the latest released version | [![Layers info](https://images.microbadger.com/badges/image/jkremser/spark-operator:latest-released.svg)](https://microbadger.com/images/jkremser/spark-operator:latest-released) | [![quay.io repo](https://quay.io/repository/jkremser/spark-operator/status "quay.io repo")](https://quay.io/repository/jkremser/spark-operator?tab=tags) | [![docker.io repo](https://img.shields.io/docker/pulls/jkremser/spark-operator.svg "docker.io repo")](https://hub.docker.com/r/jkremser/spark-operator/tags/)
+`:latest`          | represents the master branch | [![Layers info](https://images.microbadger.com/badges/image/jkremser/spark-operator:latest.svg)](https://microbadger.com/images/jkremser/spark-operator:latest) |  | 
+`:x.y.z`           | one particular released version | [![Layers info](https://images.microbadger.com/badges/image/jkremser/spark-operator:0.1.4.svg)](https://microbadger.com/images/jkremser/spark-operator:0.1.4) |  | 
 
 For each variant there is also available an image with `-centos` suffix based on Centos for instance [![Layers info](https://images.microbadger.com/badges/image/jkremser/spark-operator:latest-released-centos.svg)](https://microbadger.com/images/jkremser/spark-operator:latest-released-centos)
