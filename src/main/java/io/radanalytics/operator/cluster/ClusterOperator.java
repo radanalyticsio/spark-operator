@@ -4,6 +4,7 @@ import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.KubernetesResourceList;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.radanalytics.operator.common.AbstractOperator;
+import io.radanalytics.operator.common.Operator;
 import io.radanalytics.operator.resource.LabelsHelper;
 import io.radanalytics.operator.resource.ResourceHelper;
 import org.slf4j.Logger;
@@ -11,6 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import static io.radanalytics.operator.common.AnsiColors.*;
 
+@Operator
 public class ClusterOperator extends AbstractOperator<ClusterInfo> {
 
     private static final Logger log = LoggerFactory.getLogger(AbstractOperator.class.getName());
