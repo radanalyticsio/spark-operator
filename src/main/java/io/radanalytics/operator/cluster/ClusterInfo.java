@@ -7,7 +7,7 @@ import io.radanalytics.operator.resource.HasDataHelper;
 import java.util.Collections;
 import java.util.List;
 
-import static io.radanalytics.operator.common.OperatorConfig.DEFAULT_SPARK_IMAGE;
+import static io.radanalytics.operator.Constants.DEFAULT_SPARK_IMAGE;
 
 public class ClusterInfo implements EntityInfo {
     public static class DL {

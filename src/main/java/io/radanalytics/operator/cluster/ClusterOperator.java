@@ -12,31 +12,33 @@ import org.slf4j.LoggerFactory;
 
 import static io.radanalytics.operator.common.AnsiColors.*;
 
-@Operator
+@Operator(forKind = "cluster", prefix = "radanalytics.io")
 public class ClusterOperator extends AbstractOperator<ClusterInfo> {
 
     private static final Logger log = LoggerFactory.getLogger(AbstractOperator.class.getName());
 
     private final RunningClusters clusters;
+    private final KubernetesSparkClusterDeployer deployer;
 
     public ClusterOperator(String namespace,
                            boolean isOpenshift,
                            KubernetesClient client) {
-        super(namespace, isOpenshift, client, "Cluster", LabelsHelper.forCluster());
+        super(namespace, isOpenshift, client);
         this.clusters = new RunningClusters();
+        this.deployer = new KubernetesSparkClusterDeployer(client, entityName, prefix);
     }
 
     protected void onAdd(ClusterInfo cluster, boolean isOpenshift) {
-        KubernetesResourceList list = KubernetesSparkClusterDeployer.getResourceList(cluster, client);
+        KubernetesResourceList list = deployer.getResourceList(cluster);
         client.resourceList(list).createOrReplace();
         clusters.put(cluster);
     }
 
     protected void onDelete(ClusterInfo cluster, boolean isOpenshift) {
         String name = cluster.getName();
-        client.services().withLabels(KubernetesSparkClusterDeployer.getDefaultLabels(name)).delete();
-        client.replicationControllers().withLabels(KubernetesSparkClusterDeployer.getDefaultLabels(name)).delete();
-        client.pods().withLabels(KubernetesSparkClusterDeployer.getDefaultLabels(name)).delete();
+        client.services().withLabels(deployer.getDefaultLabels(name)).delete();
+        client.replicationControllers().withLabels(deployer.getDefaultLabels(name)).delete();
+        client.pods().withLabels(deployer.getDefaultLabels(name)).delete();
         clusters.delete(name);
     }
 
@@ -62,7 +64,7 @@ public class ClusterOperator extends AbstractOperator<ClusterInfo> {
 
     @Override
     protected boolean isSupported(ConfigMap cm) {
-        return ResourceHelper.isCluster(cm);
+        return ResourceHelper.isAKind(cm, entityName, prefix);
     }
 
     @Override

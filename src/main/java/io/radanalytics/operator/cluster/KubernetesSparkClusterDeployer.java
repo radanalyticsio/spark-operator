@@ -2,17 +2,28 @@ package io.radanalytics.operator.cluster;
 
 import io.fabric8.kubernetes.api.model.*;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.radanalytics.operator.resource.LabelsHelper;
 
 import java.util.*;
 
+import static io.radanalytics.operator.Constants.OPERATOR_TYPE_MASTER_LABEL;
+import static io.radanalytics.operator.Constants.OPERATOR_TYPE_UI_LABEL;
+import static io.radanalytics.operator.Constants.OPERATOR_TYPE_WORKER_LABEL;
 import static io.radanalytics.operator.resource.LabelsHelper.*;
 
 public class KubernetesSparkClusterDeployer {
-    private static KubernetesClient client;
+    private KubernetesClient client;
+    private String entityName;
+    private String prefix;
 
-    public static KubernetesResourceList getResourceList(ClusterInfo cluster, KubernetesClient client) {
-        KubernetesSparkClusterDeployer.client = client;
-        synchronized (KubernetesSparkClusterDeployer.client) {
+    KubernetesSparkClusterDeployer(KubernetesClient client, String entityName, String prefix) {
+        this.client = client;
+        this.entityName = entityName;
+        this.prefix = prefix;
+    }
+
+    public KubernetesResourceList getResourceList(ClusterInfo cluster) {
+        synchronized (this.client) {
             String name = cluster.getName();
             ReplicationController masterRc = getRCforMaster(cluster);
             ReplicationController workerRc = getRCforWorker(cluster);
@@ -23,17 +34,17 @@ public class KubernetesSparkClusterDeployer {
         }
     }
 
-    private static ReplicationController getRCforMaster(ClusterInfo cluster) {
+    private ReplicationController getRCforMaster(ClusterInfo cluster) {
         return getRCforMasterOrWorker(true, cluster);
     }
 
-    private static ReplicationController getRCforWorker(ClusterInfo cluster) {
+    private ReplicationController getRCforWorker(ClusterInfo cluster) {
         return getRCforMasterOrWorker(false, cluster);
     }
 
-    private static Service getService(boolean isUi, String name, int port) {
+    private Service getService(boolean isUi, String name, int port) {
         Map<String, String> labels = getDefaultLabels(name);
-        labels.put(OPERATOR_SEVICE_TYPE_LABEL, isUi ? OPERATOR_TYPE_UI_LABEL : OPERATOR_TYPE_WORKER_LABEL);
+        labels.put(prefix + LabelsHelper.OPERATOR_SEVICE_TYPE_LABEL, isUi ? OPERATOR_TYPE_UI_LABEL : OPERATOR_TYPE_WORKER_LABEL);
         Service masterService = new ServiceBuilder().withNewMetadata().withName(isUi ? name + "-ui" : name)
                 .withLabels(labels).endMetadata()
                 .withNewSpec().withSelector(getSelector(name, name + "-m"))
@@ -47,7 +58,7 @@ public class KubernetesSparkClusterDeployer {
         return new EnvVarBuilder().withName(key).withValue(value).build();
     }
 
-    private static ReplicationController getRCforMasterOrWorker(boolean isMaster, ClusterInfo cluster) {
+    private ReplicationController getRCforMasterOrWorker(boolean isMaster, ClusterInfo cluster) {
         String name = cluster.getName();
         String podName = name + (isMaster ? "-m" : "-w");
         Map<String, String> selector = getSelector(name, podName);
@@ -113,10 +124,10 @@ public class KubernetesSparkClusterDeployer {
         }
 
         Map<String, String> labels = getDefaultLabels(name);
-        labels.put(OPERATOR_RC_TYPE_LABEL, isMaster ? OPERATOR_TYPE_MASTER_LABEL : OPERATOR_TYPE_WORKER_LABEL);
+        labels.put(prefix + LabelsHelper.OPERATOR_RC_TYPE_LABEL, isMaster ? OPERATOR_TYPE_MASTER_LABEL : OPERATOR_TYPE_WORKER_LABEL);
 
         Map<String, String> podLabels = getSelector(name, podName);
-        podLabels.put(OPERATOR_POD_TYPE_LABEL, isMaster ? OPERATOR_TYPE_MASTER_LABEL : OPERATOR_TYPE_WORKER_LABEL);
+        podLabels.put(prefix + LabelsHelper.OPERATOR_POD_TYPE_LABEL, isMaster ? OPERATOR_TYPE_MASTER_LABEL : OPERATOR_TYPE_WORKER_LABEL);
         ReplicationController rc = new ReplicationControllerBuilder().withNewMetadata()
                 .withName(podName).withLabels(labels)
                 .endMetadata()
@@ -133,7 +144,7 @@ public class KubernetesSparkClusterDeployer {
         return rc;
     }
 
-    private static ReplicationController addInitContainers(ReplicationController rc,
+    private ReplicationController addInitContainers(ReplicationController rc,
                                                            ClusterInfo cluster,
                                                            boolean cmExists) {
         final List<ClusterInfo.DL> downloadData = cluster.getDownloadData();
@@ -208,21 +219,21 @@ public class KubernetesSparkClusterDeployer {
         return rc;
     }
 
-    private static boolean cmExists(String name) {
-        ConfigMap configMap = KubernetesSparkClusterDeployer.client.configMaps().withName(name).get();
+    private boolean cmExists(String name) {
+        ConfigMap configMap = client.configMaps().withName(name).get();
         return configMap != null && configMap.getData() != null && !configMap.getData().isEmpty();
     }
 
-    private static Map<String, String> getSelector(String clusterName, String podName) {
+    private Map<String, String> getSelector(String clusterName, String podName) {
         Map<String, String> map = getDefaultLabels(clusterName);
-        map.put(OPERATOR_DEPLOYMENT_LABEL, podName);
+        map.put(prefix + LabelsHelper.OPERATOR_DEPLOYMENT_LABEL, podName);
         return map;
     }
 
-    public static Map<String, String> getDefaultLabels(String name) {
+    public Map<String, String> getDefaultLabels(String name) {
         Map<String, String> map = new HashMap<>(3);
-        map.put(OPERATOR_KIND_LABEL, OPERATOR_KIND_CLUSTER_LABEL);
-        map.put(OPERATOR_DOMAIN + OPERATOR_KIND_CLUSTER_LABEL, name);
+        map.put(prefix + OPERATOR_KIND_LABEL, entityName);
+        map.put(prefix + entityName, name);
         return map;
     }
 }

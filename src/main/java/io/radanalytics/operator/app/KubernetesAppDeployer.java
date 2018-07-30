@@ -7,13 +7,21 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static io.radanalytics.operator.Constants.DEFAULT_SPARK_IMAGE;
 import static io.radanalytics.operator.cluster.KubernetesSparkClusterDeployer.env;
-import static io.radanalytics.operator.common.OperatorConfig.DEFAULT_SPARK_IMAGE;
-import static io.radanalytics.operator.resource.LabelsHelper.*;
+import static io.radanalytics.operator.resource.LabelsHelper.OPERATOR_KIND_LABEL;
 
 public class KubernetesAppDeployer {
 
-    public static KubernetesResourceList getResourceList(AppInfo app, String namespace) {
+    private String entityName;
+    private String prefix;
+
+    KubernetesAppDeployer(String entityName, String prefix) {
+        this.entityName = entityName;
+        this.prefix = prefix;
+    }
+
+    public KubernetesResourceList getResourceList(AppInfo app, String namespace) {
         String name = app.getName();
         String image = app.getImage();
         String file = app.getMainApplicationFile();
@@ -24,7 +32,7 @@ public class KubernetesAppDeployer {
         return resources;
     }
 
-    private static ReplicationController getSubmitterRc(String name, String image, String file, String main,
+    private ReplicationController getSubmitterRc(String name, String image, String file, String main,
                                                         String namespace) {
         List<EnvVar> envVars = new ArrayList<>();
         envVars.add(env("FOO", "bar"));
@@ -77,16 +85,16 @@ public class KubernetesAppDeployer {
         return rc;
     }
 
-    public static Map<String, String> getDefaultLabels(String name) {
+    public Map<String, String> getDefaultLabels(String name) {
         Map<String, String> map = new HashMap<>(3);
-        map.put(OPERATOR_KIND_LABEL, OPERATOR_KIND_APP_LABEL);
-        map.put(OPERATOR_DOMAIN + OPERATOR_KIND_APP_LABEL, name);
+        map.put(prefix + OPERATOR_KIND_LABEL, entityName);
+        map.put(prefix + entityName, name);
         return map;
     }
 
-    public static Map<String, String> getLabelsForDeletion(String name) {
+    public Map<String, String> getLabelsForDeletion(String name) {
         Map<String, String> map = new HashMap<>(2);
-        map.put(OPERATOR_DOMAIN + OPERATOR_KIND_APP_LABEL, name);
+        map.put(prefix + entityName, name);
         return map;
     }
 }
