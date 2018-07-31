@@ -16,7 +16,7 @@ data:
       value: bar
     sparkConfigurationMap: my-config                    # optional defaults to ${name}-config
                                                         # kubectl create configmap my-config --from-file=example/config.conf
-    sparkConfiguration:                                 # optional, it overrides the config defined above, the cm must exist
+    sparkConfiguration:                                 # optional, it overrides the config defined above
     - name: spark.executor.memory
       value: 2g
     - name: spark.sql.conf.autoBroadcastJoinThreshold
