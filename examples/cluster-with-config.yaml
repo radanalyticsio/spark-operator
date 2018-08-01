@@ -9,7 +9,7 @@ data:
     workerNodes: "2"                                    # optional defaults to 1
     masterNodes: "1"                                    # optional defaults to 1
     customImage: jkremser/openshift-spark:2.3-latest    # optional defaults to jkremser/openshift-spark:2.3-latest
-    memory: "1Gi"                                       # optional defaults to 2Gi
+    memory: "1Gi"                                       # optional defaults to 1Gi
     cpu: 1                                              # optional defaults to 1
     env:                                                # optional
     - name: SPARK_WORKER_CORES

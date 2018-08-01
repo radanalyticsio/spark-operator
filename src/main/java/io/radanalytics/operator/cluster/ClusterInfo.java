@@ -82,7 +82,7 @@ public class ClusterInfo implements EntityInfo {
     }
 
     public String getMemory() {
-        return memory == null ? "2Gi" : memory;
+        return memory == null ? "1Gi" : memory;
     }
 
     public int getCpu() {
