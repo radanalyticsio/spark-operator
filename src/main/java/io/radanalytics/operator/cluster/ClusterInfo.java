@@ -50,6 +50,8 @@ public class ClusterInfo implements EntityInfo {
     private String customImage;
     private int masterNodes;
     private int workerNodes;
+    private String memory;
+    private int cpu;
     private List<DL> downloadData;
     private List<NV> env;
     private List<NV> sparkConfiguration;
@@ -77,6 +79,14 @@ public class ClusterInfo implements EntityInfo {
 
     public int getWorkerNodes() {
         return workerNodes <= 0 ? 1 : workerNodes;
+    }
+
+    public String getMemory() {
+        return memory == null ? "2Gi" : memory;
+    }
+
+    public int getCpu() {
+        return cpu <= 0 ? 1 : cpu;
     }
 
     public List<DL> getDownloadData() {
@@ -109,6 +119,14 @@ public class ClusterInfo implements EntityInfo {
 
     public void setWorkerNodes(int workerNodes) {
         this.workerNodes = workerNodes;
+    }
+
+    public void setMemory(String memory) {
+        this.memory = memory;
+    }
+
+    public void setCpu(int cpu) {
+        this.cpu = cpu;
     }
 
     public void setDownloadData(List<DL> downloadData) {

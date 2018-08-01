@@ -9,6 +9,8 @@ data:
     workerNodes: "2"                                    # optional defaults to 1
     masterNodes: "1"                                    # optional defaults to 1
     customImage: jkremser/openshift-spark:2.3-latest    # optional defaults to jkremser/openshift-spark:2.3-latest
+    memory: "1Gi"                                       # optional defaults to 2Gi
+    cpu: 1                                              # optional defaults to 1
     env:                                                # optional
     - name: SPARK_WORKER_CORES
       value: 2
@@ -18,7 +20,7 @@ data:
                                                         # kubectl create configmap my-config --from-file=example/config.conf
     sparkConfiguration:                                 # optional, it overrides the config defined above
     - name: spark.executor.memory
-      value: 2g
+      value: 1g
     - name: spark.sql.conf.autoBroadcastJoinThreshold
       value: 20971520
     downloadData:                                       # optional, it downloads these files to each node
