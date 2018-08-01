@@ -86,17 +86,25 @@ public class KubernetesSparkClusterDeployer {
                 .withSuccessThreshold(1)
                 .withTimeoutSeconds(1).build();
 
-        Map<String, Quantity> limits = new HashMap<>(2);
-        limits.put("memory", new Quantity(cluster.getMemory()));
-        limits.put("cpu", new Quantity(String.valueOf(cluster.getCpu())));
-
         ContainerBuilder containerBuilder = new ContainerBuilder().withEnv(envVars).withImage(cluster.getCustomImage())
                 .withImagePullPolicy("IfNotPresent")
                 .withName(name + (isMaster ? "-m" : "-w"))
                 .withTerminationMessagePath("/dev/termination-log")
                 .withTerminationMessagePolicy("File")
-                .withPorts(ports)
-                .withResources(new ResourceRequirements(limits, limits));
+                .withPorts(ports);
+
+        // limits
+        if (cluster.getMemory() != null || cluster.getCpu() != null) {
+            Map<String, Quantity> limits = new HashMap<>(2);
+            if (cluster.getMemory() != null) {
+                limits.put("memory", new Quantity(cluster.getMemory()));
+            }
+            if (cluster.getCpu() != null) {
+                limits.put("cpu", new Quantity(cluster.getCpu()));
+            }
+            containerBuilder.withResources(new ResourceRequirements(limits, limits));
+        }
+
 
         if (isMaster) {
             containerBuilder = containerBuilder.withReadinessProbe(generalProbe).withLivenessProbe(masterLiveness);
