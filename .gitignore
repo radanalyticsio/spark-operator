@@ -121,3 +121,6 @@ Desktop.ini
 
 # oc cluster up
 openshift.local.clusterup
+
+
+abstract-operator

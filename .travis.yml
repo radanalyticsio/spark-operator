@@ -15,12 +15,12 @@ jobs:
   include:
     - stage: test
       language: java
-      script: make build test
+      script: make build-travis test
 
     - stage: test-oc-and-k8s
       env: BIN=oc VERSION=v3.9.0
       script: &oc-script-defaults
-        - make build
+        - make build-travis
         - ./.travis/.travis.prepare.openshift.sh
         - ./.travis/.travis.test-oc-and-k8s.sh
 
@@ -31,7 +31,7 @@ jobs:
     - stage:
       env: BIN=kubectl VERSION=v1.9.0 MINIKUBE_VERSION=v0.25.2
       script:
-        - make build
+        - make build-travis
         - ./.travis/.travis.prepare.minikube.sh
         - ./.travis/.travis.test-oc-and-k8s.sh
 

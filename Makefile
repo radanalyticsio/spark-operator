@@ -3,6 +3,13 @@ IMAGE?=jkremser/spark-operator
 .PHONY: build
 build: package image-build-slim
 
+.PHONY: build-travis
+build-travis: install-lib build
+
+.PHONY: install-lib
+install-lib:
+	pushd /tmp && git clone https://github.com/jvm-operators/abstract-operator.git && cd abstract-operator && MAVEN_OPTS="-Djansi.passthrough=true -Dplexus.logger.type=ansi $(MAVEN_OPTS)" ./mvnw clean install && popd && rm -rf /tmp/abstract-operator
+
 .PHONY: package
 package:
 	MAVEN_OPTS="-Djansi.passthrough=true -Dplexus.logger.type=ansi $(MAVEN_OPTS)" ./mvnw clean package -DskipTests
