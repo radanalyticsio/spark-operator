@@ -3,6 +3,11 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
                       http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
+    <parent>
+        <groupId>io.radanalytics</groupId>
+        <artifactId>operator-parent-pom</artifactId>
+        <version>0.1.5-SNAPSHOT</version>
+    </parent>
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.radanalytics</groupId>
     <artifactId>spark-operator</artifactId>
@@ -17,17 +22,6 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
-
-        <maven.assembly.version>3.1.0</maven.assembly.version>
-        <maven.buildnumber.version>1.4</maven.buildnumber.version>
-        <maven.failsafe.version>2.20.1</maven.failsafe.version>
-        <maven.jarplugin.version>3.1.0</maven.jarplugin.version>
-        <maven.shade.version>3.1.1</maven.shade.version>
-        <maven.surefire.version>2.20.1</maven.surefire.version>
-
-        <junit.version>4.12</junit.version>
     </properties>
 
     <dependencies>
@@ -39,7 +33,6 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-	        <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -48,32 +41,10 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>${maven.shade.version}</version>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                        <configuration>
-                            <createDependencyReducedPom>false</createDependencyReducedPom>
-                            <transformers>
-                                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
-                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>io.radanalytics.operator.Entrypoint</mainClass>
-                                </transformer>
-                            </transformers>
-                            <filters>
-                                <filter>
-                                    <artifact>io.fabric8:openshift-client</artifact>
-                                    <excludes>
-                                        <exclude>io/fabric8/kubernetes/client/Config*</exclude>
-                                    </excludes>
-                                </filter>
-                            </filters>
-                        </configuration>
-                    </execution>
-                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
             </plugin>
         </plugins>
     </build>
