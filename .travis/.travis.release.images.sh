@@ -52,7 +52,7 @@ pushLatestImagesQuayIo() {
 
 buildReleaseImages() {
   # build centos image
-  make package image-build-all
+  make build-travis image-build-all
 }
 
 pushReleaseImages() {

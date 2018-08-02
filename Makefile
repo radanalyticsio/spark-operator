@@ -48,7 +48,7 @@ image-publish: image-build
 	docker push $(IMAGE):latest-centos
 
 .PHONY: image-publish-all
-image-publish-all: package image-build-all image-publish image-publish-slim
+image-publish-all: build-travis image-build-all image-publish image-publish-slim
 
 .PHONY: devel
 devel: build
