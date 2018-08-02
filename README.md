@@ -1,6 +1,6 @@
 # spark-operator
 
-[![Build status](https://travis-ci.org/Jiri-Kremser/spark-operator.svg?branch=master)](https://travis-ci.org/jvm-operators/spark-operator)
+[![Build status](https://travis-ci.org/jvm-operators/spark-operator.svg?branch=master)](https://travis-ci.org/jvm-operators/spark-operator)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0)
 
 `ConfigMap`-based approach for managing the Spark clusters in Kubernetes and OpenShift.
