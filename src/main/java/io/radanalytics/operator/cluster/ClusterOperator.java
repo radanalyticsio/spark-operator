@@ -1,18 +1,14 @@
 package io.radanalytics.operator.cluster;
 
-import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.KubernetesResourceList;
-import io.fabric8.kubernetes.client.KubernetesClient;
 import io.radanalytics.operator.common.AbstractOperator;
 import io.radanalytics.operator.common.Operator;
-import io.radanalytics.operator.resource.LabelsHelper;
-import io.radanalytics.operator.resource.ResourceHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static io.radanalytics.operator.common.AnsiColors.*;
 
-@Operator(forKind = "cluster", prefix = "radanalytics.io")
+@Operator(forKind = "cluster", prefix = "radanalytics.io", infoClass = ClusterInfo.class)
 public class ClusterOperator extends AbstractOperator<ClusterInfo> {
 
     private static final Logger log = LoggerFactory.getLogger(AbstractOperator.class.getName());
@@ -20,21 +16,18 @@ public class ClusterOperator extends AbstractOperator<ClusterInfo> {
     private final RunningClusters clusters;
     private final KubernetesSparkClusterDeployer deployer;
 
-    public ClusterOperator(String namespace,
-                           boolean isOpenshift,
-                           KubernetesClient client) {
-        super(namespace, isOpenshift, client);
+    public ClusterOperator() {
         this.clusters = new RunningClusters();
         this.deployer = new KubernetesSparkClusterDeployer(client, entityName, prefix);
     }
 
-    protected void onAdd(ClusterInfo cluster, boolean isOpenshift) {
+    protected void onAdd(ClusterInfo cluster) {
         KubernetesResourceList list = deployer.getResourceList(cluster);
         client.resourceList(list).createOrReplace();
         clusters.put(cluster);
     }
 
-    protected void onDelete(ClusterInfo cluster, boolean isOpenshift) {
+    protected void onDelete(ClusterInfo cluster) {
         String name = cluster.getName();
         client.services().withLabels(deployer.getDefaultLabels(name)).delete();
         client.replicationControllers().withLabels(deployer.getDefaultLabels(name)).delete();
@@ -42,7 +35,7 @@ public class ClusterOperator extends AbstractOperator<ClusterInfo> {
         clusters.delete(name);
     }
 
-    protected void onModify(ClusterInfo newCluster, boolean isOpenshift) {
+    protected void onModify(ClusterInfo newCluster) {
         String name = newCluster.getName();
         String newImage = newCluster.getCustomImage();
         int newMasters = newCluster.getMasterNodes();
@@ -60,15 +53,5 @@ public class ClusterOperator extends AbstractOperator<ClusterInfo> {
             clusters.put(newCluster);
         }
         // todo: image change, masters # change for k8s
-    }
-
-    @Override
-    protected boolean isSupported(ConfigMap cm) {
-        return ResourceHelper.isAKind(cm, entityName, prefix);
-    }
-
-    @Override
-    protected ClusterInfo convert(ConfigMap cm) {
-        return ClusterInfo.fromCM(cm);
     }
 }
