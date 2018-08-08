@@ -14,24 +14,23 @@ public class ClusterOperator extends AbstractOperator<ClusterInfo> {
     private static final Logger log = LoggerFactory.getLogger(AbstractOperator.class.getName());
 
     private final RunningClusters clusters;
-    private final KubernetesSparkClusterDeployer deployer;
+    private KubernetesSparkClusterDeployer deployer;
 
     public ClusterOperator() {
         this.clusters = new RunningClusters();
-        this.deployer = new KubernetesSparkClusterDeployer(client, entityName, prefix);
     }
 
     protected void onAdd(ClusterInfo cluster) {
-        KubernetesResourceList list = deployer.getResourceList(cluster);
+        KubernetesResourceList list = getDeployer().getResourceList(cluster);
         client.resourceList(list).createOrReplace();
         clusters.put(cluster);
     }
 
     protected void onDelete(ClusterInfo cluster) {
         String name = cluster.getName();
-        client.services().withLabels(deployer.getDefaultLabels(name)).delete();
-        client.replicationControllers().withLabels(deployer.getDefaultLabels(name)).delete();
-        client.pods().withLabels(deployer.getDefaultLabels(name)).delete();
+        client.services().withLabels(getDeployer().getDefaultLabels(name)).delete();
+        client.replicationControllers().withLabels(getDeployer().getDefaultLabels(name)).delete();
+        client.pods().withLabels(getDeployer().getDefaultLabels(name)).delete();
         clusters.delete(name);
     }
 
@@ -53,5 +52,12 @@ public class ClusterOperator extends AbstractOperator<ClusterInfo> {
             clusters.put(newCluster);
         }
         // todo: image change, masters # change for k8s
+    }
+
+    public KubernetesSparkClusterDeployer getDeployer() {
+        if (this.deployer == null) {
+            this.deployer = new KubernetesSparkClusterDeployer(client, entityName, prefix);
+        }
+        return deployer;
     }
 }
