@@ -22,13 +22,14 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <abstract-operator.version>0.2.0</abstract-operator.version>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>io.radanalytics</groupId>
             <artifactId>abstract-operator</artifactId>
-	        <version>${project.version}</version>
+	        <version>${abstract-operator.version}</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
