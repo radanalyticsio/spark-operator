@@ -1,6 +1,6 @@
 # spark-operator
 
-[![Build status](https://travis-ci.org/jvm-operators/spark-operator.svg?branch=master)](https://travis-ci.org/jvm-operators/spark-operator)
+[![Build status](https://travis-ci.org/radanalyticsio/spark-operator.svg?branch=master)](https://travis-ci.org/radanalyticsio/spark-operator)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0)
 
 `ConfigMap`-based approach for managing the Spark clusters in Kubernetes and OpenShift.
@@ -9,7 +9,7 @@
 asciinema rec -i 3
 docker run -\-rm -v $PWD:/data asciinema/asciicast2gif -s 1.18 -w 104 -h 27 -t monokai 189204.cast demo.gif
 -->
-[![Watch the full asciicast](https://github.com/jvm-operators/spark-operator/raw/master/ascii.gif)](https://asciinema.org/a/189204?&cols=104&rows=27&theme=monokai)
+[![Watch the full asciicast](https://github.com/radanalyticsio/spark-operator/raw/master/ascii.gif)](https://asciinema.org/a/189204?&cols=104&rows=27&theme=monokai)
 
 
 # Quick Start
