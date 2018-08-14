@@ -21,7 +21,7 @@ main() {
     loginQuayIo
     pushReleaseImages "quay.io"
   else
-    echo "Not doing the docker push, because the tag '${TRAVIS_TAG}' is not of form x.y.z.Final"
+    echo "Not doing the docker push, because the tag '${TRAVIS_TAG}' is not of form x.y.z"
     echo "and also it's not a build of the master branch"
   fi
 }
