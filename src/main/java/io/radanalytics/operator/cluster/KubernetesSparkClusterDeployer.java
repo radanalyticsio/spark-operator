@@ -3,6 +3,10 @@ package io.radanalytics.operator.cluster;
 import io.fabric8.kubernetes.api.model.*;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.radanalytics.operator.resource.LabelsHelper;
+import io.radanalytics.types.ClusterInfo;
+import io.radanalytics.types.DownloadDatum;
+import io.radanalytics.types.Env;
+import io.radanalytics.types.SparkConfiguration;
 
 import java.util.*;
 
@@ -147,8 +151,8 @@ public class KubernetesSparkClusterDeployer {
     private ReplicationController addInitContainers(ReplicationController rc,
                                                            ClusterInfo cluster,
                                                            boolean cmExists) {
-        final List<ClusterInfo.DL> downloadData = cluster.getDownloadData();
-        final List<ClusterInfo.NV> config = cluster.getSparkConfiguration();
+        final List<DownloadDatum> downloadData = cluster.getDownloadData();
+        final List<SparkConfiguration> config = cluster.getSparkConfiguration();
         final boolean needInitContainer = !downloadData.isEmpty() || !config.isEmpty();
         final StringBuilder command = new StringBuilder();
         if (needInitContainer) {

@@ -4,7 +4,7 @@ package io.radanalytics.operator.resource;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.radanalytics.operator.cluster.ClusterInfo;
+import io.radanalytics.types.ClusterInfo;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -45,8 +45,8 @@ public class YamlProcessingTest {
         ClusterInfo clusterInfo = HasDataHelper.parseCM(ClusterInfo.class, cm1);
 
         assertEquals(clusterInfo.getName(), "my-spark-cluster");
-        assertEquals(clusterInfo.getWorkerNodes(), 2);
-        assertEquals(clusterInfo.getMasterNodes(), 1);
+        assertEquals(clusterInfo.getWorkerNodes().intValue(), 2);
+        assertEquals(clusterInfo.getMasterNodes().intValue(), 1);
     }
 
     @Test
@@ -54,7 +54,7 @@ public class YamlProcessingTest {
         ConfigMap cm2 = client.configMaps().load(path2).get();
         ClusterInfo clusterInfo = HasDataHelper.parseCM(ClusterInfo.class, cm2);
 
-        assertEquals(clusterInfo.getMasterNodes(), 1);
+        assertEquals(clusterInfo.getMasterNodes().intValue(), 1);
         assertEquals(clusterInfo.getDownloadData().size(), 2);
         assertEquals(clusterInfo.getDownloadData().get(0).getTo(), "/tmp/");
     }
@@ -64,7 +64,7 @@ public class YamlProcessingTest {
         ConfigMap cm3 = client.configMaps().load(path3).get();
         ClusterInfo clusterInfo = HasDataHelper.parseCM(ClusterInfo.class, cm3);
 
-        assertEquals(clusterInfo.getMasterNodes(), 1);
+        assertEquals(clusterInfo.getMasterNodes().intValue(), 1);
         assertEquals(clusterInfo.getSparkConfiguration().size(), 2);
         assertEquals(clusterInfo.getSparkConfiguration().get(0).getName(), "spark.executor.memory");
 
@@ -80,7 +80,7 @@ public class YamlProcessingTest {
         ClusterInfo clusterInfo = HasDataHelper.parseYaml(ClusterInfo.class, cluster1, "foo");
 
         assertEquals(clusterInfo.getName(), "foo");
-        assertEquals(clusterInfo.getWorkerNodes(), 2);
+        assertEquals(clusterInfo.getWorkerNodes().intValue(), 2);
         assertEquals(clusterInfo.getCustomImage(), DEFAULT_SPARK_IMAGE);
     }
 
@@ -89,7 +89,7 @@ public class YamlProcessingTest {
         ClusterInfo clusterInfo = HasDataHelper.parseYaml(ClusterInfo.class, cluster2, "bar");
 
         assertEquals(clusterInfo.getName(), "bar");
-        assertEquals(clusterInfo.getMasterNodes(), 1);
+        assertEquals(clusterInfo.getMasterNodes().intValue(), 1);
         assertEquals(clusterInfo.getDownloadData().size(), 2);
     }
 

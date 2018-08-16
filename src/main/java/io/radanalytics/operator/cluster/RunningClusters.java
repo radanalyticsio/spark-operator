@@ -1,5 +1,7 @@
 package io.radanalytics.operator.cluster;
 
+import io.radanalytics.types.ClusterInfo;
+
 import java.util.HashMap;
 import java.util.Map;
 
