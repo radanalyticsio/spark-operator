@@ -48,5 +48,7 @@ spec:
         #env:
         #- name: WATCHED_NAMESPACE
         #  value: myproject
+        #- name: CRD
+        #  value: true
         imagePullPolicy: IfNotPresent
 
