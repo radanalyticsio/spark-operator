@@ -11,6 +11,8 @@ docker run -\-rm -v $PWD:/data asciinema/asciicast2gif -s 1.18 -w 104 -h 27 -t m
 -->
 [![Watch the full asciicast](https://github.com/radanalyticsio/spark-operator/raw/master/ascii.gif)](https://asciinema.org/a/189204?&cols=104&rows=27&theme=monokai)
 
+# How does it work
+![UML diagram](https://github.com/radanalyticsio/spark-operator/raw/master/standardized-UML-diagram.png "UML Diagram")
 
 # Quick Start
 
