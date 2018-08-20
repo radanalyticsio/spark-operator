@@ -1,0 +1,8 @@
+apiVersion: radanalytics.io/v1
+kind: cluster
+metadata:
+  name: my-spark-cluster-cr
+spec:
+  name: my-spark-cluster-cr
+  workerNodes: "2"
+  masterNodes: "1"

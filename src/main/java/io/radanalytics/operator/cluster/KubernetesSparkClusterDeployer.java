@@ -141,7 +141,8 @@ public class KubernetesSparkClusterDeployer {
                 .withNewSpec().withContainers(containerBuilder.build())
                 .endSpec().endTemplate().endSpec().build();
 
-        final boolean cmExists = cmExists(cluster.getSparkConfigurationMap());
+        final String cmName = cluster.getSparkConfigurationMap() == null ? name + "-config" : cluster.getSparkConfigurationMap();
+        final boolean cmExists = cmExists(cmName);
         if (!cluster.getDownloadData().isEmpty() || !cluster.getSparkConfiguration().isEmpty() || cmExists) {
             addInitContainers(rc, cluster, cmExists);
         }
