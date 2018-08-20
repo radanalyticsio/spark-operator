@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import static io.radanalytics.operator.common.AnsiColors.*;
 
-@Operator(forKind = "cluster", prefix = "radanalytics.io", crd=true, infoClass = ClusterInfo.class)
+@Operator(forKind = "cluster", prefix = "radanalytics.io", infoClass = ClusterInfo.class)
 public class ClusterOperator extends AbstractOperator<ClusterInfo> {
 
     private static final Logger log = LoggerFactory.getLogger(AbstractOperator.class.getName());
