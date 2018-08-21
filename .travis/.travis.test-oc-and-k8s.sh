@@ -206,7 +206,8 @@ testCustomCluster5() {
 
 testApp() {
   info
-  os::cmd::expect_success_and_text '${BIN} create -f examples/${CR}app.yaml' '"?my-spark-app"? created' && \
+  [ "$CRD" = "1" ] && FOO="test/cr/" || FOO=""
+  os::cmd::expect_success_and_text '${BIN} create -f examples/${FOO}app.yaml' '"?my-spark-app"? created' && \
   os::cmd::try_until_text "${BIN} get pods --no-headers -l radanalytics.io/app=my-spark-app 2> /dev/null | wc -l" '3'
 }
 
