@@ -85,6 +85,7 @@ testCreateOperator() {
   [ "$CRD" = "1" ] && FOO="-crd" || FOO=""
   os::cmd::expect_success_and_text "${BIN} create -f $DIR/../manifest/operator$FOO.yaml" '"?spark-operator"? created' && \
   os::cmd::try_until_text "${BIN} get pod -l app.kubernetes.io/name=spark-operator -o yaml" 'ready: true'
+  sleep 10
 }
 
 testCreateCluster1() {
