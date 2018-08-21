@@ -220,7 +220,8 @@ testAppResult() {
 
 testDeleteApp() {
   info
-  os::cmd::expect_success_and_text '${BIN} delete ${KIND} my-spark-app' '"my-spark-app" deleted' && \
+  [ "$CRD" = "1" ] && FOO="app" || FOO="cm"
+  os::cmd::expect_success_and_text '${BIN} delete ${FOO} my-spark-app' '"my-spark-app" deleted' && \
   os::cmd::try_until_text "${BIN} get pods --no-headers -l radanalytics.io/app=my-spark-app 2> /dev/null | wc -l" '0'
 }
 
