@@ -1,7 +1,7 @@
 apiVersion: radanalytics.io/v1
-kind: SparkCluster
+kind: sparkcluster
 metadata:
-  name: sparky-cluster-2-cr
+  name: sparky-cluster-2
 spec:
   sparkConfiguration:
   - name: spark.executor.memory

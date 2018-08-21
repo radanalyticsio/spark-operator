@@ -19,7 +19,10 @@ setup_insecure_registry() {
 }
 
 setup_manifest() {
-  sed -i'' 's;imagePullPolicy: IfNotPresent;imagePullPolicy: Never;g' manifest/operator.yaml
+  sed -i'' 's;imagePullPolicy: .*;imagePullPolicy: Never;g' manifest/operator.yaml
+#  [ "$CRD" = "1" ] && sed -i'' '/^.*#- name: CRD$/{$!{N;s/^.*#- name: CRD\n.*#  value: "true"$/- name: CRD\n  value: true/;ty;P;D;:y}}' manifest/operator.yaml
+  echo -e "'\nmanifest:\n-----------\n"
+  cat manifest/operator.yaml
 }
 
 main() {
