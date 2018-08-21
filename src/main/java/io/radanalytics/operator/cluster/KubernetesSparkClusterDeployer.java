@@ -3,17 +3,14 @@ package io.radanalytics.operator.cluster;
 import io.fabric8.kubernetes.api.model.*;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.radanalytics.operator.resource.LabelsHelper;
-import io.radanalytics.types.ClusterInfo;
 import io.radanalytics.types.DownloadDatum;
-import io.radanalytics.types.Env;
+import io.radanalytics.types.SparkCluster;
 import io.radanalytics.types.SparkConfiguration;
 
 import java.util.*;
 
-import static io.radanalytics.operator.Constants.OPERATOR_TYPE_MASTER_LABEL;
-import static io.radanalytics.operator.Constants.OPERATOR_TYPE_UI_LABEL;
-import static io.radanalytics.operator.Constants.OPERATOR_TYPE_WORKER_LABEL;
-import static io.radanalytics.operator.resource.LabelsHelper.*;
+import static io.radanalytics.operator.Constants.*;
+import static io.radanalytics.operator.resource.LabelsHelper.OPERATOR_KIND_LABEL;
 
 public class KubernetesSparkClusterDeployer {
     private KubernetesClient client;
@@ -26,7 +23,7 @@ public class KubernetesSparkClusterDeployer {
         this.prefix = prefix;
     }
 
-    public KubernetesResourceList getResourceList(ClusterInfo cluster) {
+    public KubernetesResourceList getResourceList(SparkCluster cluster) {
         synchronized (this.client) {
             String name = cluster.getName();
             ReplicationController masterRc = getRCforMaster(cluster);
@@ -38,11 +35,11 @@ public class KubernetesSparkClusterDeployer {
         }
     }
 
-    private ReplicationController getRCforMaster(ClusterInfo cluster) {
+    private ReplicationController getRCforMaster(SparkCluster cluster) {
         return getRCforMasterOrWorker(true, cluster);
     }
 
-    private ReplicationController getRCforWorker(ClusterInfo cluster) {
+    private ReplicationController getRCforWorker(SparkCluster cluster) {
         return getRCforMasterOrWorker(false, cluster);
     }
 
@@ -62,7 +59,7 @@ public class KubernetesSparkClusterDeployer {
         return new EnvVarBuilder().withName(key).withValue(value).build();
     }
 
-    private ReplicationController getRCforMasterOrWorker(boolean isMaster, ClusterInfo cluster) {
+    private ReplicationController getRCforMasterOrWorker(boolean isMaster, SparkCluster cluster) {
         String name = cluster.getName();
         String podName = name + (isMaster ? "-m" : "-w");
         Map<String, String> selector = getSelector(name, podName);
@@ -150,8 +147,8 @@ public class KubernetesSparkClusterDeployer {
     }
 
     private ReplicationController addInitContainers(ReplicationController rc,
-                                                           ClusterInfo cluster,
-                                                           boolean cmExists) {
+                                                    SparkCluster cluster,
+                                                    boolean cmExists) {
         final List<DownloadDatum> downloadData = cluster.getDownloadData();
         final List<SparkConfiguration> config = cluster.getSparkConfiguration();
         final boolean needInitContainer = !downloadData.isEmpty() || !config.isEmpty();

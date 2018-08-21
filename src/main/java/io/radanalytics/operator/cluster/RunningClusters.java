@@ -1,6 +1,6 @@
 package io.radanalytics.operator.cluster;
 
-import io.radanalytics.types.ClusterInfo;
+import io.radanalytics.types.SparkCluster;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -8,9 +8,9 @@ import java.util.Map;
 
 public class RunningClusters {
 
-    private final Map<String, ClusterInfo> clusters = new HashMap<>();
+    private final Map<String, SparkCluster> clusters = new HashMap<>();
 
-    public void put(ClusterInfo ci) {
+    public void put(SparkCluster ci) {
         this.clusters.put(ci.getName(), ci);
     }
 
@@ -18,7 +18,7 @@ public class RunningClusters {
         this.clusters.remove(name);
     }
 
-    public ClusterInfo getCluster(String name) {
+    public SparkCluster getCluster(String name) {
         return this.clusters.get(name);
     }
 
