@@ -6,7 +6,7 @@ import io.radanalytics.operator.common.Operator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Operator(forKind = "app", prefix = "radanalytics.io", infoClass = AppInfo.class)
+@Operator(forKind = "App", prefix = "radanalytics.io", infoClass = AppInfo.class)
 public class AppOperator extends AbstractOperator<AppInfo> {
 
     private static final Logger log = LoggerFactory.getLogger(AbstractOperator.class.getName());
