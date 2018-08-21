@@ -115,7 +115,7 @@ testDeleteCluster() {
 testCreateCluster2() {
   info
   sleep 2
-  [ "$CRD" = "1" ] && exit 0
+  [ "$CRD" = "1" ] && return 0
   os::cmd::expect_success_and_text "${BIN} create -f $DIR/../examples/with-prepared-data.yaml" '"?spark-cluster-with-data"? created' && \
   os::cmd::try_until_text "${BIN} get pod -l radanalytics.io/deployment=spark-cluster-with-data-w -o yaml" 'ready: true' && \
   os::cmd::try_until_text "${BIN} get pod -l radanalytics.io/deployment=spark-cluster-with-data-m -o yaml" 'ready: true'
@@ -124,7 +124,7 @@ testCreateCluster2() {
 testDownloadedData() {
   info
   sleep 2
-  [ "$CRD" = "1" ] && exit 0
+  [ "$CRD" = "1" ] && return 0
   local worker_pod=`${BIN} get pod -l radanalytics.io/deployment=spark-cluster-with-data-w -o='jsonpath="{.items[0].metadata.name}"' | sed 's/"//g'` && \
   os::cmd::expect_success_and_text "${BIN} exec $worker_pod ls" 'LA.csv' && \
   os::cmd::expect_success_and_text "${BIN} exec $worker_pod ls" 'rows.csv' && \
@@ -134,7 +134,7 @@ testDownloadedData() {
 testFullConfigCluster() {
   info
   sleep 2
-  [ "$CRD" = "1" ] && exit 0
+  [ "$CRD" = "1" ] && return 0
   os::cmd::expect_success_and_text "${BIN} create cm my-config --from-file=$DIR/../examples/spark-defaults.conf" '"?my-config"? created' && \
   os::cmd::expect_success_and_text "${BIN} create -f $DIR/../examples/cluster-with-config.yaml" '"?sparky-cluster"? created' && \
   os::cmd::try_until_text "${BIN} get pod -l radanalytics.io/deployment=sparky-cluster-w -o yaml" 'ready: true' && \
@@ -153,7 +153,7 @@ testFullConfigCluster() {
 testCustomCluster1() {
   info
   sleep 2
-  [ "$CRD" = "1" ] && exit 0
+  [ "$CRD" = "1" ] && return 0
   os::cmd::expect_success_and_text "${BIN} create -f $DIR/../examples/test/cluster-1.yaml" '"?my-spark-cluster-1"? created' && \
   os::cmd::try_until_text "${BIN} logs $operator_pod" 'Unable to parse yaml definition of configmap' && \
   os::cmd::try_until_text "${BIN} logs $operator_pod" 'w0rkerNodes' && \
