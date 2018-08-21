@@ -253,7 +253,7 @@ run_tests() {
 }
 
 main() {
-  [ "$CRD" = "1" ] && export total=9 || export total=15
+  export total=15
   export testIndex=0
   tear_down
   cluster_up
