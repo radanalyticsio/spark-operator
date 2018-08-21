@@ -1,6 +1,5 @@
 apiVersion: radanalytics.io/v1
-kind: sparkcluster
-metadata:
+kind: sparkclustermetadata:
   name: my-spark-cluster-1
 spec:
   # this should fail
