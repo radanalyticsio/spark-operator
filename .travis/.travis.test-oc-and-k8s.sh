@@ -6,6 +6,7 @@ if [ "$CRD" = "1" ]; then
   CR="cr/"
   KIND="sparkcluster"
 else
+  CR=""
   KIND="cm"
 fi
 
