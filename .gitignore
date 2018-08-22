@@ -50,6 +50,7 @@ classes/
 ######################
 /log/
 /target/
+pom.xml.versionsBackup
 
 ######################
 # Gradle
