@@ -3,7 +3,7 @@ kind: ConfigMap
 metadata:
   name: my-spark-cluster-2
   labels:
-    radanalytics.io/kind: cluster
+    radanalytics.io/kind: sparkcluster
 data:
   config: |-
     workerNodes: "2"

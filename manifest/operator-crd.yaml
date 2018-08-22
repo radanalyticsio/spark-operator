@@ -1,28 +1,22 @@
+# for creating these resources it requires the user to be logged in as system admin
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: spark-operator
 ---
-kind: Role
 apiVersion: rbac.authorization.k8s.io/v1beta1
-metadata:
-  name: edit-resources
-rules:
-- apiGroups: [""]
-  resources: ["pods", "replicationcontrollers", "services", "configmaps"]
-  verbs: ["create", "delete", "deletecollection", "get", "list", "update", "watch", "patch"]
----
-apiVersion: rbac.authorization.k8s.io/v1beta1
-kind: RoleBinding
+kind: ClusterRoleBinding
 metadata:
   name: spark-operator-edit-resources
+  namespace: default
 roleRef:
-  kind: Role
-  name: edit-resources
+  kind: ClusterRole
+  name: cluster-admin
   apiGroup: ""
 subjects:
   - kind: ServiceAccount
     name: spark-operator
+    namespace: myproject
 ---
 apiVersion: apps/v1beta1
 kind: Deployment
@@ -45,10 +39,8 @@ spec:
       containers:
       - name: spark-operator
         image: jkremser/spark-operator:latest-released
-        #env:
-        #- name: WATCHED_NAMESPACE
-        #  value: myproject
-        #- name: CRD
-        #  value: true
+        env:
+        - name: CRD
+          value: "true"
         imagePullPolicy: IfNotPresent
 

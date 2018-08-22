@@ -3,30 +3,31 @@ package io.radanalytics.operator.cluster;
 import io.fabric8.kubernetes.api.model.KubernetesResourceList;
 import io.radanalytics.operator.common.AbstractOperator;
 import io.radanalytics.operator.common.Operator;
+import io.radanalytics.types.SparkCluster;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static io.radanalytics.operator.common.AnsiColors.*;
 
-@Operator(forKind = "cluster", prefix = "radanalytics.io", infoClass = ClusterInfo.class)
-public class ClusterOperator extends AbstractOperator<ClusterInfo> {
+@Operator(forKind = "SparkCluster", prefix = "radanalytics.io", infoClass = SparkCluster.class)
+public class SparkClusterOperator extends AbstractOperator<SparkCluster> {
 
     private static final Logger log = LoggerFactory.getLogger(AbstractOperator.class.getName());
 
     private final RunningClusters clusters;
     private KubernetesSparkClusterDeployer deployer;
 
-    public ClusterOperator() {
+    public SparkClusterOperator() {
         this.clusters = new RunningClusters();
     }
 
-    protected void onAdd(ClusterInfo cluster) {
+    protected void onAdd(SparkCluster cluster) {
         KubernetesResourceList list = getDeployer().getResourceList(cluster);
         client.resourceList(list).createOrReplace();
         clusters.put(cluster);
     }
 
-    protected void onDelete(ClusterInfo cluster) {
+    protected void onDelete(SparkCluster cluster) {
         String name = cluster.getName();
         client.services().withLabels(getDeployer().getDefaultLabels(name)).delete();
         client.replicationControllers().withLabels(getDeployer().getDefaultLabels(name)).delete();
@@ -34,12 +35,12 @@ public class ClusterOperator extends AbstractOperator<ClusterInfo> {
         clusters.delete(name);
     }
 
-    protected void onModify(ClusterInfo newCluster) {
+    protected void onModify(SparkCluster newCluster) {
         String name = newCluster.getName();
         String newImage = newCluster.getCustomImage();
         int newMasters = newCluster.getMasterNodes();
         int newWorkers = newCluster.getWorkerNodes();
-        ClusterInfo existingCluster = clusters.getCluster(name);
+        SparkCluster existingCluster = clusters.getCluster(name);
         if (null == existingCluster) {
             log.error("something went wrong, unable to scale existing cluster. Perhaps it wasn't deployed properly.");
             return;

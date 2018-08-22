@@ -19,7 +19,13 @@ setup_insecure_registry() {
 }
 
 setup_manifest() {
-  sed -i'' 's;imagePullPolicy: IfNotPresent;imagePullPolicy: Never;g' manifest/operator.yaml
+  sed -i'' 's;jkremser/spark-operator:latest-released;jkremser/spark-operator:latest;g' manifest/operator.yaml
+  sed -i'' 's;jkremser/spark-operator:latest-released;jkremser/spark-operator:latest;g' manifest/operator-crd.yaml
+  sed -i'' 's;imagePullPolicy: .*;imagePullPolicy: Never;g' manifest/operator.yaml
+  sed -i'' 's;imagePullPolicy: .*;imagePullPolicy: Never;g' manifest/operator-crd.yaml
+  [ "$CRD" = "1" ] && FOO="-crd" || FOO=""
+  echo -e "'\nmanifest${FOO}:\n-----------\n"
+  cat manifest/operator${FOO}.yaml
 }
 
 main() {

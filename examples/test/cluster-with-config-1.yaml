@@ -3,7 +3,7 @@ kind: ConfigMap
 metadata:
   name: sparky-cluster-1
   labels:
-    radanalytics.io/kind: cluster
+    radanalytics.io/kind: sparkcluster
 data:
   config: |-
     sparkConfigurationMap: non-existent

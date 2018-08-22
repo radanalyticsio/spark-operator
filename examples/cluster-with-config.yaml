@@ -3,7 +3,7 @@ kind: ConfigMap
 metadata:
   name: sparky-cluster                                  # compulsory
   labels:
-    radanalytics.io/kind: cluster                       # compulsory
+    radanalytics.io/kind: sparkcluster                       # compulsory
 data:
   config: |-
     workerNodes: "2"                                    # optional defaults to 1
