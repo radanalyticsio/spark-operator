@@ -1,3 +1,4 @@
+# for creating these resources it requires the user to be logged in as system admin
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -37,7 +38,7 @@ spec:
       serviceAccountName: spark-operator
       containers:
       - name: spark-operator
-        image: jkremser/spark-operator:latest
+        image: jkremser/spark-operator:latest-released
         env:
         - name: CRD
           value: "true"
