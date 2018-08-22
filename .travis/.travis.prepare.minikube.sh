@@ -25,7 +25,8 @@ setup_manifest() {
   sed -i'' 's;imagePullPolicy: .*;imagePullPolicy: Never;g' manifest/operator-crd.yaml
   [ "$CRD" = "1" ] && FOO="-crd" || FOO=""
   echo -e "'\nmanifest${FOO}:\n-----------\n"
-  cat manifest/operator${FOO}.yaml}
+  cat manifest/operator${FOO}.yaml
+}
 
 main() {
   download_kubectl
