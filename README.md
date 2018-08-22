@@ -5,6 +5,8 @@
 
 `{ConfigMap|CRD}`-based approach for managing the Spark clusters in Kubernetes and OpenShift.
 
+This operator uses [abstract-operator](https://github.com/jvm-operators/abstract-operator) library.
+
 <!--
 asciinema rec -i 3
 docker run -\-rm -v $PWD:/data asciinema/asciicast2gif -s 1.18 -w 104 -h 27 -t monokai 189204.cast demo.gif
