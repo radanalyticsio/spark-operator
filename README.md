@@ -3,7 +3,7 @@
 [![Build status](https://travis-ci.org/radanalyticsio/spark-operator.svg?branch=master)](https://travis-ci.org/radanalyticsio/spark-operator)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0)
 
-`ConfigMap`-based approach for managing the Spark clusters in Kubernetes and OpenShift.
+`{ConfigMap|CRD}`-based approach for managing the Spark clusters in Kubernetes and OpenShift.
 
 <!--
 asciinema rec -i 3
@@ -56,7 +56,7 @@ kind: ConfigMap
 metadata:
   name: my-cluster
   labels:
-    radanalytics.io/kind: cluster
+    radanalytics.io/kind: sparkcluster
 data:
   config: |-
     workerNodes: "2"
@@ -66,6 +66,21 @@ EOF
 ### OpenShift
 
 For deployment on OpenShift use the same commands as above, but with `oc` instead of `kubectl`.
+
+### Custom Resource Definitions (CRD)
+
+This operator can also work with CRDs. Assuming the admin user is logged in, you can install the operator with:
+
+```bash
+kubectl create -f manifest/operator-crd.yaml
+```
+
+and then create the Spark clusters by creating the custom resources (CR).
+
+```bash
+kubectl create sparkcluster -f examples/cluster-cr.yaml
+kubectl get sparkclusters
+```
 
 ### Images
 
