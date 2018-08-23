@@ -2,7 +2,7 @@
 
 set -xe
 
-OWNER="${OWNER:-jkremser}"
+OWNER="${OWNER:-radanalyticsio}"
 IMAGE="${IMAGE:-spark-operator}"
 [ "$TRAVIS_BRANCH" = "master" -a "$TRAVIS_PULL_REQUEST" = "false" ] && LATEST=1
 
@@ -34,7 +34,8 @@ loginDockerIo() {
 
 loginQuayIo() {
   set +x
-  docker login -u "$DOCKER_USERNAME" -p "$QUAY_PASSWORD" quay.io
+  #docker login -u "$DOCKER_USERNAME" -p "$QUAY_PASSWORD" quay.io todo
+  docker login -u jkremser -p "$QUAY_PASSWORD" quay.io
   set -x
 }
 
