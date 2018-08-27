@@ -38,7 +38,7 @@ spec:
       serviceAccountName: spark-operator
       containers:
       - name: spark-operator
-        image: jkremser/spark-operator:latest-released
+        image: radanalyticsio/spark-operator:latest-released
         env:
         - name: CRD
           value: "true"

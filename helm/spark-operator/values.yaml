@@ -1,7 +1,7 @@
 version: v0.1.5-v1alpha1
 operator:
   image:
-    repository: jkremser/spark-operator
+    repository: radanalyticsio/spark-operator
     tag: latest-released
     pullPolicy: IfNotPresent
   env:

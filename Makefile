@@ -1,4 +1,4 @@
-IMAGE?=jkremser/spark-operator
+IMAGE?=radanalyticsio/spark-operator
 
 .PHONY: build
 build: package image-build-slim
