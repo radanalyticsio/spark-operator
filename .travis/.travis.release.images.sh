@@ -11,15 +11,15 @@ main() {
     echo "Pushing the :latest and :latest-centos images to docker.io and quay.io"
     loginDockerIo
     pushLatestImagesDockerIo
-    loginQuayIo
-    pushLatestImagesQuayIo
+    #loginQuayIo
+    #todo: fix pushLatestImagesQuayIo
   elif [[ "${TRAVIS_TAG}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
     echo "Pushing the '${TRAVIS_TAG}' and :latest-released images to docker.io and quay.io"
     buildReleaseImages
     loginDockerIo
     pushReleaseImages "docker.io"
-    loginQuayIo
-    pushReleaseImages "quay.io"
+    #loginQuayIo
+    #todo: fix pushReleaseImages "quay.io"
   else
     echo "Not doing the docker push, because the tag '${TRAVIS_TAG}' is not of form x.y.z"
     echo "and also it's not a build of the master branch"
