@@ -50,5 +50,7 @@ spec:
         #  value: myproject
         #- name: CRD
         #  value: true
+        #- name: COLORS
+        #  value: false
         imagePullPolicy: IfNotPresent
 
