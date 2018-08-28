@@ -2,7 +2,7 @@
 
 set -xe
 
-OWNER="${OWNER:-jkremser}"
+OWNER="${OWNER:-radanalyticsio}"
 IMAGE="${IMAGE:-spark-operator}"
 [ "$TRAVIS_BRANCH" = "master" -a "$TRAVIS_PULL_REQUEST" = "false" ] && LATEST=1
 
@@ -11,15 +11,15 @@ main() {
     echo "Pushing the :latest and :latest-centos images to docker.io and quay.io"
     loginDockerIo
     pushLatestImagesDockerIo
-    #loginQuayIo
-    #todo: fix pushLatestImagesQuayIo
+    loginQuayIo
+    pushLatestImagesQuayIo
   elif [[ "${TRAVIS_TAG}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
     echo "Pushing the '${TRAVIS_TAG}' and :latest-released images to docker.io and quay.io"
     buildReleaseImages
     loginDockerIo
     pushReleaseImages "docker.io"
-    #loginQuayIo
-    #todo: fix pushReleaseImages "quay.io"
+    loginQuayIo
+    pushReleaseImages "quay.io"
   else
     echo "Not doing the docker push, because the tag '${TRAVIS_TAG}' is not of form x.y.z"
     echo "and also it's not a build of the master branch"
@@ -34,7 +34,7 @@ loginDockerIo() {
 
 loginQuayIo() {
   set +x
-  docker login -u "$DOCKER_USERNAME" -p "$QUAY_PASSWORD" quay.io
+  docker login -u "$QUAY_USERNAME" -p "$QUAY_PASSWORD" quay.io
   set -x
 }
 
