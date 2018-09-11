@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import static io.radanalytics.operator.common.AnsiColors.*;
 
-@Operator(forKind = "SparkCluster", prefix = "radanalytics.io", infoClass = SparkCluster.class)
+@Operator(forKind = SparkCluster.class, prefix = "radanalytics.io")
 public class SparkClusterOperator extends AbstractOperator<SparkCluster> {
 
     private static final Logger log = LoggerFactory.getLogger(AbstractOperator.class.getName());
@@ -47,7 +47,7 @@ public class SparkClusterOperator extends AbstractOperator<SparkCluster> {
         }
 
         if (existingCluster.getWorkerNodes() != newWorkers) {
-            log.info("{}scaling{} from {}{}{} worker replicas to {}{}{}", re(), xx(), ye(),
+            log.info("{}scaling{} from  {}{}{} worker replicas to  {}{}{}", re(), xx(), ye(),
                     existingCluster.getWorkerNodes(), xx(), ye(), newWorkers, xx());
             client.replicationControllers().withName(name + "-w").scale(newWorkers);
             clusters.put(newCluster);
