@@ -47,7 +47,7 @@ public class SparkClusterOperator extends AbstractOperator<SparkCluster> {
         }
 
         if (existingCluster.getWorkerNodes() != newWorkers) {
-            log.info("{}scaling{} from {}{}{} worker replicas to {}{}{}", re(), xx(), ye(),
+            log.info("{}scaling{} from  {}{}{} worker replicas to  {}{}{}", re(), xx(), ye(),
                     existingCluster.getWorkerNodes(), xx(), ye(), newWorkers, xx());
             client.replicationControllers().withName(name + "-w").scale(newWorkers);
             clusters.put(newCluster);
