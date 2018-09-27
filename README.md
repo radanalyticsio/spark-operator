@@ -20,13 +20,13 @@ docker run -\-rm -v $PWD:/data asciinema/asciicast2gif -s 1.18 -w 104 -h 27 -t m
 
 Run the `spark-operator` deployment:
 ```bash
-kubectl create -f manifest/operator.yaml
+kubectl apply -f manifest/operator.yaml
 ```
 
 Create new cluster from the prepared example:
 
 ```bash
-kubectl create -f examples/cluster.yaml
+kubectl apply -f examples/cluster.yaml
 ```
 
 After issuing the commands above, you should be able to see a new Spark cluster running in the current namespace.
@@ -49,10 +49,10 @@ kubectl delete cm my-spark-cluster
 
 ```bash
 # create operator
-kubectl create -f http://bit.ly/sparkop
+kubectl apply -f http://bit.ly/sparkop
 
 # create cluster
-cat <<EOF | kubectl create -f -
+cat <<EOF | kubectl apply -f -
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -74,13 +74,13 @@ For deployment on OpenShift use the same commands as above, but with `oc` instea
 This operator can also work with CRDs. Assuming the admin user is logged in, you can install the operator with:
 
 ```bash
-kubectl create -f manifest/operator-crd.yaml
+kubectl apply -f manifest/operator-crd.yaml
 ```
 
 and then create the Spark clusters by creating the custom resources (CR).
 
 ```bash
-kubectl create sparkcluster -f examples/cluster-cr.yaml
+kubectl apply -f examples/cluster-cr.yaml
 kubectl get sparkclusters
 ```
 
