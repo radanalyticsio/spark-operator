@@ -7,13 +7,11 @@
     "name": {
       "type": "string"
     },
-    "workerNodes": {
-      "type": "integer",
-      "default": "1"
+    "master": {
+      "$ref": "#/definitions/RCSpec"
     },
-    "masterNodes": {
-      "type": "integer",
-      "default": "1"
+    "worker": {
+      "$ref": "#/definitions/RCSpec"
     },
     "customImage": {
       "type": "string",
@@ -52,5 +50,17 @@
       }
     }
   },
-  "required": [ ]
+  "required": [ ],
+  "definitions": {
+    "RCSpec": {
+      "type": "object",
+      "properties": {
+        "replicas": {
+          "type": "integer",
+          "default": 1,
+          "minimum": 0
+        }
+      }
+    }
+  }
 }

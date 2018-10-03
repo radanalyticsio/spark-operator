@@ -132,7 +132,8 @@ public class KubernetesSparkClusterDeployer {
         ReplicationController rc = new ReplicationControllerBuilder().withNewMetadata()
                 .withName(podName).withLabels(labels)
                 .endMetadata()
-                .withNewSpec().withReplicas(isMaster ? cluster.getMasterNodes() : cluster.getWorkerNodes())
+                // FIXME: Nullsafe lookup
+                .withNewSpec().withReplicas(isMaster ? cluster.getMaster().getReplicas() : cluster.getWorker().getReplicas())
                 .withSelector(selector)
                 .withNewTemplate().withNewMetadata().withLabels(podLabels).endMetadata()
                 .withNewSpec().withContainers(containerBuilder.build())

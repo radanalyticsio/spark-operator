@@ -5,6 +5,7 @@ import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.radanalytics.types.SparkCluster;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -16,6 +17,7 @@ import java.nio.file.Paths;
 import static io.radanalytics.operator.Constants.DEFAULT_SPARK_IMAGE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNull;
 
 public class YamlProcessingTest {
 
@@ -45,8 +47,8 @@ public class YamlProcessingTest {
         SparkCluster clusterInfo = HasDataHelper.parseCM(SparkCluster.class, cm1);
 
         assertEquals(clusterInfo.getName(), "my-spark-cluster");
-        assertEquals(clusterInfo.getWorkerNodes().intValue(), 2);
-        assertEquals(clusterInfo.getMasterNodes().intValue(), 1);
+        assertEquals(clusterInfo.getWorker().getReplicas().intValue(), 2);
+        assertEquals(clusterInfo.getMaster().getReplicas().intValue(), 1);
     }
 
     @Test
@@ -54,7 +56,7 @@ public class YamlProcessingTest {
         ConfigMap cm2 = client.configMaps().load(path2).get();
         SparkCluster clusterInfo = HasDataHelper.parseCM(SparkCluster.class, cm2);
 
-        assertEquals(clusterInfo.getMasterNodes().intValue(), 1);
+        assertNull(clusterInfo.getMaster());
         assertEquals(clusterInfo.getDownloadData().size(), 2);
         assertEquals(clusterInfo.getDownloadData().get(0).getTo(), "/tmp/");
     }
@@ -64,7 +66,7 @@ public class YamlProcessingTest {
         ConfigMap cm3 = client.configMaps().load(path3).get();
         SparkCluster clusterInfo = HasDataHelper.parseCM(SparkCluster.class, cm3);
 
-        assertEquals(clusterInfo.getMasterNodes().intValue(), 1);
+        assertEquals(clusterInfo.getMaster().getReplicas().intValue(), 1);
         assertEquals(clusterInfo.getSparkConfiguration().size(), 2);
         assertEquals(clusterInfo.getSparkConfiguration().get(0).getName(), "spark.executor.memory");
 
@@ -80,7 +82,7 @@ public class YamlProcessingTest {
         SparkCluster clusterInfo = HasDataHelper.parseYaml(SparkCluster.class, cluster1, "foo");
 
         assertEquals(clusterInfo.getName(), "foo");
-        assertEquals(clusterInfo.getWorkerNodes().intValue(), 2);
+        assertEquals(clusterInfo.getWorker().getReplicas().intValue(), 2);
         assertEquals(clusterInfo.getCustomImage(), DEFAULT_SPARK_IMAGE);
     }
 
@@ -89,7 +91,7 @@ public class YamlProcessingTest {
         SparkCluster clusterInfo = HasDataHelper.parseYaml(SparkCluster.class, cluster2, "bar");
 
         assertEquals(clusterInfo.getName(), "bar");
-        assertEquals(clusterInfo.getMasterNodes().intValue(), 1);
+        assertNull(clusterInfo.getMaster());
         assertEquals(clusterInfo.getDownloadData().size(), 2);
     }
 
