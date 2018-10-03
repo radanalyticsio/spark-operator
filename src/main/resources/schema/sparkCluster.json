@@ -17,12 +17,6 @@
       "type": "string",
       "default": "jkremser/openshift-spark:2.3-latest"
     },
-    "memory": {
-      "type": "string"
-    },
-    "cpu": {
-      "type": "string"
-    },
     "sparkConfigurationMap": {
       "type": "string"
     },
@@ -59,6 +53,20 @@
           "type": "integer",
           "default": 1,
           "minimum": 0
+        },
+        "limits": {
+          "$ref": "#/definitions/Resources"
+        }
+      }
+    },
+    "Resources": {
+      "type": "object",
+      "properties": {
+        "memory": {
+          "type": "string"
+        },
+        "cpu": {
+          "type": "string"
         }
       }
     }
