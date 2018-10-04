@@ -61,7 +61,8 @@ metadata:
     radanalytics.io/kind: sparkcluster
 data:
   config: |-
-    workerNodes: "2"
+    worker:
+      replicas: "2"
 EOF
 ```
 
