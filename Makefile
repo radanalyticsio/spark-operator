@@ -36,7 +36,7 @@ image-build-all: image-build image-build-alpine
 
 .PHONY: image-publish-alpine
 image-publish-alpine: image-build-alpine
-	docker tag $(IMAGE):latest-alpine $(IMAGE):alpine-`git rev-parse --short=8 HEAD`
+	docker tag $(IMAGE):alpine $(IMAGE):alpine-`git rev-parse --short=8 HEAD`
 	docker tag $(IMAGE):alpine $(IMAGE):latest-alpine
 	docker push $(IMAGE):latest-alpine
 
