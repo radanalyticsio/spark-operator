@@ -9,6 +9,6 @@ data:
   config: |-
     w0rker:
       replicas: "1"
-    master
+    master:
       replicas: "1"
 
