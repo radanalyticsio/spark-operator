@@ -61,16 +61,16 @@ pushReleaseImages() {
   fi
   REPO="$1"
 
-  docker tag $OWNER/$IMAGE:slim $REPO/$OWNER/$IMAGE:${TRAVIS_TAG}
-  docker tag $OWNER/$IMAGE:slim $REPO/$OWNER/$IMAGE:latest-released
-  docker tag $OWNER/$IMAGE:centos $REPO/$OWNER/$IMAGE:${TRAVIS_TAG}-centos
-  docker tag $OWNER/$IMAGE:centos $REPO/$OWNER/$IMAGE:latest-released-centos
+  docker tag $OWNER/$IMAGE:centos $REPO/$OWNER/$IMAGE:${TRAVIS_TAG}
+  docker tag $OWNER/$IMAGE:centos $REPO/$OWNER/$IMAGE:latest-released
+  docker tag $OWNER/$IMAGE:alpine $REPO/$OWNER/$IMAGE:${TRAVIS_TAG}-alpine
+  docker tag $OWNER/$IMAGE:alpine $REPO/$OWNER/$IMAGE:latest-released-alpine
 
   # push the latest-released and ${TRAVIS_TAG} images (and also -centos images)
   docker push $REPO/$OWNER/$IMAGE:${TRAVIS_TAG}
   docker push $REPO/$OWNER/$IMAGE:latest-released
-  docker push $REPO/$OWNER/$IMAGE:${TRAVIS_TAG}-centos
-  docker push $REPO/$OWNER/$IMAGE:latest-released-centos
+  docker push $REPO/$OWNER/$IMAGE:${TRAVIS_TAG}-alpine
+  docker push $REPO/$OWNER/$IMAGE:latest-released-alpine
   docker logout
 }
 

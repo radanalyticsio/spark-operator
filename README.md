@@ -92,4 +92,4 @@ Image name         | Description | Layers | quay.io | docker.io
 `:latest`          | represents the master branch | [![Layers info](https://images.microbadger.com/badges/image/radanalyticsio/spark-operator:latest.svg)](https://microbadger.com/images/radanalyticsio/spark-operator:latest) |  | 
 `:x.y.z`           | one particular released version | [![Layers info](https://images.microbadger.com/badges/image/radanalyticsio/spark-operator:0.1.5.svg)](https://microbadger.com/images/radanalyticsio/spark-operator:0.1.5) |  | 
 
-For each variant there is also available an image with `-centos` suffix based on Centos for instance [![Layers info](https://images.microbadger.com/badges/image/radanalyticsio/spark-operator:latest-released-centos.svg)](https://microbadger.com/images/radanalyticsio/spark-operator:latest-released-centos)
+For each variant there is also available an image with `-alpine` suffix based on Alpine for instance [![Layers info](https://images.microbadger.com/badges/image/radanalyticsio/spark-operator:latest-released-alpine.svg)](https://microbadger.com/images/radanalyticsio/spark-operator:latest-released-alpine)
