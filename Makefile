@@ -36,15 +36,14 @@ image-build-all: image-build image-build-alpine
 
 .PHONY: image-publish-alpine
 image-publish-alpine: image-build-alpine
-	docker tag $(IMAGE):alpine $(IMAGE):alpine-`git rev-parse --short=8 HEAD`
-	#docker push $(IMAGE):alpine-`git rev-parse --short=8 HEAD`
+	docker tag $(IMAGE):latest-alpine $(IMAGE):alpine-`git rev-parse --short=8 HEAD`
+	docker tag $(IMAGE):alpine $(IMAGE):latest-alpine
 	docker push $(IMAGE):latest-alpine
 
 .PHONY: image-publish
 image-publish: image-build
 	docker tag $(IMAGE):centos $(IMAGE):`git rev-parse --short=8 HEAD`-centos
 	docker tag $(IMAGE):centos $(IMAGE):latest-centos
-	#docker push $(IMAGE):centos-`git rev-parse --short=8 HEAD`
 	docker push $(IMAGE):latest
 
 .PHONY: image-publish-all

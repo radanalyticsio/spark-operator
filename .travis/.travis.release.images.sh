@@ -45,9 +45,9 @@ pushLatestImagesDockerIo() {
 
 pushLatestImagesQuayIo() {
   docker tag $OWNER/$IMAGE:latest "quay.io/"$OWNER/$IMAGE:latest
-  docker tag $OWNER/$IMAGE:latest-centos "quay.io/"$OWNER/$IMAGE:latest-centos
+  docker tag $OWNER/$IMAGE:latest-alpine "quay.io/"$OWNER/$IMAGE:latest-alpine
   docker push "quay.io/"$OWNER/$IMAGE:latest
-  docker push "quay.io/"$OWNER/$IMAGE:latest-centos
+  docker push "quay.io/"$OWNER/$IMAGE:latest-alpine
 }
 
 buildReleaseImages() {
@@ -66,7 +66,7 @@ pushReleaseImages() {
   docker tag $OWNER/$IMAGE:alpine $REPO/$OWNER/$IMAGE:${TRAVIS_TAG}-alpine
   docker tag $OWNER/$IMAGE:alpine $REPO/$OWNER/$IMAGE:latest-released-alpine
 
-  # push the latest-released and ${TRAVIS_TAG} images (and also -centos images)
+  # push the latest-released and ${TRAVIS_TAG} images (and also -alpine images)
   docker push $REPO/$OWNER/$IMAGE:${TRAVIS_TAG}
   docker push $REPO/$OWNER/$IMAGE:latest-released
   docker push $REPO/$OWNER/$IMAGE:${TRAVIS_TAG}-alpine
