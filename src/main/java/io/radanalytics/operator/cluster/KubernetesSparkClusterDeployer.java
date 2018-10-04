@@ -4,7 +4,7 @@ import io.fabric8.kubernetes.api.model.*;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.radanalytics.operator.resource.LabelsHelper;
 import io.radanalytics.types.DownloadDatum;
-import io.radanalytics.types.Limits;
+import io.radanalytics.types.Master;
 import io.radanalytics.types.SparkCluster;
 import io.radanalytics.types.SparkConfiguration;
 
@@ -108,14 +108,24 @@ public class KubernetesSparkClusterDeployer {
 
         // limits
         if (isMaster) {
-            if (cluster.getMaster() != null && cluster.getMaster().getLimits() != null && (hasCpu(cluster.getMaster().getLimits()) || hasMemory(cluster.getMaster().getLimits()))) {
-                Limits masterLimits = cluster.getMaster().getLimits();
-                configureResources(containerBuilder, masterLimits);
+            final Master master = Optional.ofNullable(cluster.getMaster()).orElse(new Master());
+
+            Map<String, Quantity> limits = new HashMap<>(2);
+            Optional.ofNullable(master.getMemory()).ifPresent(memory -> limits.put("memory", new Quantity(memory)));
+            Optional.ofNullable(master.getCpu()).ifPresent(cpu -> limits.put("cpu", new Quantity(cpu)));
+
+            if (!limits.isEmpty()) {
+                containerBuilder.withResources(new ResourceRequirements(limits, limits));
             }
         } else {
-            if (cluster.getWorker() != null && cluster.getWorker().getLimits() != null && (hasCpu(cluster.getWorker().getLimits()) || hasMemory(cluster.getWorker().getLimits()))) {
-                Limits masterLimits = cluster.getMaster().getLimits();
-                configureResources(containerBuilder, masterLimits);
+            final Master worker = Optional.ofNullable(cluster.getWorker()).orElse(new Master());
+
+            Map<String, Quantity> limits = new HashMap<>(2);
+            Optional.ofNullable(worker.getMemory()).ifPresent(memory -> limits.put("memory", new Quantity(memory)));
+            Optional.ofNullable(worker.getCpu()).ifPresent(cpu -> limits.put("cpu", new Quantity(cpu)));
+
+            if (!limits.isEmpty()) {
+                containerBuilder.withResources(new ResourceRequirements(limits, limits));
             }
         }
 
@@ -147,25 +157,6 @@ public class KubernetesSparkClusterDeployer {
             addInitContainers(rc, cluster, cmExists);
         }
         return rc;
-    }
-
-    private void configureResources(ContainerBuilder containerBuilder, Limits containerLimits) {
-        Map<String, Quantity> limits = new HashMap<>(2);
-        if (hasMemory(containerLimits)) {
-            limits.put("memory", new Quantity(containerLimits.getMemory()));
-        }
-        if (hasCpu(containerLimits)) {
-            limits.put("cpu", new Quantity(containerLimits.getCpu()));
-        }
-        containerBuilder.withResources(new ResourceRequirements(limits, limits));
-    }
-
-    private boolean hasCpu(Limits limits) {
-        return limits.getCpu() != null;
-    }
-
-    private boolean hasMemory(Limits limits) {
-        return limits.getMemory() != null;
     }
 
     private ReplicationController addInitContainers(ReplicationController rc,

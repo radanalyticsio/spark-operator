@@ -54,14 +54,6 @@
           "default": 1,
           "minimum": 0
         },
-        "limits": {
-          "$ref": "#/definitions/Resources"
-        }
-      }
-    },
-    "Resources": {
-      "type": "object",
-      "properties": {
         "memory": {
           "type": "string"
         },
