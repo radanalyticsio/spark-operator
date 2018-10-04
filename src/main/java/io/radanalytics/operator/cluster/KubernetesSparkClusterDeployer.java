@@ -144,8 +144,13 @@ public class KubernetesSparkClusterDeployer {
         ReplicationController rc = new ReplicationControllerBuilder().withNewMetadata()
                 .withName(podName).withLabels(labels)
                 .endMetadata()
-                // FIXME: Nullsafe lookup
-                .withNewSpec().withReplicas(isMaster ? cluster.getMaster().getReplicas() : cluster.getWorker().getReplicas())
+                .withNewSpec().withReplicas(
+                        isMaster
+                                ?
+                                Optional.ofNullable(cluster.getMaster()).orElse(new Master()).getReplicas()
+                                :
+                                Optional.ofNullable(cluster.getWorker()).orElse(new Master()).getReplicas()
+                )
                 .withSelector(selector)
                 .withNewTemplate().withNewMetadata().withLabels(podLabels).endMetadata()
                 .withNewSpec().withContainers(containerBuilder.build())
