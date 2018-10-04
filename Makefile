@@ -1,7 +1,7 @@
 IMAGE?=radanalyticsio/spark-operator
 
 .PHONY: build
-build: package image-build-slim
+build: package image-build
 
 .PHONY: build-travis
 build-travis: install-lib build
@@ -25,30 +25,30 @@ test:
 .PHONY: image-build
 image-build:
 	docker build -t $(IMAGE):centos -f Dockerfile.centos .
+	docker tag $(IMAGE):centos $(IMAGE):latest
 
-.PHONY: image-build-slim
-image-build-slim:
-	docker build -t $(IMAGE):slim -f Dockerfile.slim .
-	docker tag $(IMAGE):slim $(IMAGE):latest
+.PHONY: image-build-alpine
+image-build-alpine:
+	docker build -t $(IMAGE):alpine -f Dockerfile.alpine .
 
 .PHONY: image-build-all
-image-build-all: image-build image-build-slim
+image-build-all: image-build image-build-alpine
 
-.PHONY: image-publish-slim
-image-publish-slim: image-build-slim
-	docker tag $(IMAGE):slim $(IMAGE):slim-`git rev-parse --short=8 HEAD`
-	#docker push $(IMAGE):slim-`git rev-parse --short=8 HEAD`
-	docker push $(IMAGE):latest
+.PHONY: image-publish-alpine
+image-publish-alpine: image-build-alpine
+	docker tag $(IMAGE):alpine $(IMAGE):alpine-`git rev-parse --short=8 HEAD`
+	#docker push $(IMAGE):alpine-`git rev-parse --short=8 HEAD`
+	docker push $(IMAGE):latest-alpine
 
 .PHONY: image-publish
 image-publish: image-build
 	docker tag $(IMAGE):centos $(IMAGE):`git rev-parse --short=8 HEAD`-centos
 	docker tag $(IMAGE):centos $(IMAGE):latest-centos
 	#docker push $(IMAGE):centos-`git rev-parse --short=8 HEAD`
-	docker push $(IMAGE):latest-centos
+	docker push $(IMAGE):latest
 
 .PHONY: image-publish-all
-image-publish-all: build-travis image-build-all image-publish image-publish-slim
+image-publish-all: build-travis image-build-all image-publish image-publish-alpine
 
 .PHONY: devel
 devel: build
