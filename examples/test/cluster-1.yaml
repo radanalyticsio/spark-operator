@@ -7,6 +7,8 @@ metadata:
 data:
   # this should fail
   config: |-
-    w0rkerNodes: "1"
-    masterNodes: "1"
+    w0rker:
+      replicas: "1"
+    master
+      replicas: "1"
 

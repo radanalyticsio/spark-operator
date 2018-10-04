@@ -3,5 +3,7 @@ kind: sparkclustermetadata:
   name: my-spark-cluster-1
 spec:
   # this should fail
-  w0rkerNodes: "1"
-  masterNodes: "1"
+  w0rker:
+    replicas: "1"
+  master:
+    replicas: "1"
