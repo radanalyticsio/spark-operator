@@ -3,7 +3,7 @@ package io.radanalytics.operator.cluster;
 import io.fabric8.kubernetes.api.model.KubernetesResourceList;
 import io.radanalytics.operator.common.AbstractOperator;
 import io.radanalytics.operator.common.Operator;
-import io.radanalytics.types.Master;
+import io.radanalytics.types.RCSpec;
 import io.radanalytics.types.SparkCluster;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,8 +41,8 @@ public class SparkClusterOperator extends AbstractOperator<SparkCluster> {
     protected void onModify(SparkCluster newCluster) {
         String name = newCluster.getName();
         String newImage = newCluster.getCustomImage();
-        int newMasters = Optional.ofNullable(newCluster.getMaster()).orElse(new Master()).getReplicas();
-        int newWorkers = Optional.ofNullable(newCluster.getWorker()).orElse(new Master()).getReplicas();
+        int newMasters = Optional.ofNullable(newCluster.getMaster()).orElse(new RCSpec()).getReplicas();
+        int newWorkers = Optional.ofNullable(newCluster.getWorker()).orElse(new RCSpec()).getReplicas();
         SparkCluster existingCluster = clusters.getCluster(name);
         if (null == existingCluster) {
             log.error("something went wrong, unable to scale existing cluster. Perhaps it wasn't deployed properly.");
