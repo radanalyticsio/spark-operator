@@ -21,12 +21,9 @@
       "type": "string"
     },
     "env": {
-      "type": "array",
-      "items": {
-        "$ref": "#/definitions/EnvVar"
-      }
+      "$ref": "#/definitions/Environment"
     },
-    "sparkConfiguration": { "$ref": "#/properties/env" },
+    "sparkConfiguration": { "$ref": "#/definitions/Environment" },
     "downloadData": {
       "type": "array",
       "items": {
@@ -64,6 +61,12 @@
         "value": { "type": "string" }
       },
       "required": ["name", "value"]
+    },
+    "Environment": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/EnvVar"
+      }
     }
   }
 }
