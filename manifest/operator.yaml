@@ -52,5 +52,12 @@ spec:
         #  value: true
         #- name: COLORS
         #  value: false
+        resources:
+          requests:
+            memory: "384Mi"
+            cpu: "250m"
+          limits:
+            memory: "384Mi"
+            cpu: "500m"
         imagePullPolicy: IfNotPresent
 
