@@ -100,9 +100,9 @@ testCreateCluster1() {
 testScaleCluster() {
   info
   if [ "$CRD" = "1" ]; then
-    os::cmd::expect_success_and_text '${BIN} patch sparkcluster my-spark-cluster -p "{\"spec\":{\"workerNodes\": 1}}" --type=merge' '"?my-spark-cluster"? patched' || errorLogs
+    os::cmd::expect_success_and_text '${BIN} patch sparkcluster my-spark-cluster -p "{\"spec\":{\"worker\": {\"replicas\": 1}}}" --type=merge' '"?my-spark-cluster"? patched' || errorLogs
   else
-    os::cmd::expect_success_and_text '${BIN} patch cm my-spark-cluster -p "{\"data\":{\"config\": \"workerNodes: 1\"}}"' '"?my-spark-cluster"? patched' || errorLogs
+    os::cmd::expect_success_and_text '${BIN} patch cm my-spark-cluster -p "{\"data\":{\"config\": \"worker:\n  replicas: 1\"}}"' '"?my-spark-cluster"? patched' || errorLogs
   fi
   os::cmd::try_until_text "${BIN} get pods --no-headers -l radanalytics.io/sparkcluster=my-spark-cluster | wc -l" '2'
 }
@@ -157,7 +157,7 @@ testCustomCluster1() {
   [ "$CRD" = "1" ] && return 0
   os::cmd::expect_success_and_text "${BIN} create -f $DIR/../examples/test/cluster-1.yaml" '"?my-spark-cluster-1"? created' && \
   os::cmd::try_until_text "${BIN} logs $operator_pod" 'Unable to parse yaml definition of configmap' && \
-  os::cmd::try_until_text "${BIN} logs $operator_pod" 'w0rkerNodes' && \
+  os::cmd::try_until_text "${BIN} logs $operator_pod" 'w0rker' && \
   os::cmd::expect_success_and_text '${BIN} delete cm my-spark-cluster-1' 'configmap "my-spark-cluster-1" deleted'
 }
 

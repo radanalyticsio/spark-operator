@@ -4,6 +4,7 @@ import io.fabric8.kubernetes.api.model.*;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.radanalytics.operator.resource.LabelsHelper;
 import io.radanalytics.types.DownloadDatum;
+import io.radanalytics.types.Master;
 import io.radanalytics.types.SparkCluster;
 import io.radanalytics.types.SparkConfiguration;
 
@@ -106,15 +107,26 @@ public class KubernetesSparkClusterDeployer {
                 .withPorts(ports);
 
         // limits
-        if (cluster.getMemory() != null || cluster.getCpu() != null) {
+        if (isMaster) {
+            final Master master = Optional.ofNullable(cluster.getMaster()).orElse(new Master());
+
             Map<String, Quantity> limits = new HashMap<>(2);
-            if (cluster.getMemory() != null) {
-                limits.put("memory", new Quantity(cluster.getMemory()));
+            Optional.ofNullable(master.getMemory()).ifPresent(memory -> limits.put("memory", new Quantity(memory)));
+            Optional.ofNullable(master.getCpu()).ifPresent(cpu -> limits.put("cpu", new Quantity(cpu)));
+
+            if (!limits.isEmpty()) {
+                containerBuilder.withResources(new ResourceRequirements(limits, limits));
             }
-            if (cluster.getCpu() != null) {
-                limits.put("cpu", new Quantity(cluster.getCpu()));
+        } else {
+            final Master worker = Optional.ofNullable(cluster.getWorker()).orElse(new Master());
+
+            Map<String, Quantity> limits = new HashMap<>(2);
+            Optional.ofNullable(worker.getMemory()).ifPresent(memory -> limits.put("memory", new Quantity(memory)));
+            Optional.ofNullable(worker.getCpu()).ifPresent(cpu -> limits.put("cpu", new Quantity(cpu)));
+
+            if (!limits.isEmpty()) {
+                containerBuilder.withResources(new ResourceRequirements(limits, limits));
             }
-            containerBuilder.withResources(new ResourceRequirements(limits, limits));
         }
 
 
@@ -132,7 +144,13 @@ public class KubernetesSparkClusterDeployer {
         ReplicationController rc = new ReplicationControllerBuilder().withNewMetadata()
                 .withName(podName).withLabels(labels)
                 .endMetadata()
-                .withNewSpec().withReplicas(isMaster ? cluster.getMasterNodes() : cluster.getWorkerNodes())
+                .withNewSpec().withReplicas(
+                        isMaster
+                                ?
+                                Optional.ofNullable(cluster.getMaster()).orElse(new Master()).getReplicas()
+                                :
+                                Optional.ofNullable(cluster.getWorker()).orElse(new Master()).getReplicas()
+                )
                 .withSelector(selector)
                 .withNewTemplate().withNewMetadata().withLabels(podLabels).endMetadata()
                 .withNewSpec().withContainers(containerBuilder.build())

@@ -6,11 +6,15 @@ metadata:
     radanalytics.io/kind: sparkcluster                       # compulsory
 data:
   config: |-
-    workerNodes: "2"                                    # optional defaults to 1
-    masterNodes: "1"                                    # optional defaults to 1
+    worker:
+      replicas: "2"                                    # optional defaults to 1
+      memory: "1Gi"                                       # optional no defaults
+      cpu: 0.2                                            # optional no defaults
+    master:
+      replicas: "1"                                    # optional defaults to 1
+      memory: "1Gi"                                       # optional no defaults
+      cpu: 0.2                                            # optional no defaults
     customImage: jkremser/openshift-spark:2.3-latest    # optional defaults to jkremser/openshift-spark:2.3-latest
-    memory: "1Gi"                                       # optional no defaults
-    cpu: 0.2                                            # optional no defaults
     env:                                                # optional
     - name: SPARK_WORKER_CORES
       value: 2

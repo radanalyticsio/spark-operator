@@ -3,9 +3,12 @@ package io.radanalytics.operator.cluster;
 import io.fabric8.kubernetes.api.model.KubernetesResourceList;
 import io.radanalytics.operator.common.AbstractOperator;
 import io.radanalytics.operator.common.Operator;
+import io.radanalytics.types.Master;
 import io.radanalytics.types.SparkCluster;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Optional;
 
 import static io.radanalytics.operator.common.AnsiColors.*;
 
@@ -38,17 +41,17 @@ public class SparkClusterOperator extends AbstractOperator<SparkCluster> {
     protected void onModify(SparkCluster newCluster) {
         String name = newCluster.getName();
         String newImage = newCluster.getCustomImage();
-        int newMasters = newCluster.getMasterNodes();
-        int newWorkers = newCluster.getWorkerNodes();
+        int newMasters = Optional.ofNullable(newCluster.getMaster()).orElse(new Master()).getReplicas();
+        int newWorkers = Optional.ofNullable(newCluster.getWorker()).orElse(new Master()).getReplicas();
         SparkCluster existingCluster = clusters.getCluster(name);
         if (null == existingCluster) {
             log.error("something went wrong, unable to scale existing cluster. Perhaps it wasn't deployed properly.");
             return;
         }
 
-        if (existingCluster.getWorkerNodes() != newWorkers) {
+        if (existingCluster.getWorker().getReplicas() != newWorkers) {
             log.info("{}scaling{} from  {}{}{} worker replicas to  {}{}{}", re(), xx(), ye(),
-                    existingCluster.getWorkerNodes(), xx(), ye(), newWorkers, xx());
+                    existingCluster.getWorker().getReplicas(), xx(), ye(), newWorkers, xx());
             client.replicationControllers().withName(name + "-w").scale(newWorkers);
             clusters.put(newCluster);
         }

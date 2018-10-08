@@ -6,7 +6,8 @@ metadata:
     radanalytics.io/kind: sparkcluster
 data:
   config: |-
-    workerNodes: "1"
+    worker:
+      replicas: "1"
     downloadData:
     - url: https://data.cityofnewyork.us/api/views/kku6-nxdu/rows.csv
       to: /tmp/
