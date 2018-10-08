@@ -23,12 +23,7 @@
     "env": {
       "type": "array",
       "items": {
-        "type": "object",
-        "properties": {
-          "name": { "type": "string" },
-          "value": { "type": "string" }
-        },
-        "required": ["name", "value"]
+        "$ref": "#/definitions/EnvVar"
       }
     },
     "sparkConfiguration": { "$ref": "#/properties/env" },
@@ -61,6 +56,14 @@
           "type": "string"
         }
       }
+    },
+    "EnvVar": {
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "value": { "type": "string" }
+      },
+      "required": ["name", "value"]
     }
   }
 }
