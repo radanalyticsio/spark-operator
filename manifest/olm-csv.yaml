@@ -142,10 +142,10 @@ spec:
                     value: "true"
                   resources:
                     requests:
-                      memory: "128Mi"
+                      memory: "400Mi"
                       cpu: "250m"
                     limits:
-                      memory: "256Mi"
+                      memory: "400Mi"
                       cpu: "500m"
               restartPolicy: Always
               terminationGracePeriodSeconds: 5

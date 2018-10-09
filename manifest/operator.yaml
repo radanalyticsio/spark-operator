@@ -54,10 +54,10 @@ spec:
         #  value: false
         resources:
           requests:
-            memory: "128Mi"
+            memory: "400Mi"
             cpu: "250m"
           limits:
-            memory: "256Mi"
+            memory: "400Mi"
             cpu: "500m"
         imagePullPolicy: IfNotPresent
 
