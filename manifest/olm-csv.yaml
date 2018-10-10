@@ -146,7 +146,7 @@ spec:
                       cpu: "250m"
                     limits:
                       memory: "400Mi"
-                      cpu: "500m"
+                      cpu: "1000m"
               restartPolicy: Always
               terminationGracePeriodSeconds: 5
               serviceAccountName: spark-operator

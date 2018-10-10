@@ -58,6 +58,6 @@ spec:
             cpu: "250m"
           limits:
             memory: "400Mi"
-            cpu: "500m"
+            cpu: "1000m"
         imagePullPolicy: IfNotPresent
 
