@@ -249,8 +249,8 @@ main() {
   export testIndex=0
   tear_down
   setup_testing_framework
-  cluster_up
   os::test::junit::declare_suite_start "operator/tests"
+  cluster_up
   testCreateOperator || { ${BIN} get events; ${BIN} get pods; exit 1; }
   export operator_pod=`${BIN} get pod -l app.kubernetes.io/name=spark-operator -o='jsonpath="{.items[0].metadata.name}"' | sed 's/"//g'`
   if [ "$#" -gt 0 ]; then
