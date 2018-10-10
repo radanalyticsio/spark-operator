@@ -21,17 +21,9 @@
       "type": "string"
     },
     "env": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "properties": {
-          "name": { "type": "string" },
-          "value": { "type": "string" }
-        },
-        "required": ["name", "value"]
-      }
+      "$ref": "#/definitions/Environment"
     },
-    "sparkConfiguration": { "$ref": "#/properties/env" },
+    "sparkConfiguration": { "$ref": "#/definitions/Environment" },
     "downloadData": {
       "type": "array",
       "items": {
@@ -60,6 +52,20 @@
         "cpu": {
           "type": "string"
         }
+      }
+    },
+    "EnvVar": {
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "value": { "type": "string" }
+      },
+      "required": ["name", "value"]
+    },
+    "Environment": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/EnvVar"
       }
     }
   }

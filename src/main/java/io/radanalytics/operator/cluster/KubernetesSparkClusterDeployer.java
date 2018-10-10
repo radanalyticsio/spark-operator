@@ -4,9 +4,8 @@ import io.fabric8.kubernetes.api.model.*;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.radanalytics.operator.resource.LabelsHelper;
 import io.radanalytics.types.DownloadDatum;
-import io.radanalytics.types.Master;
+import io.radanalytics.types.RCSpec;
 import io.radanalytics.types.SparkCluster;
-import io.radanalytics.types.SparkConfiguration;
 
 import java.util.*;
 
@@ -108,7 +107,7 @@ public class KubernetesSparkClusterDeployer {
 
         // limits
         if (isMaster) {
-            final Master master = Optional.ofNullable(cluster.getMaster()).orElse(new Master());
+            final RCSpec master = Optional.ofNullable(cluster.getMaster()).orElse(new RCSpec());
 
             Map<String, Quantity> limits = new HashMap<>(2);
             Optional.ofNullable(master.getMemory()).ifPresent(memory -> limits.put("memory", new Quantity(memory)));
@@ -118,7 +117,7 @@ public class KubernetesSparkClusterDeployer {
                 containerBuilder.withResources(new ResourceRequirements(limits, limits));
             }
         } else {
-            final Master worker = Optional.ofNullable(cluster.getWorker()).orElse(new Master());
+            final RCSpec worker = Optional.ofNullable(cluster.getWorker()).orElse(new RCSpec());
 
             Map<String, Quantity> limits = new HashMap<>(2);
             Optional.ofNullable(worker.getMemory()).ifPresent(memory -> limits.put("memory", new Quantity(memory)));
@@ -147,9 +146,9 @@ public class KubernetesSparkClusterDeployer {
                 .withNewSpec().withReplicas(
                         isMaster
                                 ?
-                                Optional.ofNullable(cluster.getMaster()).orElse(new Master()).getReplicas()
+                                Optional.ofNullable(cluster.getMaster()).orElse(new RCSpec()).getReplicas()
                                 :
-                                Optional.ofNullable(cluster.getWorker()).orElse(new Master()).getReplicas()
+                                Optional.ofNullable(cluster.getWorker()).orElse(new RCSpec()).getReplicas()
                 )
                 .withSelector(selector)
                 .withNewTemplate().withNewMetadata().withLabels(podLabels).endMetadata()
@@ -168,7 +167,7 @@ public class KubernetesSparkClusterDeployer {
                                                     SparkCluster cluster,
                                                     boolean cmExists) {
         final List<DownloadDatum> downloadData = cluster.getDownloadData();
-        final List<SparkConfiguration> config = cluster.getSparkConfiguration();
+        final List<io.radanalytics.types.EnvVar> config = cluster.getSparkConfiguration();
         final boolean needInitContainer = !downloadData.isEmpty() || !config.isEmpty();
         final StringBuilder command = new StringBuilder();
         if (needInitContainer) {
