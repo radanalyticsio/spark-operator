@@ -8,7 +8,7 @@ data:
   # this should fail
   config: |-
     w0rker:
-      replicas: "1"
+      instances: "1"
     master:
-      replicas: "1"
+      instances: "1"
 

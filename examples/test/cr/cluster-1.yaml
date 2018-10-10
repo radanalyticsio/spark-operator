@@ -4,6 +4,6 @@ kind: sparkclustermetadata:
 spec:
   # this should fail
   w0rker:
-    replicas: "1"
+    instances: "1"
   master:
-    replicas: "1"
+    instances: "1"
