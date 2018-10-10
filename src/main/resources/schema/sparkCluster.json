@@ -45,7 +45,7 @@
     "RCSpec": {
       "type": "object",
       "properties": {
-        "replicas": {
+        "instances": {
           "type": "integer",
           "default": 1,
           "minimum": 0

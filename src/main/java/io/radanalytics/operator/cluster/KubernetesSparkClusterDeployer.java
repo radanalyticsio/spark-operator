@@ -170,9 +170,9 @@ public class KubernetesSparkClusterDeployer {
                 .withNewSpec().withReplicas(
                         isMaster
                                 ?
-                                Optional.ofNullable(cluster.getMaster()).orElse(new RCSpec()).getReplicas()
+                                Optional.ofNullable(cluster.getMaster()).orElse(new RCSpec()).getInstances()
                                 :
-                                Optional.ofNullable(cluster.getWorker()).orElse(new RCSpec()).getReplicas()
+                                Optional.ofNullable(cluster.getWorker()).orElse(new RCSpec()).getInstances()
                 )
                 .withSelector(selector)
                 .withNewTemplate().withNewMetadata().withLabels(podLabels).endMetadata()
