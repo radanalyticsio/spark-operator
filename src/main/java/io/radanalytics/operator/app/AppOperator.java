@@ -7,7 +7,7 @@ import io.radanalytics.types.SparkApplication;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Operator(forKind = SparkApplication.class, named = "App", prefix = "radanalytics.io")
+@Operator(forKind = SparkApplication.class, prefix = "radanalytics.io")
 public class AppOperator extends AbstractOperator<SparkApplication> {
 
     private static final Logger log = LoggerFactory.getLogger(AbstractOperator.class.getName());

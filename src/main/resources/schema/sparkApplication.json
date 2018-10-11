@@ -80,6 +80,7 @@
     },
     "Labels": {
       "type": "object",
+      "existingJavaType" : "java.util.Map<String,String>",
       "properties": {
         "type": "object",
         "properties": {
