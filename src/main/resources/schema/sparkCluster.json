@@ -24,6 +24,10 @@
       "$ref": "#/definitions/Environment"
     },
     "sparkConfiguration": { "$ref": "#/definitions/Environment" },
+    "labels" : {
+      "existingJavaType" : "java.util.Map<String,String>",
+      "type" : "object"
+    },
     "downloadData": {
       "type": "array",
       "items": {
@@ -51,6 +55,10 @@
         },
         "cpu": {
           "type": "string"
+        },
+        "labels" : {
+          "existingJavaType" : "java.util.Map<String,String>",
+          "type" : "object"
         }
       }
     },
