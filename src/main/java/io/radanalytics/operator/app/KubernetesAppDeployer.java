@@ -1,6 +1,7 @@
 package io.radanalytics.operator.app;
 
 import io.fabric8.kubernetes.api.model.*;
+import io.radanalytics.types.SparkApplication;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -21,7 +22,7 @@ public class KubernetesAppDeployer {
         this.prefix = prefix;
     }
 
-    public KubernetesResourceList getResourceList(AppInfo app, String namespace) {
+    public KubernetesResourceList getResourceList(SparkApplication app, String namespace) {
         String name = app.getName();
         String image = app.getImage();
         String file = app.getMainApplicationFile();

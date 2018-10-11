@@ -11,10 +11,10 @@
       "type": "object"
     },
     "driver": {
-      "$ref": "#/definitions/RCSpec"
+      "$ref": "#/definitions/NodeSpec"
     },
     "executor": {
-      "$ref": "#/definitions/RCSpec"
+      "$ref": "#/definitions/NodeSpec"
     },
     "image": {
       "type": "string",
@@ -59,7 +59,7 @@
   },
   "required": [ ],
   "definitions": {
-    "RCSpec": {
+    "NodeSpec": {
       "type": "object",
       "properties": {
         "instances": {
