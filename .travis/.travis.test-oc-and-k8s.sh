@@ -22,7 +22,6 @@ cluster_up() {
   else
     echo "minikube"
     start_minikube
-    eval `minikube docker-env`
   fi
 }
 
