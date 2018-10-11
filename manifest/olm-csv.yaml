@@ -140,6 +140,13 @@ spec:
                   env:
                   - name: CRD
                     value: "true"
+                  resources:
+                    requests:
+                      memory: "400Mi"
+                      cpu: "250m"
+                    limits:
+                      memory: "400Mi"
+                      cpu: "1000m"
               restartPolicy: Always
               terminationGracePeriodSeconds: 5
               serviceAccountName: spark-operator
