@@ -11,7 +11,7 @@ metadata:
 data:
   config: |-
     worker:
-      replicas: "2"
+      instances: "2"
 EOF
 
 or in case of CRD approach:
@@ -23,7 +23,7 @@ metadata:
   name: my-cluster
 spec:
   worker:
-    replicas: "2"
+    instances: "2"
 EOF
 
 For more details consult https://github.com/radanalyticsio/spark-operator/blob/master/README.md

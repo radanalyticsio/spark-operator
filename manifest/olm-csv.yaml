@@ -78,7 +78,7 @@ kind: ClusterServiceVersion
 metadata:
   name: sparkoperator.v0.0.1
   namespace: default
-  annotations: 'alm-examples: [{"apiVersion": "radanalytics.io/v1","kind": "sparkcluster","metadata": {"name": "sparky-cluster"},"spec": {"master": { "replicas": 1 },"sparkConfiguration": [{"name": "spark.executor.memory","value": "2g"}],"worker": {"replicas": 2}}}]'
+  annotations: 'alm-examples: [{"apiVersion": "radanalytics.io/v1","kind": "sparkcluster","metadata": {"name": "sparky-cluster"},"spec": {"master": { "instances": 1 },"sparkConfiguration": [{"name": "spark.executor.memory","value": "2g"}],"worker": {"instances": 2}}}]'
 spec:
   displayName: Apache Spark Operator
   description: |
@@ -96,7 +96,7 @@ spec:
       name: my-spark-cluster
     spec:
       worker:
-        replicas: 2
+        instances: 2
     EOF
     ```
   install: 
@@ -168,12 +168,12 @@ spec:
         specDescriptors:
           - description: The desired number of the workers in the cluster.
             displayName: Worker Nodes
-            path: worker.replicas
+            path: worker.instances
             x-descriptors:
               - 'urn:alm:descriptor:com.tectonic.ui:podCount'
           - description: The desired number of the masters in the cluster.
             displayName: Master Nodes
-            path: master.replicas
+            path: master.instances
             x-descriptors:
               - 'urn:alm:descriptor:com.tectonic.ui:podCount'
         statusDescriptors:

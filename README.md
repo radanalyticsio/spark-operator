@@ -62,7 +62,7 @@ metadata:
 data:
   config: |-
     worker:
-      replicas: "2"
+      instances: "2"
 EOF
 ```
 

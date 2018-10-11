@@ -91,9 +91,9 @@ testCreateCluster1() {
 testScaleCluster() {
   info
   if [ "$CRD" = "1" ]; then
-    os::cmd::expect_success_and_text '${BIN} patch sparkcluster my-spark-cluster -p "{\"spec\":{\"worker\": {\"replicas\": 1}}}" --type=merge' '"?my-spark-cluster"? patched' || errorLogs
+    os::cmd::expect_success_and_text '${BIN} patch sparkcluster my-spark-cluster -p "{\"spec\":{\"worker\": {\"instances\": 1}}}" --type=merge' '"?my-spark-cluster"? patched' || errorLogs
   else
-    os::cmd::expect_success_and_text '${BIN} patch cm my-spark-cluster -p "{\"data\":{\"config\": \"worker:\n  replicas: 1\"}}"' '"?my-spark-cluster"? patched' || errorLogs
+    os::cmd::expect_success_and_text '${BIN} patch cm my-spark-cluster -p "{\"data\":{\"config\": \"worker:\n  instances: 1\"}}"' '"?my-spark-cluster"? patched' || errorLogs
   fi
   os::cmd::try_until_text "${BIN} get pods --no-headers -l radanalytics.io/sparkcluster=my-spark-cluster | wc -l" '2'
 }
