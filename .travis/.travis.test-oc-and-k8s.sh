@@ -22,35 +22,23 @@ cluster_up() {
   else
     echo "minikube"
     start_minikube
-    eval `minikube docker-env`
   fi
 }
 
 start_minikube() {
-  set -x
   export CHANGE_MINIKUBE_NONE_USER=true
   sudo minikube start --vm-driver=none --kubernetes-version=${VERSION} && \
   minikube update-context
-  JSONPATH='{range .items[*]}{@.metadata.name}:{range @.status.conditions[*]}{@.type}={@.status};{end}{end}'
-  until kubectl get nodes -o jsonpath="$JSONPATH" 2>&1 | grep -q "Ready=True"; do sleep 1; done
+  os::cmd::try_until_text "${BIN} get nodes" '\sReady'
+
   kubectl cluster-info
 
+
   # kube-addon-manager is responsible for managing other k8s components, such as kube-dns, dashboard, storage-provisioner..
-  JSONPATH='{range .items[*]}{@.metadata.name}:{range @.status.conditions[*]}{@.type}={@.status};{end}{end}'
-  until kubectl -n kube-system get pods -lcomponent=kube-addon-manager -o jsonpath="$JSONPATH" 2>&1 | grep -q "Ready=True"; do
-    sleep 1
-    echo "waiting for kube-addon-manager to be available"
-    kubectl get pods
-  done
+  os::cmd::try_until_text "${BIN} -n kube-system get pod -lcomponent=kube-addon-manager -o yaml" 'ready: true'
 
   # Wait for kube-dns to be ready.
-  JSONPATH='{range .items[*]}{@.metadata.name}:{range @.status.conditions[*]}{@.type}={@.status};{end}{end}'
-  until kubectl -n kube-system get pods -lk8s-app=kube-dns -o jsonpath="$JSONPATH" 2>&1 | grep -q "Ready=True"; do
-    sleep 1
-    echo "waiting for kube-dns to be available"
-    kubectl get pods
-  done
-  set +x
+  os::cmd::try_until_text "${BIN} -n kube-system get pod -lk8s-app=kube-dns -o yaml" 'ready: true'
 }
 
 tear_down() {
@@ -259,9 +247,9 @@ main() {
   export total=15
   export testIndex=0
   tear_down
-  cluster_up
   setup_testing_framework
   os::test::junit::declare_suite_start "operator/tests"
+  cluster_up
   testCreateOperator || { ${BIN} get events; ${BIN} get pods; exit 1; }
   export operator_pod=`${BIN} get pod -l app.kubernetes.io/name=spark-operator -o='jsonpath="{.items[0].metadata.name}"' | sed 's/"//g'`
   if [ "$#" -gt 0 ]; then
