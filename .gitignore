@@ -119,6 +119,7 @@ Desktop.ini
 # generated manifests
 /k8s-spark-operator.yaml
 /openshift-spark-operator.yaml
+/manifest/operator-devel.yaml
 
 # oc cluster up
 openshift.local.clusterup
