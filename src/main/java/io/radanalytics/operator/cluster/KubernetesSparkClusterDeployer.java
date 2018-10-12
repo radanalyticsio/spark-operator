@@ -26,10 +26,16 @@ public class KubernetesSparkClusterDeployer {
     public KubernetesResourceList getResourceList(SparkCluster cluster) {
         synchronized (this.client) {
             String name = cluster.getName();
+
+            Map<String, String> allMasterLabels = new HashMap<>();
+            if (cluster.getLabels() != null) allMasterLabels.putAll(cluster.getLabels());
+            if (cluster.getMaster() != null && cluster.getMaster().getLabels() != null)
+                allMasterLabels.putAll(cluster.getMaster().getLabels());
+
             ReplicationController masterRc = getRCforMaster(cluster);
             ReplicationController workerRc = getRCforWorker(cluster);
-            Service masterService = getService(false, name, 7077);
-            Service masterUiService = getService(true, name, 8080);
+            Service masterService = getService(false, name, 7077, allMasterLabels);
+            Service masterUiService = getService(true, name, 8080, allMasterLabels);
             KubernetesList resources = new KubernetesListBuilder().withItems(masterRc, workerRc, masterService, masterUiService).build();
             return resources;
         }
@@ -43,9 +49,10 @@ public class KubernetesSparkClusterDeployer {
         return getRCforMasterOrWorker(false, cluster);
     }
 
-    private Service getService(boolean isUi, String name, int port) {
+    private Service getService(boolean isUi, String name, int port, Map<String, String> allMasterLabels) {
         Map<String, String> labels = getDefaultLabels(name);
-        labels.put(prefix + LabelsHelper.OPERATOR_SEVICE_TYPE_LABEL, isUi ? OPERATOR_TYPE_UI_LABEL : OPERATOR_TYPE_WORKER_LABEL);
+        labels.put(prefix + LabelsHelper.OPERATOR_SEVICE_TYPE_LABEL, isUi ? OPERATOR_TYPE_UI_LABEL : OPERATOR_TYPE_MASTER_LABEL);
+        labels.putAll(allMasterLabels);
         Service masterService = new ServiceBuilder().withNewMetadata().withName(isUi ? name + "-ui" : name)
                 .withLabels(labels).endMetadata()
                 .withNewSpec().withSelector(getSelector(name, name + "-m"))
@@ -137,9 +144,26 @@ public class KubernetesSparkClusterDeployer {
 
         Map<String, String> labels = getDefaultLabels(name);
         labels.put(prefix + LabelsHelper.OPERATOR_RC_TYPE_LABEL, isMaster ? OPERATOR_TYPE_MASTER_LABEL : OPERATOR_TYPE_WORKER_LABEL);
+        if (cluster.getLabels() != null) labels.putAll(cluster.getLabels());
+        if (isMaster) {
+            if (cluster.getMaster() != null && cluster.getMaster().getLabels() != null)
+                labels.putAll(cluster.getMaster().getLabels());
+        } else {
+            if (cluster.getWorker() != null && cluster.getWorker().getLabels() != null)
+                labels.putAll(cluster.getWorker().getLabels());
+        }
 
         Map<String, String> podLabels = getSelector(name, podName);
         podLabels.put(prefix + LabelsHelper.OPERATOR_POD_TYPE_LABEL, isMaster ? OPERATOR_TYPE_MASTER_LABEL : OPERATOR_TYPE_WORKER_LABEL);
+        if (cluster.getLabels() != null) podLabels.putAll(cluster.getLabels());
+        if (isMaster) {
+            if (cluster.getMaster() != null && cluster.getMaster().getLabels() != null)
+                podLabels.putAll(cluster.getMaster().getLabels());
+        } else {
+            if (cluster.getWorker() != null && cluster.getWorker().getLabels() != null)
+                podLabels.putAll(cluster.getWorker().getLabels());
+        }
+
         ReplicationController rc = new ReplicationControllerBuilder().withNewMetadata()
                 .withName(podName).withLabels(labels)
                 .endMetadata()
