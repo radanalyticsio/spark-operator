@@ -4,12 +4,12 @@ metadata:
   name: spark-cluster-with-labels
 spec:
   worker:
-    replicas: "2"
+    instances: "2"
     labels:
       example-label-for-all-workers/bar: foo
       common-label-to-be-replaced-on-some-resources: worker-value
   master:
-    replicas: "1"
+    instances: "1"
     labels:
       example-label-for-master/foo: bar
       common-label-to-be-replaced-on-some-resources: master-value
