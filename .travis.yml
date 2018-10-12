@@ -9,6 +9,7 @@ install: true
 stages:
   - test
   - test-oc-and-k8s
+  - test-restarts
   - deploy
 
 jobs:
@@ -42,6 +43,28 @@ jobs:
     - stage:
       env: BIN=kubectl VERSION=v1.9.0 CRD=1 MINIKUBE_VERSION=v0.25.2
       script: *kc-script-defaults
+
+    - stage: test-restarts
+      env: BIN=oc VERSION=v3.9.0 CRD=0
+      script: &oc-restarts-script-defaults
+      - make build-travis
+      - ./.travis/.travis.prepare.openshift.sh
+      - ./.travis/.travis.test-restarts.sh
+
+    - stage:
+      env: BIN=oc VERSION=v3.9.0 CRD=1
+      script: *oc-restarts-script-defaults
+
+    - stage:
+      env: BIN=kubectl VERSION=v1.9.0 CRD=0 MINIKUBE_VERSION=v0.25.2
+      script: &kc-restarts-script-defaults
+      - make build-travis
+      - ./.travis/.travis.prepare.minikube.sh
+      - ./.travis/.travis.test-restarts.sh
+
+    - stage:
+      env: BIN=kubectl VERSION=v1.9.0 CRD=1 MINIKUBE_VERSION=v0.25.2
+      script: *kc-restarts-script-defaults
 
     - stage: deploy
       script:
