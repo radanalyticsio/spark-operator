@@ -191,7 +191,7 @@ public class KubernetesSparkClusterDeployer {
                                                     SparkCluster cluster,
                                                     boolean cmExists) {
         final List<DownloadDatum> downloadData = cluster.getDownloadData();
-        final List<io.radanalytics.types.EnvVar> config = cluster.getSparkConfiguration();
+        final List<io.radanalytics.types.NameValue> config = cluster.getSparkConfiguration();
         final boolean needInitContainer = !downloadData.isEmpty() || !config.isEmpty();
         final StringBuilder command = new StringBuilder();
         if (needInitContainer) {

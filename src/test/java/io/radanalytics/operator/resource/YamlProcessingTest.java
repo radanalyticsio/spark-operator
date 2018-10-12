@@ -106,7 +106,7 @@ public class YamlProcessingTest {
         // different name
         assertNotEquals(clusterInfo1, clusterInfo2);
 
-        assertEquals(clusterInfo2, clusterInfo3);
+        assertEquals(clusterInfo2.getName(), clusterInfo3.getName());
     }
 
     private String readFile(String path) throws IOException {

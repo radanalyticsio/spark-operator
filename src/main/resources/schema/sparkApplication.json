@@ -2,11 +2,11 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "description": "A Spark application configuration",
   "type": "object",
-  "javaInterfaces": ["io.radanalytics.operator.common.EntityInfo"],
+  "extends": {
+    "type": "object",
+    "existingJavaType": "io.radanalytics.operator.common.EntityInfo"
+  },
   "properties": {
-    "name": {
-      "type": "string"
-    },
     "deps": {
       "type": "object"
     },
@@ -82,10 +82,8 @@
       "type": "object",
       "existingJavaType" : "java.util.Map<String,String>",
       "properties": {
-        "type": "object",
-        "properties": {
-          "type": "string"
-        }
+        "type": "string",
+        "pattern": "([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9]"
       }
     }
   }
