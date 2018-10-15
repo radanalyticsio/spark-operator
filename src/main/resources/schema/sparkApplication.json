@@ -1,0 +1,90 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "description": "A Spark application configuration",
+  "type": "object",
+  "extends": {
+    "type": "object",
+    "existingJavaType": "io.radanalytics.operator.common.EntityInfo"
+  },
+  "properties": {
+    "deps": {
+      "type": "object"
+    },
+    "driver": {
+      "$ref": "#/definitions/NodeSpec"
+    },
+    "executor": {
+      "$ref": "#/definitions/NodeSpec"
+    },
+    "image": {
+      "type": "string",
+      "default": "jkremser/openshift-spark:2.3-latest"
+    },
+    "mainApplicationFile": {
+      "type": "string"
+    },
+    "mainClass": {
+      "type": "string"
+    },
+    "arguments": {
+      "type": "string"
+    },
+    "mode": {
+      "type": "string",
+      "enum": ["client", "cluster"]
+    },
+    "restartPolicy": {
+      "type": "string"
+    },
+    "imagePullPolicy": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string",
+      "enum": ["Java", "Scala", "Python", "R"]
+    },
+    "labels": {
+      "$ref": "#/definitions/Labels"
+    },
+    "envVars": {
+      "type": "object",
+      "properties": {
+        "type": "object",
+        "properties": {
+          "type": "string"
+        }
+      }
+    },
+    "sparkConfigMap": {"type": "string"}
+  },
+  "required": [ ],
+  "definitions": {
+    "NodeSpec": {
+      "type": "object",
+      "properties": {
+        "instances": {
+          "type": "integer",
+          "default": 1,
+          "minimum": 0
+        },
+        "memory": {
+          "type": "string"
+        },
+        "cores": {
+          "type": "string"
+        },
+        "labels": {
+          "$ref": "#/definitions/Labels"
+        }
+      }
+    },
+    "Labels": {
+      "type": "object",
+      "existingJavaType" : "java.util.Map<String,String>",
+      "properties": {
+        "type": "string",
+        "pattern": "([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9]"
+      }
+    }
+  }
+}

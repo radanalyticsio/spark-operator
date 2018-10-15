@@ -7,7 +7,7 @@ metadata:
 data:
   config: |-
     worker:
-      replicas: "1"
+      instances: "1"
     downloadData:
     - url: https://data.cityofnewyork.us/api/views/kku6-nxdu/rows.csv
       to: /tmp/

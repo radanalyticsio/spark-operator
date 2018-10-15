@@ -3,11 +3,12 @@ package io.radanalytics.operator.app;
 import io.fabric8.kubernetes.api.model.KubernetesResourceList;
 import io.radanalytics.operator.common.AbstractOperator;
 import io.radanalytics.operator.common.Operator;
+import io.radanalytics.types.SparkApplication;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Operator(forKind = AppInfo.class, named = "App", prefix = "radanalytics.io")
-public class AppOperator extends AbstractOperator<AppInfo> {
+@Operator(forKind = SparkApplication.class, prefix = "radanalytics.io")
+public class AppOperator extends AbstractOperator<SparkApplication> {
 
     private static final Logger log = LoggerFactory.getLogger(AbstractOperator.class.getName());
     private KubernetesAppDeployer deployer;
@@ -18,13 +19,13 @@ public class AppOperator extends AbstractOperator<AppInfo> {
     }
 
     @Override
-    protected void onAdd(AppInfo app) {
+    protected void onAdd(SparkApplication app) {
         KubernetesResourceList list = deployer.getResourceList(app, namespace);
         client.resourceList(list).createOrReplace();
     }
 
     @Override
-    protected void onDelete(AppInfo app) {
+    protected void onDelete(SparkApplication app) {
         String name = app.getName();
         client.services().withLabels(deployer.getLabelsForDeletion(name)).delete();
         client.replicationControllers().withLabels(deployer.getLabelsForDeletion(name)).delete();

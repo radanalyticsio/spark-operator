@@ -2,11 +2,11 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "description": "A Spark cluster configuration",
   "type": "object",
-  "javaInterfaces": ["io.radanalytics.operator.common.EntityInfo"],
+  "extends": {
+    "type": "object",
+    "existingJavaType": "io.radanalytics.operator.common.EntityInfo"
+  },
   "properties": {
-    "name": {
-      "type": "string"
-    },
     "master": {
       "$ref": "#/definitions/RCSpec"
     },
@@ -21,9 +21,9 @@
       "type": "string"
     },
     "env": {
-      "$ref": "#/definitions/Environment"
+      "$ref": "#/definitions/NameValue"
     },
-    "sparkConfiguration": { "$ref": "#/definitions/Environment" },
+    "sparkConfiguration": { "$ref": "#/definitions/NameValue" },
     "labels" : {
       "existingJavaType" : "java.util.Map<String,String>",
       "type" : "object"
@@ -45,7 +45,7 @@
     "RCSpec": {
       "type": "object",
       "properties": {
-        "replicas": {
+        "instances": {
           "type": "integer",
           "default": 1,
           "minimum": 0
@@ -62,18 +62,15 @@
         }
       }
     },
-    "EnvVar": {
-      "type": "object",
-      "properties": {
-        "name": { "type": "string" },
-        "value": { "type": "string" }
-      },
-      "required": ["name", "value"]
-    },
-    "Environment": {
+    "NameValue": {
       "type": "array",
       "items": {
-        "$ref": "#/definitions/EnvVar"
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "value": { "type": "string" }
+        },
+        "required": ["name", "value"]
       }
     }
   }

@@ -41,17 +41,18 @@ public class SparkClusterOperator extends AbstractOperator<SparkCluster> {
     protected void onModify(SparkCluster newCluster) {
         String name = newCluster.getName();
         String newImage = newCluster.getCustomImage();
-        int newMasters = Optional.ofNullable(newCluster.getMaster()).orElse(new RCSpec()).getReplicas();
-        int newWorkers = Optional.ofNullable(newCluster.getWorker()).orElse(new RCSpec()).getReplicas();
+        int newMasters = Optional.ofNullable(newCluster.getMaster()).orElse(new RCSpec()).getInstances();
+        int newWorkers = Optional.ofNullable(newCluster.getWorker()).orElse(new RCSpec()).getInstances();
+
         SparkCluster existingCluster = clusters.getCluster(name);
         if (null == existingCluster) {
             log.error("something went wrong, unable to scale existing cluster. Perhaps it wasn't deployed properly.");
             return;
         }
 
-        if (existingCluster.getWorker().getReplicas() != newWorkers) {
+        if (existingCluster.getWorker().getInstances() != newWorkers) {
             log.info("{}scaling{} from  {}{}{} worker replicas to  {}{}{}", re(), xx(), ye(),
-                    existingCluster.getWorker().getReplicas(), xx(), ye(), newWorkers, xx());
+                    existingCluster.getWorker().getInstances(), xx(), ye(), newWorkers, xx());
             client.replicationControllers().withName(name + "-w").scale(newWorkers);
             clusters.put(newCluster);
         }

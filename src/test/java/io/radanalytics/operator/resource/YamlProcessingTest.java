@@ -47,8 +47,8 @@ public class YamlProcessingTest {
         SparkCluster clusterInfo = HasDataHelper.parseCM(SparkCluster.class, cm1);
 
         assertEquals(clusterInfo.getName(), "my-spark-cluster");
-        assertEquals(clusterInfo.getWorker().getReplicas().intValue(), 2);
-        assertEquals(clusterInfo.getMaster().getReplicas().intValue(), 1);
+        assertEquals(clusterInfo.getWorker().getInstances().intValue(), 2);
+        assertEquals(clusterInfo.getMaster().getInstances().intValue(), 1);
     }
 
     @Test
@@ -66,7 +66,7 @@ public class YamlProcessingTest {
         ConfigMap cm3 = client.configMaps().load(path3).get();
         SparkCluster clusterInfo = HasDataHelper.parseCM(SparkCluster.class, cm3);
 
-        assertEquals(clusterInfo.getMaster().getReplicas().intValue(), 1);
+        assertEquals(clusterInfo.getMaster().getInstances().intValue(), 1);
         assertEquals(clusterInfo.getSparkConfiguration().size(), 2);
         assertEquals(clusterInfo.getSparkConfiguration().get(0).getName(), "spark.executor.memory");
 
@@ -82,7 +82,7 @@ public class YamlProcessingTest {
         SparkCluster clusterInfo = HasDataHelper.parseYaml(SparkCluster.class, cluster1, "foo");
 
         assertEquals(clusterInfo.getName(), "foo");
-        assertEquals(clusterInfo.getWorker().getReplicas().intValue(), 2);
+        assertEquals(clusterInfo.getWorker().getInstances().intValue(), 2);
         assertEquals(clusterInfo.getCustomImage(), DEFAULT_SPARK_IMAGE);
     }
 
@@ -106,7 +106,7 @@ public class YamlProcessingTest {
         // different name
         assertNotEquals(clusterInfo1, clusterInfo2);
 
-        assertEquals(clusterInfo2, clusterInfo3);
+        assertEquals(clusterInfo2.getName(), clusterInfo3.getName());
     }
 
     private String readFile(String path) throws IOException {

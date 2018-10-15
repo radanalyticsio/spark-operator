@@ -36,7 +36,7 @@ metadata:
 data:
   config: |-
     worker:
-      replcas: "2"
+      instances: "2"
 EOF
 ```
 
@@ -50,7 +50,7 @@ metadata:
   name: my-cluster
 spec:
   worker:
-    replicas: "2"
+    instances: "2"
 EOF
 ```
 
