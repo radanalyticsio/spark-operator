@@ -47,13 +47,13 @@ public class KubernetesAppDeployer {
         command.append(" --conf spark.app.name=").append(name);
         command.append(" --conf spark.kubernetes.container.image=").append(image);
         command.append(" --conf spark.kubernetes.submission.waitAppCompletion=false");
-        command.append(" --conf spark.kubernetes.driver.label.radanalytics.io/app=").append(name);
+        command.append(" --conf spark.kubernetes.driver.label.radanalytics.io/sparkapplication=").append(name);
         command.append(" --conf spark.driver.cores=0.100000");
         command.append(" --conf spark.kubernetes.driver.limit.cores=200m");
         command.append(" --conf spark.driver.memory=512m");
         command.append(" --conf spark.kubernetes.authenticate.driver.serviceAccountName=spark-operator");
         command.append(" --conf spark.kubernetes.driver.label.version=2.3.0 ");
-        command.append(" --conf spark.kubernetes.executor.label.radanalytics.io/app=").append(name);
+        command.append(" --conf spark.kubernetes.executor.label.radanalytics.io/sparkapplication=").append(name);
         command.append(" --conf spark.executor.instances=1");
         command.append(" --conf spark.executor.cores=1");
         command.append(" --conf spark.executor.memory=512m");

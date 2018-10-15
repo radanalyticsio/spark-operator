@@ -199,21 +199,21 @@ testApp() {
   info
   [ "$CRD" = "1" ] && FOO="test/cr/" || FOO=""
   os::cmd::expect_success_and_text '${BIN} create -f examples/${FOO}app.yaml' '"?my-spark-app"? created' && \
-  os::cmd::try_until_text "${BIN} get pods --no-headers -l radanalytics.io/app=my-spark-app 2> /dev/null | wc -l" '3'
+  os::cmd::try_until_text "${BIN} get pods --no-headers -l radanalytics.io/sparkapplication=my-spark-app 2> /dev/null | wc -l" '3'
 }
 
 testAppResult() {
   info
   sleep 2
-  local driver_pod=`${BIN} get pods --no-headers -l radanalytics.io/app=my-spark-app -l spark-role=driver -o='jsonpath="{.items[0].metadata.name}"' | sed 's/"//g'` && \
+  local driver_pod=`${BIN} get pods --no-headers -l radanalytics.io/sparkapplication=my-spark-app -l spark-role=driver -o='jsonpath="{.items[0].metadata.name}"' | sed 's/"//g'` && \
   os::cmd::try_until_text "${BIN} logs $driver_pod" 'Pi is roughly 3.1'
 }
 
 testDeleteApp() {
   info
-  [ "$CRD" = "1" ] && FOO="app" || FOO="cm"
+  [ "$CRD" = "1" ] && FOO="sparkapplication" || FOO="cm"
   os::cmd::expect_success_and_text '${BIN} delete ${FOO} my-spark-app' '"my-spark-app" deleted' && \
-  os::cmd::try_until_text "${BIN} get pods --no-headers -l radanalytics.io/app=my-spark-app 2> /dev/null | wc -l" '0'
+  os::cmd::try_until_text "${BIN} get pods --no-headers -l radanalytics.io/sparkapplication=my-spark-app 2> /dev/null | wc -l" '0'
 }
 
 run_custom_test() {
