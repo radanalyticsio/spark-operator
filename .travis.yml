@@ -44,7 +44,8 @@ jobs:
       env: BIN=kubectl VERSION=v1.9.0 CRD=1 MINIKUBE_VERSION=v0.25.2
       script: *kc-script-defaults
 
-    - stage: test-restarts
+    - stage:
+      name: "Restart pod [oc cm]"
       env: BIN=oc VERSION=v3.9.0 CRD=0
       script: &oc-restarts-script-defaults
       - make build-travis
@@ -52,10 +53,12 @@ jobs:
       - ./.travis/.travis.test-restarts.sh
 
     - stage:
+      name: "Restart pod [oc crd]"
       env: BIN=oc VERSION=v3.9.0 CRD=1
       script: *oc-restarts-script-defaults
 
     - stage:
+      name: "Restart pod [kc cm]"
       env: BIN=kubectl VERSION=v1.9.0 CRD=0 MINIKUBE_VERSION=v0.25.2
       script: &kc-restarts-script-defaults
       - make build-travis
@@ -63,11 +66,13 @@ jobs:
       - ./.travis/.travis.test-restarts.sh
 
     - stage:
+      name: "Restart pod [kc crd]"
       env: BIN=kubectl VERSION=v1.9.0 CRD=1 MINIKUBE_VERSION=v0.25.2
       script: *kc-restarts-script-defaults
 
     - stage: deploy
-      script:
+      script: skip
+      deploy:
         # release x.y.z or x.y.z-centos if there is a release
         # or release the latest image if building the master branch
         - ./.travis/.travis.release.images.sh
