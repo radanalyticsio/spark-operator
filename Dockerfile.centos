@@ -1,6 +1,6 @@
 FROM fabric8/java-centos-openjdk8-jdk:1.4.0
 
-ENV JAVA_OPTS="-XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap"
+ENV JAVA_OPTS="-XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -XX:MaxRAMFraction=2 -XshowSettings:vm"
 
 LABEL BASE_IMAGE="fabric8/java-centos-openjdk8-jdk:1.4.0"
 

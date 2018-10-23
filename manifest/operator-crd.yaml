@@ -44,10 +44,10 @@ spec:
           value: "true"
         resources:
           requests:
-            memory: "400Mi"
+            memory: "512Mi"
             cpu: "250m"
           limits:
-            memory: "400Mi"
+            memory: "512Mi"
             cpu: "1000m"
         imagePullPolicy: IfNotPresent
 
