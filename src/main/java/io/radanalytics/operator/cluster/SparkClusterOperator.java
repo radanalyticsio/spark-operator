@@ -40,8 +40,6 @@ public class SparkClusterOperator extends AbstractOperator<SparkCluster> {
 
     protected void onModify(SparkCluster newCluster) {
         String name = newCluster.getName();
-        String newImage = newCluster.getCustomImage();
-        int newMasters = Optional.ofNullable(newCluster.getMaster()).orElse(new RCSpec()).getInstances();
         int newWorkers = Optional.ofNullable(newCluster.getWorker()).orElse(new RCSpec()).getInstances();
 
         SparkCluster existingCluster = clusters.getCluster(name);
@@ -50,13 +48,16 @@ public class SparkClusterOperator extends AbstractOperator<SparkCluster> {
             return;
         }
 
-        if (existingCluster.getWorker().getInstances() != newWorkers) {
+        if (isOnlyScale(existingCluster, newCluster)) {
             log.info("{}scaling{} from  {}{}{} worker replicas to  {}{}{}", re(), xx(), ye(),
                     existingCluster.getWorker().getInstances(), xx(), ye(), newWorkers, xx());
             client.replicationControllers().withName(name + "-w").scale(newWorkers);
+        } else {
+            log.info("{}recreating{} cluster  {}{}{}", re(), xx(), ye(), existingCluster.getName(), xx());
+            KubernetesResourceList list = getDeployer().getResourceList(newCluster);
+            client.resourceList(list).createOrReplace();
             clusters.put(newCluster);
         }
-        // todo: image change, masters # change for k8s
     }
 
     public KubernetesSparkClusterDeployer getDeployer() {
@@ -64,5 +65,14 @@ public class SparkClusterOperator extends AbstractOperator<SparkCluster> {
             this.deployer = new KubernetesSparkClusterDeployer(client, entityName, prefix);
         }
         return deployer;
+    }
+
+    private boolean isOnlyScale(SparkCluster oldC, SparkCluster newC) {
+        boolean retVal = oldC.getWorker().getInstances() != newC.getWorker().getInstances();
+        int backup = Optional.ofNullable(newC.getWorker()).orElse(new RCSpec()).getInstances();
+        newC.getWorker().setInstances(oldC.getWorker().getInstances());
+        retVal &= oldC.equals(newC);
+        newC.getWorker().setInstances(backup);
+        return retVal;
     }
 }
