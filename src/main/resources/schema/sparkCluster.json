@@ -17,6 +17,10 @@
       "type": "string",
       "default": "jkremser/openshift-spark:2.3-latest"
     },
+    "metrics": {
+      "type": "boolean",
+      "default": "false"
+    },
     "sparkConfigurationMap": {
       "type": "string"
     },
