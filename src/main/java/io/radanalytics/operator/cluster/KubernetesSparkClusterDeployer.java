@@ -88,6 +88,11 @@ public class KubernetesSparkClusterDeployer {
             envVars.add(env("SPARK_MASTER_ADDRESS", "spark://" + name + ":7077"));
             envVars.add(env("SPARK_MASTER_UI_ADDRESS", "http://" + name + "-ui:8080"));
         }
+        if (cluster.getMetrics()) {
+            envVars.add(env("SPARK_METRICS_ON", "prometheus"));
+            ContainerPort metricsPort = new ContainerPortBuilder().withName("metrics").withContainerPort(7777).withProtocol("TCP").build();
+            ports.add(metricsPort);
+        }
 
         Probe masterLiveness = new ProbeBuilder().withNewExec().withCommand(Arrays.asList("/bin/bash", "-c", "curl localhost:8080 | grep -e Status.*ALIVE")).endExec()
                 .withFailureThreshold(3)
