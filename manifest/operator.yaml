@@ -49,9 +49,9 @@ spec:
         #- name: WATCHED_NAMESPACE
         #  value: myproject
         #- name: CRD
-        #  value: true
+        #  value: "true"
         #- name: COLORS
-        #  value: false
+        #  value: "false"
         resources:
           requests:
             memory: "512Mi"
