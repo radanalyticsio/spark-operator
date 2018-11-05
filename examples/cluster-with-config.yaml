@@ -14,7 +14,7 @@ data:
       instances: "1"                                      # optional defaults to 1
       memory: "1Gi"                                       # optional no defaults
       cpu: 0.2                                            # optional no defaults
-    customImage: jkremser/openshift-spark:2.3-latest      # optional defaults to jkremser/openshift-spark:2.3-latest
+    customImage: quay.io/jkremser/openshift-spark:2.3-latest  # optional defaults to quay.io/jkremser/openshift-spark:2.3-latest
     metrics: true                                         # on each pod expose the metrics endpoint on port 7777 for prometheus
     env:                                                  # optional
     - name: SPARK_WORKER_CORES
