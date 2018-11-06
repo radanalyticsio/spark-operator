@@ -15,7 +15,7 @@
     },
     "customImage": {
       "type": "string",
-      "default": "jkremser/openshift-spark:2.3-latest"
+      "default": "quay.io/jkremser/openshift-spark:2.3-latest"
     },
     "metrics": {
       "type": "boolean",

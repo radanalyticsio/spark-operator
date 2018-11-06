@@ -44,14 +44,14 @@ spec:
       serviceAccountName: spark-operator
       containers:
       - name: spark-operator
-        image: radanalyticsio/spark-operator:latest-released
+        image: quay.io/radanalyticsio/spark-operator:latest-released
         #env:
         #- name: WATCHED_NAMESPACE
         #  value: myproject
         #- name: CRD
-        #  value: true
+        #  value: "true"
         #- name: COLORS
-        #  value: false
+        #  value: "false"
         resources:
           requests:
             memory: "512Mi"
