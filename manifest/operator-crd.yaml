@@ -38,7 +38,7 @@ spec:
       serviceAccountName: spark-operator
       containers:
       - name: spark-operator
-        image: radanalyticsio/spark-operator:latest-released
+        image: quay.io/radanalyticsio/spark-operator:latest-released
         env:
         - name: CRD
           value: "true"
