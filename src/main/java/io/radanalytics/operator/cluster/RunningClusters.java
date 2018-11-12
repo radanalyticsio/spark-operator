@@ -1,13 +1,13 @@
 package io.radanalytics.operator.cluster;
 
-import io.prometheus.client.CollectorRegistry;
 import io.prometheus.client.Counter;
 import io.prometheus.client.Gauge;
-import io.prometheus.client.SimpleCollector;
+import io.radanalytics.types.RCSpec;
 import io.radanalytics.types.SparkCluster;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 
 public class RunningClusters {
@@ -38,7 +38,7 @@ public class RunningClusters {
     public void put(SparkCluster ci) {
         runningClusters.inc();
         startedTotal.inc();
-        workers.labels(ci.getName()).set(ci.getWorker().getInstances());
+        workers.labels(ci.getName()).set(Optional.ofNullable(ci.getWorker()).orElse(new RCSpec()).getInstances());
         clusters.put(ci.getName(), ci);
     }
 
