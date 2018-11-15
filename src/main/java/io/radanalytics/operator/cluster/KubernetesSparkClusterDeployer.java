@@ -96,7 +96,7 @@ public class KubernetesSparkClusterDeployer {
 
         Probe masterLiveness = new ProbeBuilder().withNewExec().withCommand(Arrays.asList("/bin/bash", "-c", "curl localhost:8080 | grep -e Status.*ALIVE")).endExec()
                 .withFailureThreshold(3)
-                .withInitialDelaySeconds(10)
+                .withInitialDelaySeconds(4 + cluster.getDownloadData().size() * 5)
                 .withPeriodSeconds(10)
                 .withSuccessThreshold(1)
                 .withTimeoutSeconds(1).build();
@@ -108,6 +108,7 @@ public class KubernetesSparkClusterDeployer {
                 .endHttpGet()
                 .withPeriodSeconds(10)
                 .withSuccessThreshold(1)
+                .withInitialDelaySeconds(8 + cluster.getDownloadData().size() * 5)
                 .withTimeoutSeconds(1).build();
 
         ContainerBuilder containerBuilder = new ContainerBuilder().withEnv(envVars).withImage(cluster.getCustomImage())
