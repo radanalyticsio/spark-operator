@@ -18,7 +18,7 @@
     },
     "image": {
       "type": "string",
-      "default": "quay.io/jkremser/openshift-spark:2.3-latest"
+      "default": "quay.io/jkremser/openshift-spark-app:2.3-latest"
     },
     "mainApplicationFile": {
       "type": "string"
