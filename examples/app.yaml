@@ -6,8 +6,8 @@ metadata:
     radanalytics.io/kind: sparkapplication
 data:
   config: |-
-    image: quay.io/jkremser/openshift-spark:2.3-latest
-    mainApplicationFile: local:///opt/spark/examples/jars/spark-examples_2.11-2.3.0.jar
+    image: quay.io/jkremser/openshift-spark:2.4.0
+    mainApplicationFile: local:///opt/spark/examples/jars/spark-examples_2.11-2.4.0.jar
     mainClass: org.apache.spark.examples.SparkPi
     labels:
       foo: bar
