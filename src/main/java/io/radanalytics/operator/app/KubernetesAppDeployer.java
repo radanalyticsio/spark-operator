@@ -8,7 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static io.radanalytics.operator.Constants.DEFAULT_SPARK_IMAGE;
+import static io.radanalytics.operator.Constants.DEFAULT_SPARK_IMAGE_FOR_APP;
 import static io.radanalytics.operator.cluster.KubernetesSparkClusterDeployer.env;
 import static io.radanalytics.operator.resource.LabelsHelper.OPERATOR_KIND_LABEL;
 
@@ -52,19 +52,19 @@ public class KubernetesAppDeployer {
         command.append(" --conf spark.kubernetes.driver.limit.cores=200m");
         command.append(" --conf spark.driver.memory=512m");
         command.append(" --conf spark.kubernetes.authenticate.driver.serviceAccountName=spark-operator");
-        command.append(" --conf spark.kubernetes.driver.label.version=2.4.0 ");
+        command.append(" --conf spark.kubernetes.driver.label.version=2.3.0 ");
         command.append(" --conf spark.kubernetes.executor.label.radanalytics.io/sparkapplication=").append(name);
         command.append(" --conf spark.executor.instances=1");
         command.append(" --conf spark.executor.cores=1");
         command.append(" --conf spark.executor.memory=512m");
-        command.append(" --conf spark.kubernetes.executor.label.version=2.4.0");
+        command.append(" --conf spark.kubernetes.executor.label.version=2.3.0");
         command.append(" --conf spark.jars.ivy=/tmp/.ivy2");
         command.append(" ").append(file);
         command.append(" && sleep 31536000");
 
         ContainerBuilder containerBuilder = new ContainerBuilder()
                 .withEnv(envVars)
-                .withImage(DEFAULT_SPARK_IMAGE)
+                .withImage(DEFAULT_SPARK_IMAGE_FOR_APP)
                 .withImagePullPolicy("IfNotPresent")
                 .withName(name)
                 .withTerminationMessagePath("/dev/termination-log")
