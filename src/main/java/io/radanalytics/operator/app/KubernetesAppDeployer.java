@@ -8,7 +8,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static io.radanalytics.operator.Constants.DEFAULT_SPARK_IMAGE_FOR_APP;
 import static io.radanalytics.operator.cluster.KubernetesSparkClusterDeployer.env;
 import static io.radanalytics.operator.resource.LabelsHelper.OPERATOR_KIND_LABEL;
 
@@ -64,7 +63,7 @@ public class KubernetesAppDeployer {
 
         ContainerBuilder containerBuilder = new ContainerBuilder()
                 .withEnv(envVars)
-                .withImage(DEFAULT_SPARK_IMAGE_FOR_APP)
+                .withImage(image)
                 .withImagePullPolicy("IfNotPresent")
                 .withName(name)
                 .withTerminationMessagePath("/dev/termination-log")
