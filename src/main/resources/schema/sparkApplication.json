@@ -18,7 +18,7 @@
     },
     "image": {
       "type": "string",
-      "default": "quay.io/jkremser/openshift-spark-app:2.3-latest"
+      "default": "quay.io/jkremser/openshift-spark:2.3-latest"
     },
     "mainApplicationFile": {
       "type": "string"
@@ -42,6 +42,11 @@
     "type": {
       "type": "string",
       "enum": ["Java", "Scala", "Python", "R"]
+    },
+    "sleep": {
+      "type": "integer",
+      "default": 300,
+      "minimum": 0
     },
     "labels": {
       "$ref": "#/definitions/Labels"

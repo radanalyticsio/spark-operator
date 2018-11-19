@@ -22,29 +22,25 @@ public class KubernetesAppDeployer {
     }
 
     public KubernetesResourceList getResourceList(SparkApplication app, String namespace) {
-        String name = app.getName();
-        String image = app.getImage();
-        String file = app.getMainApplicationFile();
-        String main = app.getMainClass();
-
-        ReplicationController submitter = getSubmitterRc(name, image, file, main, namespace);
+        ReplicationController submitter = getSubmitterRc(app, namespace);
         KubernetesList resources = new KubernetesListBuilder().withItems(submitter).build();
         return resources;
     }
 
-    private ReplicationController getSubmitterRc(String name, String image, String file, String main,
-                                                        String namespace) {
+    private ReplicationController getSubmitterRc(SparkApplication app, String namespace) {
         List<EnvVar> envVars = new ArrayList<>();
         envVars.add(env("FOO", "bar"));
 
+        final String name = app.getName();
+
         StringBuilder command = new StringBuilder();
         command.append("/opt/spark/bin/spark-submit");
-        command.append(" --class ").append(main);
+        command.append(" --class ").append(app.getMainApplicationFile());
         command.append(" --master k8s://https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_SERVICE_PORT");
         command.append(" --conf spark.kubernetes.namespace=").append(namespace);
         command.append(" --deploy-mode cluster");
         command.append(" --conf spark.app.name=").append(name);
-        command.append(" --conf spark.kubernetes.container.image=").append(image);
+        command.append(" --conf spark.kubernetes.container.image=").append(app.getImage());
         command.append(" --conf spark.kubernetes.submission.waitAppCompletion=false");
         command.append(" --conf spark.kubernetes.driver.label.radanalytics.io/sparkapplication=").append(name);
         command.append(" --conf spark.driver.cores=0.100000");
@@ -58,12 +54,14 @@ public class KubernetesAppDeployer {
         command.append(" --conf spark.executor.memory=512m");
         command.append(" --conf spark.kubernetes.executor.label.version=2.3.0");
         command.append(" --conf spark.jars.ivy=/tmp/.ivy2");
-        command.append(" ").append(file);
-        command.append(" && sleep 31536000");
+        command.append(" ").append(app.getMainApplicationFile());
+        if (app.getSleep() > 0) {
+            command.append(" && sleep ").append(app.getSleep());
+        }
 
         ContainerBuilder containerBuilder = new ContainerBuilder()
                 .withEnv(envVars)
-                .withImage(image)
+                .withImage(app.getImage())
                 .withImagePullPolicy("IfNotPresent")
                 .withName(name)
                 .withTerminationMessagePath("/dev/termination-log")
