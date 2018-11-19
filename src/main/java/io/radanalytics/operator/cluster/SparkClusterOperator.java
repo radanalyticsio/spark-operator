@@ -92,8 +92,36 @@ public class SparkClusterOperator extends AbstractOperator<SparkCluster> {
         Sets.SetView<String> toBeCreated = Sets.difference(desiredMap.keySet(), actual.keySet());
         Sets.SetView<String> toBeDeleted = Sets.difference(actual.keySet(), desiredMap.keySet());
 
-        log.info("toBeCreated: {}", toBeCreated);
-        log.info("toBeDeleted: {}", toBeDeleted);
+        if (!toBeCreated.isEmpty()) {
+            log.info("toBeCreated: {}", toBeCreated);
+        }
+        if (!toBeDeleted.isEmpty()) {
+            log.info("toBeDeleted: {}", toBeDeleted);
+        }
+
+        // add new
+        toBeCreated.forEach(cluster -> {
+            onAdd(desiredMap.get(cluster));
+        });
+
+        // delete old
+        toBeDeleted.forEach(cluster -> {
+            SparkCluster c = new SparkCluster();
+            c.setName(cluster);
+            onDelete(c);
+        });
+
+        // scale
+        desiredSet.forEach(dCluster -> {
+            int desiredWorkers = Optional.ofNullable(dCluster.getWorker()).orElse(new RCSpec()).getInstances();
+            int actualWorkers = actual.get(dCluster);
+            if (desiredWorkers != actualWorkers) {
+                // update the internal representation with the actual # of workers
+                Optional.ofNullable(clusters.getCluster(dCluster.getName()).getWorker())
+                        .ifPresent(worker -> worker.setInstances(actualWorkers));
+                onModify(dCluster);
+            }
+        });
     }
 
     private Map<String, Integer> getActual() {
