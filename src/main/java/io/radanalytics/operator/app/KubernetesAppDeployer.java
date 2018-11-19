@@ -56,6 +56,7 @@ public class KubernetesAppDeployer {
         command.append(" --conf spark.jars.ivy=/tmp/.ivy2");
         command.append(" ").append(app.getMainApplicationFile());
         if (app.getSleep() > 0) {
+            command.append(" && echo -e '\\n\\ntask/pod will be rescheduled in ").append(app.getSleep()).append(" seconds..'");
             command.append(" && sleep ").append(app.getSleep());
         }
 
