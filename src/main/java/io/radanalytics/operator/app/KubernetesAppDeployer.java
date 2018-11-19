@@ -35,7 +35,7 @@ public class KubernetesAppDeployer {
 
         StringBuilder command = new StringBuilder();
         command.append("/opt/spark/bin/spark-submit");
-        command.append(" --class ").append(app.getMainApplicationFile());
+        command.append(" --class ").append(app.getMainClass());
         command.append(" --master k8s://https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_SERVICE_PORT");
         command.append(" --conf spark.kubernetes.namespace=").append(namespace);
         command.append(" --deploy-mode cluster");
@@ -63,18 +63,19 @@ public class KubernetesAppDeployer {
                 .withEnv(envVars)
                 .withImage(app.getImage())
                 .withImagePullPolicy("IfNotPresent")
-                .withName(name)
+                .withName(name + "-submitter")
                 .withTerminationMessagePath("/dev/termination-log")
                 .withTerminationMessagePolicy("File")
                 .withCommand("/bin/sh", "-c")
                 .withArgs(command.toString());
 
         ReplicationController rc = new ReplicationControllerBuilder().withNewMetadata()
-                .withName(name).withLabels(getDefaultLabels(name))
+                .withName(name + "-submitter").withLabels(getDefaultLabels(name))
                 .endMetadata()
                 .withNewSpec().withReplicas(1)
                 .withSelector(getDefaultLabels(name))
-                .withNewTemplate().withNewMetadata().withLabels(getDefaultLabels(name)).endMetadata()
+                .withNewTemplate().withNewMetadata().withLabels(getDefaultLabels(name)).withName(name + "-submitter")
+                .endMetadata()
                 .withNewSpec()
                 .withContainers(containerBuilder.build())
                 .withServiceAccountName("spark-operator")

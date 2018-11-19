@@ -45,7 +45,7 @@
     },
     "sleep": {
       "type": "integer",
-      "default": 300,
+      "default": 31536000,
       "minimum": 0
     },
     "labels": {
