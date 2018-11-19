@@ -53,7 +53,7 @@ image-publish-all: build-travis image-build-all image-publish image-publish-alpi
 devel: build
 	-docker kill `docker ps -q` || true
 	oc cluster up
-	sed 's;radanalyticsio/spark-operator:latest-released;radanalyticsio/spark-operator:latest;g' manifest/operator.yaml > manifest/operator-devel.yaml && oc create -f manifest/operator-devel.yaml ; rm manifest/operator-devel.yaml || true
+	sed 's;quay.io/radanalyticsio/spark-operator:latest-released;radanalyticsio/spark-operator:latest;g' manifest/operator.yaml > manifest/operator-devel.yaml && oc create -f manifest/operator-devel.yaml ; rm manifest/operator-devel.yaml || true
 	until [ "true" = "`oc get pod -l app.kubernetes.io/name=spark-operator -o json 2> /dev/null | grep \"\\\"ready\\\": \" | sed -e 's;.*\(true\|false\),;\1;'`" ]; do printf "."; sleep 1; done
 	oc logs -f `oc get pods --no-headers -l app.kubernetes.io/name=spark-operator | cut -f1 -d' '`
 
@@ -62,6 +62,6 @@ devel-kubernetes:
 	-minikube delete
 	minikube start --vm-driver kvm2
 	eval `minikube docker-env` && $(MAKE) build
-	sed 's;radanalyticsio/spark-operator:latest-released;radanalyticsio/spark-operator:latest;g' manifest/operator.yaml > manifest/operator-devel.yaml && kubectl create -f manifest/operator.yaml ; rm manifest/operator-devel.yaml || true
+	sed 's;quay.io/radanalyticsio/spark-operator:latest-released;radanalyticsio/spark-operator:latest;g' manifest/operator.yaml > manifest/operator-devel.yaml && kubectl create -f manifest/operator.yaml ; rm manifest/operator-devel.yaml || true
 	until [ "true" = "`kubectl get pod -l app.kubernetes.io/name=spark-operator -o json 2> /dev/null | grep \"\\\"ready\\\": \" | sed -e 's;.*\(true\|false\),;\1;'`" ]; do printf "."; sleep 1; done
 	kubectl logs -f `kubectl get pods --no-headers -l app.kubernetes.io/name=spark-operator | cut -f1 -d' '`
