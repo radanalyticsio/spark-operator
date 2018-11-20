@@ -15,6 +15,7 @@ stages:
 jobs:
   include:
     - stage: test
+      name: "Maven & cont. image build"
       language: java
       script: make build-travis test
 
