@@ -119,7 +119,7 @@ public class SparkClusterOperator extends AbstractOperator<SparkCluster> {
             Integer actualWorkers = actual.get(dCluster.getName());
             if (actualWorkers != null && desiredWorkers != actualWorkers) {
                 // update the internal representation with the actual # of workers
-                Optional.ofNullable(clusters.getCluster(dCluster.getName()).getWorker())
+                Optional.ofNullable(clusters.getCluster(dCluster.getName())).map(SparkCluster::getWorker)
                         .ifPresent(worker -> worker.setInstances(actualWorkers));
                 onModify(dCluster);
             }
