@@ -78,7 +78,6 @@ testCreateOperator() {
     os::cmd::try_until_text "${BIN} get crd" 'sparkclusters.radanalytics.io'
   fi
   sleep 10
-  export operator_pod=`${BIN} get pod -l app.kubernetes.io/name=spark-operator -o='jsonpath="{.items[0].metadata.name}"' | sed 's/"//g'`
 }
 
 testCreateCluster() {
@@ -91,7 +90,8 @@ testCreateCluster() {
 
 testKillOperator() {
   info
-  os::cmd::expect_success_and_text "${BIN} delete pod $operator_pod" 'pod "?'$operator_pod'"? deleted' && \
+  local pod=`${BIN} get pod -l app.kubernetes.io/name=spark-operator -o='jsonpath="{.items[0].metadata.name}"' | sed 's/"//g'`
+  os::cmd::expect_success_and_text "${BIN} delete pod $pod" 'pod "?'$pod'"? deleted' && \
   sleep 7
 }
 
