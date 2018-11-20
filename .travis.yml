@@ -19,6 +19,7 @@ jobs:
       script: make build-travis test
 
     - stage: test-oc-and-k8s
+      name: "Specs [oc • CMs]"
       env: BIN=oc VERSION=v3.9.0 CRD=0
       script: &oc-script-defaults
         - make build-travis
@@ -26,6 +27,7 @@ jobs:
         - ./.travis/.travis.test-oc-and-k8s.sh
 
     - stage:
+      name: "Specs [oc • CRs]"
       env: BIN=oc VERSION=v3.9.0 CRD=1
       script: *oc-script-defaults
 
@@ -34,6 +36,7 @@ jobs:
     #  script: *oc-script-defaults
 
     - stage:
+      name: "Specs [K8s • CMs]"
       env: BIN=kubectl VERSION=v1.9.0 CRD=0 MINIKUBE_VERSION=v0.25.2
       script: &kc-script-defaults
         - make build-travis
@@ -41,34 +44,25 @@ jobs:
         - ./.travis/.travis.test-oc-and-k8s.sh
 
     - stage:
+      name: "Specs [K8s • CRs]"
       env: BIN=kubectl VERSION=v1.9.0 CRD=1 MINIKUBE_VERSION=v0.25.2
       script: *kc-script-defaults
 
     - stage:
-      name: "Restart pod [oc cm]"
+      name: "Restarts [oc • CMs]"
       env: BIN=oc VERSION=v3.9.0 CRD=0
-      script: &oc-restarts-script-defaults
+      script:
       - make build-travis
       - ./.travis/.travis.prepare.openshift.sh
       - ./.travis/.travis.test-restarts.sh
 
     - stage:
-      name: "Restart pod [oc crd]"
-      env: BIN=oc VERSION=v3.9.0 CRD=1
-      script: *oc-restarts-script-defaults
-
-    - stage:
-      name: "Restart pod [kc cm]"
-      env: BIN=kubectl VERSION=v1.9.0 CRD=0 MINIKUBE_VERSION=v0.25.2
-      script: &kc-restarts-script-defaults
+      name: "Restarts [K8s • CRs]"
+      env: BIN=kubectl VERSION=v1.9.0 CRD=1 MINIKUBE_VERSION=v0.25.2
+      script:
       - make build-travis
       - ./.travis/.travis.prepare.minikube.sh
       - ./.travis/.travis.test-restarts.sh
-
-    - stage:
-      name: "Restart pod [kc crd]"
-      env: BIN=kubectl VERSION=v1.9.0 CRD=1 MINIKUBE_VERSION=v0.25.2
-      script: *kc-restarts-script-defaults
 
     - stage: deploy
       script: skip

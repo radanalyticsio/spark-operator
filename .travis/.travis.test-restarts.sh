@@ -91,9 +91,8 @@ testCreateCluster() {
 
 testKillOperator() {
   info
-  os::cmd::expect_success_and_text "${BIN} delete pod $operator_pod" 'todo: output' && \
-  sleep 2 && \
-  testCreateOperator
+  os::cmd::expect_success_and_text "${BIN} delete pod $operator_pod" 'pod "?'$operator_pod'"? deleted' && \
+  sleep 7
 }
 
 testScaleCluster() {
