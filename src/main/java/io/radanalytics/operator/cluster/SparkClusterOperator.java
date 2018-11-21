@@ -1,5 +1,6 @@
 package io.radanalytics.operator.cluster;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Functions;
 import com.google.common.collect.Sets;
 import io.fabric8.kubernetes.api.model.DoneableReplicationController;
@@ -18,7 +19,9 @@ import io.radanalytics.types.SparkCluster;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import static io.radanalytics.operator.common.AnsiColors.*;
@@ -82,6 +85,7 @@ public class SparkClusterOperator extends AbstractOperator<SparkCluster> {
 //        5. modify / scale
 
         log.info("Running full reconciliation for namespace {} and kind {}..", namespace, entityName);
+        final AtomicBoolean change = new AtomicBoolean(false);
         Set<SparkCluster> desiredSet = super.getDesiredSet();
         Map<String, SparkCluster> desiredMap = desiredSet.stream().collect(Collectors.toMap(SparkCluster::getName, Functions.identity()));
         Map<String, Integer> actual = getActual();
@@ -94,9 +98,11 @@ public class SparkClusterOperator extends AbstractOperator<SparkCluster> {
 
         if (!toBeCreated.isEmpty()) {
             log.info("toBeCreated: {}", toBeCreated);
+            change.set(true);
         }
         if (!toBeDeleted.isEmpty()) {
             log.info("toBeDeleted: {}", toBeDeleted);
+            change.set(true);
         }
 
         // add new
@@ -118,12 +124,38 @@ public class SparkClusterOperator extends AbstractOperator<SparkCluster> {
             int desiredWorkers = Optional.ofNullable(dCluster.getWorker()).orElse(new RCSpec()).getInstances();
             Integer actualWorkers = actual.get(dCluster.getName());
             if (actualWorkers != null && desiredWorkers != actualWorkers) {
-                // update the internal representation with the actual # of workers
-                Optional.ofNullable(clusters.getCluster(dCluster.getName()).getWorker())
-                        .ifPresent(worker -> worker.setInstances(actualWorkers));
+                change.set(true);
+                // update the internal representation with the actual # of workers and call onModify
+                if (clusters.getCluster(dCluster.getName()) == null) {
+                    // deep copy via json -> room for optimization
+                    ObjectMapper om = new ObjectMapper();
+                    try {
+                        SparkCluster actualCluster = om.readValue(om.writeValueAsString(dCluster), SparkCluster.class);
+                        Optional.ofNullable(actualCluster.getWorker()).ifPresent(w -> w.setInstances(actualWorkers));
+                        clusters.put(actualCluster);
+                    } catch (IOException e) {
+                        log.warn(e.getMessage());
+                        e.printStackTrace();
+                        return;
+                    }
+                } else {
+                    Optional.ofNullable(clusters.getCluster(dCluster.getName())).map(SparkCluster::getWorker)
+                            .ifPresent(worker -> worker.setInstances(actualWorkers));
+                }
+                log.info("scaling cluster {}", dCluster.getName());
                 onModify(dCluster);
             }
         });
+
+        // first reconciliation after (re)start -> update the clusters instance
+        if (!fullReconciliationRun) {
+            clusters.resetMetrics();
+            desiredMap.entrySet().forEach(e -> clusters.put(e.getValue()));
+        }
+
+        if (!change.get()) {
+            log.info("no change was detected during the reconciliation");
+        }
     }
 
     private Map<String, Integer> getActual() {
