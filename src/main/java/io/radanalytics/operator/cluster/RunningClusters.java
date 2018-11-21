@@ -23,7 +23,7 @@ public class RunningClusters {
             .labelNames("cluster")
             .register();
 
-    public static final Counter startedTotal = Counter.build()
+    public static final Gauge startedTotal = Gauge.build()
             .name("operator_started_total")
             .help("Spark clusters has been started by operator.")
             .register();
@@ -52,6 +52,12 @@ public class RunningClusters {
 
     public SparkCluster getCluster(String name) {
         return this.clusters.get(name);
+    }
+
+    public void resetMetrics() {
+        startedTotal.set(0);
+        workers.clear();
+        startedTotal.set(0);
     }
 
 }
