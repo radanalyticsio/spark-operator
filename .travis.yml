@@ -66,8 +66,8 @@ jobs:
         - ./.travis/.travis.test-restarts.sh
 
     - stage: deploy
-      script: skip
-      deploy:
+      name: "Push container images"
+      script:
         # release x.y.z or x.y.z-centos if there is a release
         # or release the latest image if building the master branch
         - ./.travis/.travis.release.images.sh
