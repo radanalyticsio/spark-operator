@@ -16,11 +16,13 @@ public class KubernetesSparkClusterDeployer {
     private KubernetesClient client;
     private String entityName;
     private String prefix;
+    private String namespace;
 
-    KubernetesSparkClusterDeployer(KubernetesClient client, String entityName, String prefix) {
+    KubernetesSparkClusterDeployer(KubernetesClient client, String entityName, String prefix, String namespace) {
         this.client = client;
         this.entityName = entityName;
         this.prefix = prefix;
+        this.namespace = namespace;
     }
 
     public KubernetesResourceList getResourceList(SparkCluster cluster) {
@@ -269,7 +271,7 @@ public class KubernetesSparkClusterDeployer {
     }
 
     private boolean cmExists(String name) {
-        ConfigMap configMap = client.configMaps().withName(name).get();
+        ConfigMap configMap = client.configMaps().inNamespace(namespace).withName(name).get();
         return configMap != null && configMap.getData() != null && !configMap.getData().isEmpty();
     }
 

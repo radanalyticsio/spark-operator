@@ -39,15 +39,15 @@ public class SparkClusterOperator extends AbstractOperator<SparkCluster> {
 
     protected void onAdd(SparkCluster cluster) {
         KubernetesResourceList list = getDeployer().getResourceList(cluster);
-        client.resourceList(list).createOrReplace();
+        client.resourceList(list).inNamespace(namespace).createOrReplace();
         clusters.put(cluster);
     }
 
     protected void onDelete(SparkCluster cluster) {
         String name = cluster.getName();
-        client.services().withLabels(getDeployer().getDefaultLabels(name)).delete();
-        client.replicationControllers().withLabels(getDeployer().getDefaultLabels(name)).delete();
-        client.pods().withLabels(getDeployer().getDefaultLabels(name)).delete();
+        client.services().inNamespace(namespace).withLabels(getDeployer().getDefaultLabels(name)).delete();
+        client.replicationControllers().inNamespace(namespace).withLabels(getDeployer().getDefaultLabels(name)).delete();
+        client.pods().inNamespace(namespace).withLabels(getDeployer().getDefaultLabels(name)).delete();
         clusters.delete(name);
     }
 
@@ -64,11 +64,11 @@ public class SparkClusterOperator extends AbstractOperator<SparkCluster> {
         if (isOnlyScale(existingCluster, newCluster)) {
             log.info("{}scaling{} from  {}{}{} worker replicas to  {}{}{}", re(), xx(), ye(),
                     existingCluster.getWorker().getInstances(), xx(), ye(), newWorkers, xx());
-            client.replicationControllers().withName(name + "-w").scale(newWorkers);
+            client.replicationControllers().inNamespace(namespace).withName(name + "-w").scale(newWorkers);
         } else {
             log.info("{}recreating{} cluster  {}{}{}", re(), xx(), ye(), existingCluster.getName(), xx());
             KubernetesResourceList list = getDeployer().getResourceList(newCluster);
-            client.resourceList(list).createOrReplace();
+            client.resourceList(list).inNamespace(namespace).createOrReplace();
             clusters.put(newCluster);
         }
     }
@@ -144,7 +144,7 @@ public class SparkClusterOperator extends AbstractOperator<SparkCluster> {
 
     public KubernetesSparkClusterDeployer getDeployer() {
         if (this.deployer == null) {
-            this.deployer = new KubernetesSparkClusterDeployer(client, entityName, prefix);
+            this.deployer = new KubernetesSparkClusterDeployer(client, entityName, prefix, namespace);
         }
         return deployer;
     }
