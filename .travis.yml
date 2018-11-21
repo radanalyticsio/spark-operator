@@ -21,7 +21,7 @@ jobs:
 
     - stage:
       name: "Buildah-able?"
-      script: make buildah
+      script: make buildah-travis-deps buildah
 
     - stage: test-oc-and-k8s
       name: "Specs [oc • CMs]"

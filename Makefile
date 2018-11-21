@@ -23,6 +23,17 @@ buildah:
 	buildah bud -f Dockerfile.centos . /dev/null || ./buildah bud -f Dockerfile.centos .
 	#buildah bud -f Dockerfile.alpine . /dev/null || ./buildah bud -f Dockerfile.alpine . # this fails for the alpine img
 
+.PHONY: buildah-travis-deps
+buildah-travis-deps:
+	#sudo apt-get -y install software-properties-common
+	sudo add-apt-repository -y ppa:alexlarsson/flatpak
+	#sudo add-apt-repository -y ppa:gophers/archive
+	#sudo apt-add-repository -y ppa:projectatomic/ppa
+	sudo apt-get -y -qq update
+	#sudo apt-get -y install bats btrfs-tools git libapparmor-dev libdevmapper-dev libglib2.0-dev libgpgme11-dev libostree-dev libseccomp-dev libselinux1-dev skopeo-containers go-md2man
+	sudo apt-get -y install libostree-dev libostree-1-1
+	#sudo apt-get -y install golang-1.10
+
 .PHONY: image-build-alpine
 image-build-alpine:
 	docker build -t $(IMAGE):alpine -f Dockerfile.alpine .
