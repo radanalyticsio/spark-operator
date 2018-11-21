@@ -15,7 +15,7 @@ stages:
 jobs:
   include:
     - stage: test
-      name: "Maven & cont. image build"
+      name: "Maven & container image build"
       language: java
       script: make build test
 
