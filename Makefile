@@ -3,17 +3,6 @@ IMAGE?=radanalyticsio/spark-operator
 .PHONY: build
 build: package image-build
 
-.PHONY: build-travis
-build-travis: install-lib build
-
-.PHONY: install-parent
-install-parent:
-	rm -rf ./operator-parent-pom ; git clone --depth=1 --branch master https://github.com/jvm-operators/operator-parent-pom.git && cd operator-parent-pom && MAVEN_OPTS="-Djansi.passthrough=true -Dplexus.logger.type=ansi $(MAVEN_OPTS)" ./mvnw clean install && cd - && rm -rf ./operator-parent-pom
-
-.PHONY: install-lib
-install-lib: install-parent
-	rm -rf ./abstract-operator ; git clone --depth=1 --branch master https://github.com/jvm-operators/abstract-operator.git && cd abstract-operator && MAVEN_OPTS="-Djansi.passthrough=true -Dplexus.logger.type=ansi $(MAVEN_OPTS)" ./mvnw clean install && cd - && rm -rf ./abstract-operator
-
 .PHONY: package
 package:
 	MAVEN_OPTS="-Djansi.passthrough=true -Dplexus.logger.type=ansi $(MAVEN_OPTS)" ./mvnw clean package -DskipTests
@@ -26,6 +15,13 @@ test:
 image-build:
 	docker build -t $(IMAGE):centos -f Dockerfile.centos .
 	docker tag $(IMAGE):centos $(IMAGE):latest
+
+.PHONY: buildah
+buildah:
+	command -v buildah || docker cp $$(docker create docker.io/tomkukral/buildah:latest ls):/usr/bin/buildah ./buildah
+	echo -e "\n\nbuildah version: " && ./buildah -v || ./buildah -v && echo -e "\n"
+	buildah bud -f Dockerfile.centos . /dev/null || ./buildah bud -f Dockerfile.centos .
+	#buildah bud -f Dockerfile.alpine . /dev/null || ./buildah bud -f Dockerfile.alpine . # this fails for the alpine img
 
 .PHONY: image-build-alpine
 image-build-alpine:
