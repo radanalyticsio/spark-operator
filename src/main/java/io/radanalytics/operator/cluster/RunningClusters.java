@@ -43,9 +43,11 @@ public class RunningClusters {
     }
 
     public void delete(String name) {
-        runningClusters.dec();
-        workers.labels(name).set(0);
-        clusters.remove(name);
+        if (clusters.containsKey(name)) {
+            runningClusters.dec();
+            workers.labels(name).set(0);
+            clusters.remove(name);
+        }
     }
 
     public SparkCluster getCluster(String name) {
