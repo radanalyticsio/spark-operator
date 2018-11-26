@@ -223,7 +223,7 @@ testMetricServer() {
   sleep 1
   os::cmd::try_until_text "${BIN} get pod -l app.kubernetes.io/name=spark-operator -o yaml" 'ready: true'
   export operator_pod=`${BIN} get pod -l app.kubernetes.io/name=spark-operator -o='jsonpath="{.items[0].metadata.name}"' | sed 's/"//g'`
-  local SVC_IP=`oc get service/spark-operator -o='jsonpath="{.spec.clusterIP}"'|sed 's/"//g'`
+  local SVC_IP=`${BIN} get service/spark-operator -o='jsonpath="{.spec.clusterIP}"'|sed 's/"//g'`
   os::cmd::try_until_text "curl $SVC_IP:8080" 'operator_running_clusters'
 }
 
