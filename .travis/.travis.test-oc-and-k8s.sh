@@ -218,7 +218,7 @@ testDeleteApp() {
 
 testMetricServer() {
   info
-  os::cmd::expect_success_and_text '${BIN} set env deployment/spark-operator METRICS=true' 'env updated' || errorLogs
+  os::cmd::expect_success_and_text '${BIN} set env deployment/spark-operator METRICS=true' 'updated' || errorLogs
   os::cmd::expect_success_and_text '${BIN} expose deployment spark-operator --port=8080' 'spark-operator exposed' || errorLogs
   sleep 1
   os::cmd::try_until_text "${BIN} get pod -l app.kubernetes.io/name=spark-operator -o yaml" 'ready: true'
