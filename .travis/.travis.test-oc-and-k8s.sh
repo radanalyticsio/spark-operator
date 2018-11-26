@@ -222,7 +222,7 @@ testMetricServer() {
   os::cmd::expect_success_and_text '${BIN} expose deployment spark-operator --port=8080' '"?spark-operator"? exposed' || errorLogs
   sleep 1
   os::cmd::try_until_text "${BIN} get pod -l app.kubernetes.io/name=spark-operator -o yaml" 'ready: true'
-  local SVC_IP=`{BIN} get --no-headers service/spark-operator | cut -d' ' -f4`
+  local SVC_IP=`${BIN} get --no-headers service/spark-operator | cut -d' ' -f4`
   os::cmd::try_until_text "curl $SVC_IP:8080" 'operator_running_clusters'
 }
 
