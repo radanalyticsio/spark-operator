@@ -216,6 +216,16 @@ testDeleteApp() {
   os::cmd::try_until_text "${BIN} get pods --no-headers -l radanalytics.io/sparkapplication=my-spark-app 2> /dev/null | wc -l" '0'
 }
 
+testMetricServer() {
+  info
+  os::cmd::expect_success_and_text '${BIN} set env deployment/spark-operator METRICS=true' 'env updated' || errorLogs
+  os::cmd::expect_success_and_text '${BIN} expose deployment spark-operator --port=8080' 'spark-operator exposed' || errorLogs
+  sleep 1
+  os::cmd::try_until_text "${BIN} get pod -l app.kubernetes.io/name=spark-operator -o yaml" 'ready: true'
+  local SVC_IP=`{BIN} get --no-headers service/spark-operator | cut -d' ' -f4`
+  os::cmd::try_until_text "curl $SVC_IP:8080" 'operator_running_clusters'
+}
+
 run_custom_test() {
     testCustomCluster1 || errorLogs
     testCustomCluster2 || errorLogs
@@ -243,11 +253,13 @@ run_tests() {
   testApp || errorLogs
   testAppResult || errorLogs
   testDeleteApp || errorLogs
+
+  testMetricServer || errorLogs
   logs
 }
 
 main() {
-  export total=15
+  export total=16
   export testIndex=0
   tear_down
   setup_testing_framework
