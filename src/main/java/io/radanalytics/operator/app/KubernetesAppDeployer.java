@@ -20,6 +20,7 @@ public class KubernetesAppDeployer {
     }
 
     public KubernetesResourceList getResourceList(SparkApplication app, String namespace) {
+        checkForInjectionVulnerabilities(app, namespace);
         ReplicationController submitter = getSubmitterRc(app, namespace);
         KubernetesList resources = new KubernetesListBuilder().withItems(submitter).build();
         return resources;
@@ -33,8 +34,6 @@ public class KubernetesAppDeployer {
         final NodeSpec driver = Optional.ofNullable(app.getDriver()).orElse(new NodeSpec());
         final NodeSpec executor = Optional.ofNullable(app.getDriver()).orElse(new NodeSpec());
 
-        // todo: vulnerable to injection
-
         StringBuilder command = new StringBuilder();
         command.append("/opt/spark/bin/spark-submit");
         command.append(" --class ").append(app.getMainClass());
@@ -44,22 +43,36 @@ public class KubernetesAppDeployer {
         command.append(" --conf spark.app.name=").append(name);
         command.append(" --conf spark.kubernetes.container.image=").append(app.getImage());
         command.append(" --conf spark.kubernetes.submission.waitAppCompletion=false");
-        command.append(" --conf spark.kubernetes.driver.label.radanalytics.io/sparkapplication=").append(name);
         command.append(" --conf spark.driver.cores=").append(driver.getCores());
         command.append(" --conf spark.kubernetes.driver.limit.cores=").append(driver.getCoreLimit());
         command.append(" --conf spark.driver.memory=").append(driver.getMemory());
         command.append(" --conf spark.kubernetes.authenticate.driver.serviceAccountName=spark-operator");
         command.append(" --conf spark.kubernetes.driver.label.version=2.3.0 ");
 
-        // todo: custom labels
+        // common labels
+        final Map<String, String> labels = getDefaultLabels(name);
+        if (app.getLabels() != null) labels.putAll(app.getLabels());
+        labels.forEach((k, v) -> {
+            command.append(" --conf spark.kubernetes.driver.label.").append(k).append("=").append(v);
+            command.append(" --conf spark.kubernetes.executor.label.").append(k).append("=").append(v);
+        });
+        // driver labels
+        driver.getLabels().forEach((k, v) ->
+                command.append(" --conf spark.kubernetes.driver.label.").append(k).append("=").append(v));
+        // executor labels
+        executor.getLabels().forEach((k, v) ->
+                command.append(" --conf spark.kubernetes.executor.label.").append(k).append("=").append(v));
 
         command.append(" --conf spark.kubernetes.executor.label.radanalytics.io/sparkapplication=").append(name);
         command.append(" --conf spark.executor.instances=").append(executor.getInstances());
         command.append(" --conf spark.executor.cores=").append(executor.getCores());
         command.append(" --conf spark.executor.memory=").append(executor.getMemory());
-        command.append(" --conf spark.kubernetes.executor.label.version=2.3.0");
         command.append(" --conf spark.jars.ivy=/tmp/.ivy2");
         command.append(" ").append(app.getMainApplicationFile());
+
+        if (app.getArguments() != null && !app.getArguments().trim().isEmpty()) {
+            command.append(" ").append(app.getArguments());
+        }
 
         if (app.getSleep() > 0) {
             command.append(" && echo -e '\\n\\ntask/pod will be rescheduled in ").append(app.getSleep()).append(" seconds..'");
@@ -69,7 +82,7 @@ public class KubernetesAppDeployer {
         ContainerBuilder containerBuilder = new ContainerBuilder()
                 .withEnv(envVars)
                 .withImage(app.getImage())
-                .withImagePullPolicy("IfNotPresent")
+                .withImagePullPolicy(app.getImagePullPolicy())
                 .withName(name + "-submitter")
                 .withTerminationMessagePath("/dev/termination-log")
                 .withTerminationMessagePolicy("File")
@@ -84,6 +97,7 @@ public class KubernetesAppDeployer {
                 .withNewTemplate().withNewMetadata().withLabels(getDefaultLabels(name)).withName(name + "-submitter")
                 .endMetadata()
                 .withNewSpec()
+                .withRestartPolicy(app.getRestartPolicy())
                 .withContainers(containerBuilder.build())
                 .withServiceAccountName("spark-operator")
                 .endSpec().endTemplate().endSpec().build();
@@ -102,5 +116,9 @@ public class KubernetesAppDeployer {
         Map<String, String> map = new HashMap<>(2);
         map.put(prefix + entityName, name);
         return map;
+    }
+
+    private void checkForInjectionVulnerabilities(SparkApplication app, String namespace) {
+        //todo: this
     }
 }

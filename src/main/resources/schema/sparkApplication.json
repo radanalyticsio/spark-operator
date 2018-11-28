@@ -35,10 +35,14 @@
       "enum": ["client", "cluster"]
     },
     "restartPolicy": {
-      "type": "string"
+      "type": "string",
+      "default": "Always",
+      "enum": ["Always", "OnFailure", "Never"]
     },
     "imagePullPolicy": {
-      "type": "string"
+      "type": "string",
+      "default": "IfNotPresent",
+      "enum": ["IfNotPresent", "Always", "Never"]
     },
     "type": {
       "type": "string",
