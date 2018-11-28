@@ -31,6 +31,7 @@
     },
     "mode": {
       "type": "string",
+      "default": "cluster",
       "enum": ["client", "cluster"]
     },
     "restartPolicy": {
@@ -73,10 +74,16 @@
           "minimum": 0
         },
         "memory": {
-          "type": "string"
+          "type": "string",
+          "default": "512m"
         },
         "cores": {
-          "type": "string"
+          "type": "string",
+          "default": "1"
+        },
+        "coreLimit": {
+          "type": "string",
+          "default": "300m"
         },
         "labels": {
           "$ref": "#/definitions/Labels"

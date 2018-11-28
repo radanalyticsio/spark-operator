@@ -1,12 +1,10 @@
 package io.radanalytics.operator.app;
 
 import io.fabric8.kubernetes.api.model.*;
+import io.radanalytics.types.NodeSpec;
 import io.radanalytics.types.SparkApplication;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static io.radanalytics.operator.cluster.KubernetesSparkClusterDeployer.env;
 import static io.radanalytics.operator.resource.LabelsHelper.OPERATOR_KIND_LABEL;
@@ -29,32 +27,40 @@ public class KubernetesAppDeployer {
 
     private ReplicationController getSubmitterRc(SparkApplication app, String namespace) {
         List<EnvVar> envVars = new ArrayList<>();
-        envVars.add(env("FOO", "bar"));
 
         final String name = app.getName();
+
+        final NodeSpec driver = Optional.ofNullable(app.getDriver()).orElse(new NodeSpec());
+        final NodeSpec executor = Optional.ofNullable(app.getDriver()).orElse(new NodeSpec());
+
+        // todo: vulnerable to injection
 
         StringBuilder command = new StringBuilder();
         command.append("/opt/spark/bin/spark-submit");
         command.append(" --class ").append(app.getMainClass());
         command.append(" --master k8s://https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_SERVICE_PORT");
         command.append(" --conf spark.kubernetes.namespace=").append(namespace);
-        command.append(" --deploy-mode cluster");
+        command.append(" --deploy-mode ").append(app.getMode());
         command.append(" --conf spark.app.name=").append(name);
         command.append(" --conf spark.kubernetes.container.image=").append(app.getImage());
         command.append(" --conf spark.kubernetes.submission.waitAppCompletion=false");
         command.append(" --conf spark.kubernetes.driver.label.radanalytics.io/sparkapplication=").append(name);
-        command.append(" --conf spark.driver.cores=0.100000");
-        command.append(" --conf spark.kubernetes.driver.limit.cores=200m");
-        command.append(" --conf spark.driver.memory=512m");
+        command.append(" --conf spark.driver.cores=").append(driver.getCores());
+        command.append(" --conf spark.kubernetes.driver.limit.cores=").append(driver.getCoreLimit());
+        command.append(" --conf spark.driver.memory=").append(driver.getMemory());
         command.append(" --conf spark.kubernetes.authenticate.driver.serviceAccountName=spark-operator");
         command.append(" --conf spark.kubernetes.driver.label.version=2.3.0 ");
+
+        // todo: custom labels
+
         command.append(" --conf spark.kubernetes.executor.label.radanalytics.io/sparkapplication=").append(name);
-        command.append(" --conf spark.executor.instances=1");
-        command.append(" --conf spark.executor.cores=1");
-        command.append(" --conf spark.executor.memory=512m");
+        command.append(" --conf spark.executor.instances=").append(executor.getInstances());
+        command.append(" --conf spark.executor.cores=").append(executor.getCores());
+        command.append(" --conf spark.executor.memory=").append(executor.getMemory());
         command.append(" --conf spark.kubernetes.executor.label.version=2.3.0");
         command.append(" --conf spark.jars.ivy=/tmp/.ivy2");
         command.append(" ").append(app.getMainApplicationFile());
+
         if (app.getSleep() > 0) {
             command.append(" && echo -e '\\n\\ntask/pod will be rescheduled in ").append(app.getSleep()).append(" seconds..'");
             command.append(" && sleep ").append(app.getSleep());
