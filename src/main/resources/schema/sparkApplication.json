@@ -56,18 +56,20 @@
     "labels": {
       "$ref": "#/definitions/Labels"
     },
-    "envVars": {
-      "type": "object",
-      "properties": {
+    "env": {
+      "type": "array",
+      "items": {
         "type": "object",
         "properties": {
-          "type": "string"
-        }
+          "name": { "type": "string" },
+          "value": { "type": "string" }
+        },
+        "required": ["name", "value"]
       }
     },
     "sparkConfigMap": {"type": "string"}
   },
-  "required": [ ],
+  "required": [ "mainApplicationFile", "mainClass" ],
   "definitions": {
     "NodeSpec": {
       "type": "object",

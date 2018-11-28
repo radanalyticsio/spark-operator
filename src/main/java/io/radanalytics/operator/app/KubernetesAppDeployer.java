@@ -27,9 +27,11 @@ public class KubernetesAppDeployer {
     }
 
     private ReplicationController getSubmitterRc(SparkApplication app, String namespace) {
-        List<EnvVar> envVars = new ArrayList<>();
-
         final String name = app.getName();
+
+        List<EnvVar> envVars = new ArrayList<>();
+        envVars.add(env("APPLICATION_NAME", name));
+        app.getEnv().forEach(kv -> envVars.add(env(kv.getName(), kv.getValue())));
 
         final NodeSpec driver = Optional.ofNullable(app.getDriver()).orElse(new NodeSpec());
         final NodeSpec executor = Optional.ofNullable(app.getDriver()).orElse(new NodeSpec());
@@ -63,6 +65,12 @@ public class KubernetesAppDeployer {
         executor.getLabels().forEach((k, v) ->
                 command.append(" --conf spark.kubernetes.executor.label.").append(k).append("=").append(v));
 
+        // env
+        envVars.forEach(e -> {
+            command.append(" --conf spark.kubernetes.driverEnv.").append(e.getName()).append("=").append(e.getValue());
+            command.append(" --conf spark.executorEnv.").append(e.getName()).append("=").append(e.getValue());
+        });
+
         command.append(" --conf spark.kubernetes.executor.label.radanalytics.io/sparkapplication=").append(name);
         command.append(" --conf spark.executor.instances=").append(executor.getInstances());
         command.append(" --conf spark.executor.cores=").append(executor.getCores());
@@ -82,7 +90,7 @@ public class KubernetesAppDeployer {
         ContainerBuilder containerBuilder = new ContainerBuilder()
                 .withEnv(envVars)
                 .withImage(app.getImage())
-                .withImagePullPolicy(app.getImagePullPolicy())
+                .withImagePullPolicy(app.getImagePullPolicy().value())
                 .withName(name + "-submitter")
                 .withTerminationMessagePath("/dev/termination-log")
                 .withTerminationMessagePolicy("File")
@@ -97,7 +105,7 @@ public class KubernetesAppDeployer {
                 .withNewTemplate().withNewMetadata().withLabels(getDefaultLabels(name)).withName(name + "-submitter")
                 .endMetadata()
                 .withNewSpec()
-                .withRestartPolicy(app.getRestartPolicy())
+                .withRestartPolicy(app.getRestartPolicy().value())
                 .withContainers(containerBuilder.build())
                 .withServiceAccountName("spark-operator")
                 .endSpec().endTemplate().endSpec().build();
