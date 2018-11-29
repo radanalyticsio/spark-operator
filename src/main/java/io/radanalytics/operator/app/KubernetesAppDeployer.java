@@ -59,11 +59,15 @@ public class KubernetesAppDeployer {
             command.append(" --conf spark.kubernetes.executor.label.").append(k).append("=").append(v);
         });
         // driver labels
-        driver.getLabels().forEach((k, v) ->
-                command.append(" --conf spark.kubernetes.driver.label.").append(k).append("=").append(v));
+        if (driver.getLabels() != null) {
+            driver.getLabels().forEach((k, v) ->
+                    command.append(" --conf spark.kubernetes.driver.label.").append(k).append("=").append(v));
+        }
         // executor labels
-        executor.getLabels().forEach((k, v) ->
-                command.append(" --conf spark.kubernetes.executor.label.").append(k).append("=").append(v));
+        if (executor.getLabels() != null) {
+            executor.getLabels().forEach((k, v) ->
+                    command.append(" --conf spark.kubernetes.executor.label.").append(k).append("=").append(v));
+        }
 
         // env
         envVars.forEach(e -> {
