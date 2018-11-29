@@ -67,7 +67,7 @@ devel-kubernetes:
 	kubectl logs -f `kubectl get pods --no-headers -l app.kubernetes.io/name=spark-operator | cut -f1 -d' '`
 
 .PHONY: local-travis-tests
-local-travis-tests:
+local-travis-tests: build
 	-docker kill `docker ps -q` || true
-	sed 's;quay.io/radanalyticsio/spark-operator:latest-released;radanalyticsio/spark-operator:latest;g' manifest/operator.yaml > manifest/operator-test.yaml && oc create -f manifest/operator-test.yaml ; rm manifest/operator-test.yaml || true
-	BIN=oc CRD=0 MANIFEST_SUFIX="-test" .travis/.travis.test-oc-and-k8s.sh
+	sed 's;quay.io/radanalyticsio/spark-operator:latest-released;radanalyticsio/spark-operator:latest;g' manifest/operator.yaml > manifest/operator-test.yaml
+	BIN=oc CRD=0 MANIFEST_SUFIX="-test" .travis/.travis.test-oc-and-k8s.sh || rm manifest/operator-test.yaml || true

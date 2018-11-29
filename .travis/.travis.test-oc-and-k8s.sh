@@ -67,6 +67,14 @@ errorLogs() {
   exit 1
 }
 
+appErrorLogs() {
+  echo -e "\n$(tput setaf 3)Spark Application Logs:$(tput sgr0)\n"
+  export submitter_pod=`${BIN} get pod -l radanalytics.io/kind=sparkapplication -o='jsonpath="{.items[0].metadata.name}"' | sed 's/"//g'`
+  ${BIN} get all
+  ${BIN} logs $submitter_pod
+  errorLogs
+}
+
 info() {
   ((testIndex++))
   echo "$(tput setaf 3)[$testIndex / $total] - Running ${FUNCNAME[1]}$(tput sgr0)"
@@ -255,9 +263,9 @@ run_tests() {
   run_custom_test || errorLogs
 
   sleep 10
-  testApp || errorLogs
-  testAppResult || errorLogs
-  testDeleteApp || errorLogs
+  testApp || appErrorLogs
+  testAppResult || appErrorLogs
+  testDeleteApp || appErrorLogs
 
   testMetricServer || errorLogs
   logs
