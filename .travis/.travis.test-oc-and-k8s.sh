@@ -75,7 +75,7 @@ info() {
 testCreateOperator() {
   info
   [ "$CRD" = "1" ] && FOO="-crd" || FOO=""
-  os::cmd::expect_success_and_text "${BIN} create -f $DIR/../manifest/operator$FOO.yaml" '"?spark-operator"? created' && \
+  os::cmd::expect_success_and_text "${BIN} create -f $DIR/../manifest/operator$FOO$MANIFEST_SUFIX.yaml" '"?spark-operator"? created' && \
   os::cmd::try_until_text "${BIN} get pod -l app.kubernetes.io/name=spark-operator -o yaml" 'ready: true'
   if [ "$CRD" = "1" ]; then
     os::cmd::try_until_text "${BIN} get crd" 'sparkclusters.radanalytics.io'
