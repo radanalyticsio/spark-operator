@@ -27,6 +27,7 @@ public class KubernetesSparkClusterDeployer {
 
     public KubernetesResourceList getResourceList(SparkCluster cluster) {
         synchronized (this.client) {
+            checkForInjectionVulnerabilities(cluster, namespace);
             String name = cluster.getName();
 
             Map<String, String> allMasterLabels = new HashMap<>();
@@ -286,5 +287,9 @@ public class KubernetesSparkClusterDeployer {
         map.put(prefix + OPERATOR_KIND_LABEL, entityName);
         map.put(prefix + entityName, name);
         return map;
+    }
+
+    private void checkForInjectionVulnerabilities(SparkCluster app, String namespace) {
+        //todo: this
     }
 }

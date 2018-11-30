@@ -2,6 +2,7 @@
 
 DIR="${DIR:-$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )}"
 BIN=${BIN:-oc}
+MANIFEST_SUFIX=${MANIFEST_SUFIX:-""}
 if [ "$CRD" = "1" ]; then
   CR="cr/"
   KIND="sparkcluster"
@@ -67,6 +68,14 @@ errorLogs() {
   exit 1
 }
 
+appErrorLogs() {
+  echo -e "\n$(tput setaf 3)Spark Application Logs:$(tput sgr0)\n"
+  export submitter_pod=`${BIN} get pod -l radanalytics.io/kind=sparkapplication -o='jsonpath="{.items[0].metadata.name}"' | sed 's/"//g'`
+  ${BIN} get all
+  ${BIN} logs $submitter_pod
+  errorLogs
+}
+
 info() {
   ((testIndex++))
   echo "$(tput setaf 3)[$testIndex / $total] - Running ${FUNCNAME[1]}$(tput sgr0)"
@@ -75,7 +84,7 @@ info() {
 testCreateOperator() {
   info
   [ "$CRD" = "1" ] && FOO="-crd" || FOO=""
-  os::cmd::expect_success_and_text "${BIN} create -f $DIR/../manifest/operator$FOO.yaml" '"?spark-operator"? created' && \
+  os::cmd::expect_success_and_text "${BIN} create -f $DIR/../manifest/operator$FOO$MANIFEST_SUFIX.yaml" '"?spark-operator"? created' && \
   os::cmd::try_until_text "${BIN} get pod -l app.kubernetes.io/name=spark-operator -o yaml" 'ready: true'
   if [ "$CRD" = "1" ]; then
     os::cmd::try_until_text "${BIN} get crd" 'sparkclusters.radanalytics.io'
@@ -255,9 +264,9 @@ run_tests() {
   run_custom_test || errorLogs
 
   sleep 10
-  testApp || errorLogs
-  testAppResult || errorLogs
-  testDeleteApp || errorLogs
+  testApp || appErrorLogs
+  testAppResult || appErrorLogs
+  testDeleteApp || appErrorLogs
 
   testMetricServer || errorLogs
   logs

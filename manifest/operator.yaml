@@ -44,7 +44,7 @@ spec:
       serviceAccountName: spark-operator
       containers:
       - name: spark-operator
-        image: quay.io/radanalyticsio/spark-operator:latest-released
+        image: radanalyticsio/spark-operator:latest
         #env:
         #- name: WATCHED_NAMESPACE
         #  value: myproject

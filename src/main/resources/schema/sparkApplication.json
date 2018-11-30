@@ -8,13 +8,30 @@
   },
   "properties": {
     "deps": {
-      "type": "object"
+      "type": "object",
+      "properties": {
+        "jars": "array",
+        "files": "array",
+        "pyFiles": "array",
+        "jarsDownloadDir": "string",
+        "filesDownloadDir": "string",
+        "downloadTimeout": {
+          "type": "integer",
+          "default": 60,
+          "minimum": 0
+        },
+        "maxSimultaneousDownloads": {
+          "type": "integer",
+          "default": 5,
+          "minimum": 0
+        }
+      }
     },
     "driver": {
-      "$ref": "#/definitions/NodeSpec"
+      "$ref": "#/definitions/DriverSpec"
     },
     "executor": {
-      "$ref": "#/definitions/NodeSpec"
+      "$ref": "#/definitions/ExecutorSpec"
     },
     "image": {
       "type": "string",
@@ -31,13 +48,18 @@
     },
     "mode": {
       "type": "string",
+      "default": "cluster",
       "enum": ["client", "cluster"]
     },
     "restartPolicy": {
-      "type": "string"
+      "type": "string",
+      "default": "Always",
+      "enum": ["Always", "OnFailure", "Never"]
     },
     "imagePullPolicy": {
-      "type": "string"
+      "type": "string",
+      "default": "IfNotPresent",
+      "enum": ["IfNotPresent", "Always", "Never"]
     },
     "type": {
       "type": "string",
@@ -51,35 +73,74 @@
     "labels": {
       "$ref": "#/definitions/Labels"
     },
-    "envVars": {
-      "type": "object",
-      "properties": {
+    "env": {
+      "type": "array",
+      "items": {
         "type": "object",
         "properties": {
-          "type": "string"
-        }
+          "name": { "type": "string" },
+          "value": { "type": "string" }
+        },
+        "required": ["name", "value"]
       }
     },
     "sparkConfigMap": {"type": "string"}
   },
-  "required": [ ],
+  "required": [ "mainApplicationFile", "mainClass" ],
   "definitions": {
-    "NodeSpec": {
+    "CommonNodeSpec": {
       "type": "object",
+      "javaType": "io.radanalytics.types.CommonNodeSpec",
+      "javaName": "Foo",
+      "properties": {
+        "memory": {
+          "type": "string",
+          "default": "512m"
+        },
+        "memoryOverhead": "string",
+        "image": {
+          "type": "string",
+          "default": "#/properties/image/default"
+        },
+        "labels": {
+          "$ref": "#/definitions/Labels"
+        }
+      }
+    },
+    "DriverSpec": {
+      "type": "object",
+      "extends": {
+        "$ref": "#/definitions/CommonNodeSpec"
+      },
+      "properties": {
+        "cores": {
+          "type": "string",
+          "default": "0.1"
+        },
+        "coreLimit": {
+          "type": "string",
+          "default": "200m"
+        }
+      }
+    },
+    "ExecutorSpec": {
+      "type": "object",
+      "extends": {
+        "$ref": "#/definitions/CommonNodeSpec"
+      },
       "properties": {
         "instances": {
           "type": "integer",
           "default": 1,
           "minimum": 0
         },
-        "memory": {
-          "type": "string"
-        },
         "cores": {
-          "type": "string"
+          "type": "string",
+          "default": "1"
         },
-        "labels": {
-          "$ref": "#/definitions/Labels"
+        "coreLimit": {
+          "type": "string",
+          "default": "1000m"
         }
       }
     },

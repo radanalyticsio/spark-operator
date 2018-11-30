@@ -62,7 +62,8 @@
         },
         "labels" : {
           "existingJavaType" : "java.util.Map<String,String>",
-          "type" : "object"
+          "type" : "string",
+          "pattern": "([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9]"
         }
       }
     },

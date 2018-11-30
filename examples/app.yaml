@@ -10,6 +10,7 @@ data:
     mainApplicationFile: local:///opt/spark/examples/jars/spark-examples_2.11-2.3.0.jar
     mainClass: org.apache.spark.examples.SparkPi
     sleep: 300 # repeat each 5 minutes
+    executor:
+      instances: 2
     labels:
       foo: bar
-      foo2: bar2
