@@ -1,7 +1,8 @@
 package io.radanalytics.operator.app;
 
 import io.fabric8.kubernetes.api.model.*;
-import io.radanalytics.types.NodeSpec;
+import io.radanalytics.types.DriverSpec;
+import io.radanalytics.types.ExecutorSpec;
 import io.radanalytics.types.SparkApplication;
 
 import java.util.*;
@@ -33,8 +34,8 @@ public class KubernetesAppDeployer {
         envVars.add(env("APPLICATION_NAME", name));
         app.getEnv().forEach(kv -> envVars.add(env(kv.getName(), kv.getValue())));
 
-        final NodeSpec driver = Optional.ofNullable(app.getDriver()).orElse(new NodeSpec());
-        final NodeSpec executor = Optional.ofNullable(app.getDriver()).orElse(new NodeSpec());
+        final DriverSpec driver = Optional.ofNullable(app.getDriver()).orElse(new DriverSpec());
+        final ExecutorSpec executor = Optional.ofNullable(app.getExecutor()).orElse(new ExecutorSpec());
 
         StringBuilder command = new StringBuilder();
         command.append("/opt/spark/bin/spark-submit");
@@ -48,11 +49,15 @@ public class KubernetesAppDeployer {
         command.append(" --conf spark.driver.cores=").append(driver.getCores());
         command.append(" --conf spark.kubernetes.driver.limit.cores=").append(driver.getCoreLimit());
         command.append(" --conf spark.driver.memory=").append(driver.getMemory());
+        if (driver.getMemoryOverhead() != null) {
+            command.append(" --conf spark.driver.memoryOverhead=").append(driver.getMemoryOverhead());
+        }
         command.append(" --conf spark.kubernetes.authenticate.driver.serviceAccountName=spark-operator");
-        command.append(" --conf spark.kubernetes.driver.label.version=2.3.0 ");
+        command.append(" --conf spark.kubernetes.driver.label.version=2.3.0");
 
         // common labels
-        final Map<String, String> labels = getDefaultLabels(name);
+        final Map<String, String> labels = getLabelsForDeletion(name);
+        labels.put(prefix + entityName, name);
         if (app.getLabels() != null) labels.putAll(app.getLabels());
         labels.forEach((k, v) -> {
             command.append(" --conf spark.kubernetes.driver.label.").append(k).append("=").append(v);
@@ -75,10 +80,13 @@ public class KubernetesAppDeployer {
             command.append(" --conf spark.executorEnv.").append(e.getName()).append("=").append(e.getValue());
         });
 
-        command.append(" --conf spark.kubernetes.executor.label.radanalytics.io/sparkapplication=").append(name);
         command.append(" --conf spark.executor.instances=").append(executor.getInstances());
         command.append(" --conf spark.executor.cores=").append(executor.getCores());
         command.append(" --conf spark.executor.memory=").append(executor.getMemory());
+        if (executor.getMemoryOverhead() != null) {
+            command.append(" --conf spark.executor.memoryOverhead=").append(executor.getMemoryOverhead());
+        }
+
         command.append(" --conf spark.jars.ivy=/tmp/.ivy2");
         command.append(" ").append(app.getMainApplicationFile());
 
@@ -91,6 +99,7 @@ public class KubernetesAppDeployer {
             command.append(" && sleep ").append(app.getSleep());
         }
 
+        final String cmd = "echo -e '\\ncmd:\\n" + command.toString().replaceAll("'", "").replaceAll("--", "\\\\n--") + "\\n\\n' && " + command.toString();
         ContainerBuilder containerBuilder = new ContainerBuilder()
                 .withEnv(envVars)
                 .withImage(app.getImage())
@@ -99,7 +108,7 @@ public class KubernetesAppDeployer {
                 .withTerminationMessagePath("/dev/termination-log")
                 .withTerminationMessagePolicy("File")
                 .withCommand("/bin/sh", "-c")
-                .withArgs(command.toString());
+                .withArgs(cmd);
 
         ReplicationController rc = new ReplicationControllerBuilder().withNewMetadata()
                 .withName(name + "-submitter").withLabels(getDefaultLabels(name))

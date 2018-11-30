@@ -2,6 +2,7 @@
 
 DIR="${DIR:-$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )}"
 BIN=${BIN:-oc}
+MANIFEST_SUFIX=${MANIFEST_SUFIX:-""}
 if [ "$CRD" = "1" ]; then
   CR="cr/"
   KIND="sparkcluster"
