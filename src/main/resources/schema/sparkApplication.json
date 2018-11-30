@@ -8,13 +8,30 @@
   },
   "properties": {
     "deps": {
-      "type": "object"
+      "type": "object",
+      "properties": {
+        "jars": "array",
+        "files": "array",
+        "pyFiles": "array",
+        "jarsDownloadDir": "string",
+        "filesDownloadDir": "string",
+        "downloadTimeout": {
+          "type": "integer",
+          "default": 60,
+          "minimum": 0
+        },
+        "maxSimultaneousDownloads": {
+          "type": "integer",
+          "default": 5,
+          "minimum": 0
+        }
+      }
     },
     "driver": {
-      "$ref": "#/definitions/NodeSpec"
+      "$ref": "#/definitions/DriverSpec"
     },
     "executor": {
-      "$ref": "#/definitions/NodeSpec"
+      "$ref": "#/definitions/ExecutorSpec"
     },
     "image": {
       "type": "string",
@@ -71,17 +88,51 @@
   },
   "required": [ "mainApplicationFile", "mainClass" ],
   "definitions": {
-    "NodeSpec": {
+    "CommonNodeSpec": {
       "type": "object",
+      "javaType": "io.radanalytics.types.CommonNodeSpec",
+      "javaName": "Foo",
+      "properties": {
+        "memory": {
+          "type": "string",
+          "default": "512m"
+        },
+        "memoryOverhead": "string",
+        "image": {
+          "type": "string",
+          "default": "#/properties/image/default"
+        },
+        "labels": {
+          "$ref": "#/definitions/Labels"
+        }
+      }
+    },
+    "DriverSpec": {
+      "type": "object",
+      "extends": {
+        "$ref": "#/definitions/CommonNodeSpec"
+      },
+      "properties": {
+        "cores": {
+          "type": "string",
+          "default": "0.1"
+        },
+        "coreLimit": {
+          "type": "string",
+          "default": "200m"
+        }
+      }
+    },
+    "ExecutorSpec": {
+      "type": "object",
+      "extends": {
+        "$ref": "#/definitions/CommonNodeSpec"
+      },
       "properties": {
         "instances": {
           "type": "integer",
           "default": 1,
           "minimum": 0
-        },
-        "memory": {
-          "type": "string",
-          "default": "512m"
         },
         "cores": {
           "type": "string",
@@ -89,10 +140,7 @@
         },
         "coreLimit": {
           "type": "string",
-          "default": "300m"
-        },
-        "labels": {
-          "$ref": "#/definitions/Labels"
+          "default": "1000m"
         }
       }
     },
