@@ -52,7 +52,7 @@ public class KubernetesAppDeployer {
         if (driver.getMemoryOverhead() != null) {
             command.append(" --conf spark.driver.memoryOverhead=").append(driver.getMemoryOverhead());
         }
-        command.append(" --conf spark.kubernetes.authenticate.driver.serviceAccountName=spark-operator");
+        command.append(" --conf spark.kubernetes.authenticate.driver.serviceAccountName=").append(driver.getServiceAccount());
         command.append(" --conf spark.kubernetes.driver.label.version=2.3.0");
 
         // common labels
@@ -120,7 +120,7 @@ public class KubernetesAppDeployer {
                 .withNewSpec()
                 .withRestartPolicy(app.getRestartPolicy().value())
                 .withContainers(containerBuilder.build())
-                .withServiceAccountName("spark-operator")
+                .withServiceAccountName(driver.getServiceAccount())
                 .endSpec().endTemplate().endSpec().build();
 
         return rc;
