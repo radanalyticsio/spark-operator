@@ -120,6 +120,10 @@
         "coreLimit": {
           "type": "string",
           "default": "200m"
+        },
+        "serviceAccount": {
+          "type": "string",
+          "default": "spark-operator"
         }
       }
     },
