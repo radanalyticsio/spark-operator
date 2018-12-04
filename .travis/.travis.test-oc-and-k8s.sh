@@ -57,7 +57,7 @@ logs() {
   echo -e "\n$(tput setaf 3)Logs:$(tput sgr0)\n"
   ${BIN} logs $operator_pod || {
     export operator_pod=`${BIN} get pod -l app.kubernetes.io/name=spark-operator -o='jsonpath="{.items[0].metadata.name}"' | sed 's/"//g'`
-    ${BIN} logs $operator_pod
+    ${BIN} logs $operator_pod || true
   }
   echo
 }
@@ -211,6 +211,7 @@ testApp() {
   info
   [ "$CRD" = "1" ] && FOO="test/cr/" || FOO=""
   os::cmd::expect_success_and_text '${BIN} create -f examples/${FOO}app.yaml' '"?my-spark-app"? created' && \
+  # number of pods w/ spark app \geq to 3
   os::cmd::try_until_text "${BIN} get pods --no-headers -l radanalytics.io/sparkapplication=my-spark-app 2> /dev/null | wc -l | sed -e 's/\(.*\)/\1>=3/' | bc -l" '1'
 }
 
