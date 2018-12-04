@@ -211,7 +211,7 @@ testApp() {
   info
   [ "$CRD" = "1" ] && FOO="test/cr/" || FOO=""
   os::cmd::expect_success_and_text '${BIN} create -f examples/${FOO}app.yaml' '"?my-spark-app"? created' && \
-  os::cmd::try_until_text "${BIN} get pods --no-headers -l radanalytics.io/sparkapplication=my-spark-app 2> /dev/null | wc -l" '3'
+  os::cmd::try_until_text "${BIN} get pods --no-headers -l radanalytics.io/sparkapplication=my-spark-app 2> /dev/null | wc -l | sed -e 's/\(.*\)/\1>=3/' | bc -l" '1'
 }
 
 testAppResult() {
