@@ -91,7 +91,6 @@
     "CommonNodeSpec": {
       "type": "object",
       "javaType": "io.radanalytics.types.CommonNodeSpec",
-      "javaName": "Foo",
       "properties": {
         "memory": {
           "type": "string",
