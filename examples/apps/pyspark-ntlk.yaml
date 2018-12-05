@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ntlk-example
+  labels:
+    radanalytics.io/kind: sparkapplication
+data:
+  config: |-
+    image: jkremser/openshift-spark:ntlk
+    type: Python
+    mainApplicationFile: local:///app.py
+    deps:
+      pyFiles:
+        - local:///deps.zip

@@ -10,9 +10,24 @@
     "deps": {
       "type": "object",
       "properties": {
-        "jars": "array",
-        "files": "array",
-        "pyFiles": "array",
+        "jars": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "files": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "pyFiles": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
         "jarsDownloadDir": "string",
         "filesDownloadDir": "string",
         "downloadTimeout": {

@@ -1,11 +1,13 @@
 package io.radanalytics.operator.app;
 
 import io.fabric8.kubernetes.api.model.*;
+import io.radanalytics.types.Deps;
 import io.radanalytics.types.DriverSpec;
 import io.radanalytics.types.ExecutorSpec;
 import io.radanalytics.types.SparkApplication;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static io.radanalytics.operator.cluster.KubernetesSparkClusterDeployer.env;
 import static io.radanalytics.operator.resource.LabelsHelper.OPERATOR_KIND_LABEL;
@@ -39,7 +41,9 @@ public class KubernetesAppDeployer {
 
         StringBuilder command = new StringBuilder();
         command.append("/opt/spark/bin/spark-submit");
-        command.append(" --class ").append(app.getMainClass());
+        if (app.getMainClass() != null) {
+            command.append(" --class ").append(app.getMainClass());
+        }
         command.append(" --master k8s://https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_SERVICE_PORT");
         command.append(" --conf spark.kubernetes.namespace=").append(namespace);
         command.append(" --deploy-mode ").append(app.getMode());
@@ -85,6 +89,20 @@ public class KubernetesAppDeployer {
         command.append(" --conf spark.executor.memory=").append(executor.getMemory());
         if (executor.getMemoryOverhead() != null) {
             command.append(" --conf spark.executor.memoryOverhead=").append(executor.getMemoryOverhead());
+        }
+
+        // deps
+        if (app.getDeps() != null) {
+            Deps deps = app.getDeps();
+            if (deps.getPyFiles() != null && !deps.getPyFiles().isEmpty()) {
+                command.append(" --py-files ").append(deps.getPyFiles().stream().collect(Collectors.joining(",")));
+            }
+            if (deps.getJars() != null && !deps.getJars().isEmpty()) {
+                command.append(" --jars ").append(deps.getJars().stream().collect(Collectors.joining(",")));
+            }
+            if (deps.getFiles() != null && !deps.getFiles().isEmpty()) {
+                command.append(" --files ").append(deps.getFiles().stream().collect(Collectors.joining(",")));
+            }
         }
 
         command.append(" --conf spark.jars.ivy=/tmp/.ivy2");
