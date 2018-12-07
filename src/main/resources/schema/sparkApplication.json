@@ -79,7 +79,8 @@
     "type": {
       "type": "string",
       "default": "Java",
-      "enum": ["Java", "Scala", "Python", "R"]
+      "enum": ["Java", "Scala", "Python", "R"],
+      "javaEnumNames" : ["Java","Scala", "Python", "R"]
     },
     "sleep": {
       "type": "integer",

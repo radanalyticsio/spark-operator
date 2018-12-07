@@ -7,6 +7,7 @@ metadata:
 data:
   config: |-
     image: jkremser/spark-operator:2.4.0-ntlk
+    type: Python
     mainApplicationFile: local:///app.py
     deps:
       pyFiles:
