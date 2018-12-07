@@ -64,17 +64,20 @@
     "mode": {
       "type": "string",
       "default": "cluster",
-      "enum": ["client", "cluster"]
+      "enum": ["client", "cluster"],
+      "javaEnumNames" : ["client","cluster"]
     },
     "restartPolicy": {
       "type": "string",
       "default": "Always",
-      "enum": ["Always", "OnFailure", "Never"]
+      "enum": ["Always", "OnFailure", "Never"],
+      "javaEnumNames" : ["Always","OnFailure", "Never"]
     },
     "imagePullPolicy": {
       "type": "string",
       "default": "IfNotPresent",
-      "enum": ["IfNotPresent", "Always", "Never"]
+      "enum": ["IfNotPresent", "Always", "Never"],
+      "javaEnumNames" : ["IfNotPresent","Always", "Never"]
     },
     "type": {
       "type": "string",
