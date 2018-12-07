@@ -11,8 +11,8 @@ data:
     mainClass: org.apache.spark.examples.SparkPi
     sleep: 300 # repeat each 5 minutes
     driver:
-      cores: 0.5
-      coreLimit: 500m
+      cores: 0.3
+      coreLimit: 300m
     executor:
       instances: 2
       cores: 1

@@ -7,8 +7,8 @@ spec:
   mainApplicationFile: local:///opt/spark/examples/jars/spark-examples_2.11-2.3.0.jar
   mainClass: org.apache.spark.examples.SparkPi
   driver:
-    cores: 0.5
-    coreLimit: 500m
+    cores: 0.3
+    coreLimit: 300m
   executor:
     instances: 2
     cores: 1
