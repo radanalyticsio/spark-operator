@@ -134,11 +134,11 @@
       "properties": {
         "cores": {
           "type": "string",
-          "default": "0.1"
+          "default": "0.5"
         },
         "coreLimit": {
           "type": "string",
-          "default": "200m"
+          "default": "500m"
         },
         "serviceAccount": {
           "type": "string",
