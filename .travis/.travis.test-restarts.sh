@@ -119,8 +119,8 @@ testApp() {
   info
   [ "$CRD" = "1" ] && FOO="test/cr/" || FOO=""
   os::cmd::expect_success_and_text '${BIN} create -f examples/${FOO}app.yaml' '"?my-spark-app"? created' && \
-  # number of pods w/ spark app \geq to 3
-  os::cmd::try_until_text "${BIN} get pods --no-headers -l radanalytics.io/sparkapplication=my-spark-app 2> /dev/null | wc -l | sed -e 's/\(.*\)/\1>=3/' | bc -l" '1'
+  # 1 submitter, 1 driver and 2 executors
+  os::cmd::try_until_text "${BIN} get pods --no-headers -l radanalytics.io/sparkapplication=my-spark-app 2> /dev/null | wc -l" '4'
 }
 
 testAppResult() {
@@ -128,13 +128,6 @@ testAppResult() {
   sleep 2
   local driver_pod=`${BIN} get pods --no-headers -l radanalytics.io/sparkapplication=my-spark-app -l spark-role=driver -o='jsonpath="{.items[0].metadata.name}"' | sed 's/"//g'` && \
   os::cmd::try_until_text "${BIN} logs $driver_pod" 'Pi is roughly 3.1'
-}
-
-testDeleteApp() {
-  info
-  [ "$CRD" = "1" ] && FOO="sparkapplication" || FOO="cm"
-  os::cmd::expect_success_and_text '${BIN} delete ${FOO} my-spark-app' '"my-spark-app" deleted' && \
-  os::cmd::try_until_text "${BIN} get pods --no-headers -l radanalytics.io/sparkapplication=my-spark-app 2> /dev/null | wc -l" '0'
 }
 
 run_tests() {
