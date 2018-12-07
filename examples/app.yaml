@@ -15,7 +15,7 @@ data:
       coreLimit: 500m
     executor:
       instances: 2
-      cores: 0.7
-      coreLimit: 700m
+      cores: 1
+      coreLimit: 500m
     labels:
       foo: bar

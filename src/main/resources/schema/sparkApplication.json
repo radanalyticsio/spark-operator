@@ -159,7 +159,8 @@
         },
         "cores": {
           "type": "string",
-          "default": "1"
+          "default": "1",
+          "description": "Must be a positive integer"
         },
         "coreLimit": {
           "type": "string",
