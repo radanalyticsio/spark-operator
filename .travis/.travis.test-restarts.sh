@@ -15,7 +15,7 @@ source "${DIR}/.travis.test-common.sh"
 
 run_tests() {
   testKillOperator || errorLogs
-  testCreateCluster || errorLogs
+  testCreateCluster1 || errorLogs
   testKillOperator || errorLogs
   testScaleCluster || errorLogs
   testKillOperator || errorLogs
