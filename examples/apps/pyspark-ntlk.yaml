@@ -13,6 +13,6 @@ data:
       pyFiles:
         - local:///deps.zip
     driver:
-      cores: 1
-      coreLimit: 1000m
-      memory: 700m
+      cores: 0.4
+      coreLimit: 400m
+      memory: 600m

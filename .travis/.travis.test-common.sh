@@ -56,7 +56,7 @@ logs() {
   ${BIN} get all
   echo -e "\n$(tput setaf 3)Logs:$(tput sgr0)\n"
   ${BIN} logs $operator_pod || {
-    export operator_pod=`${BIN} get pod -l app.kubernetes.io/name=spark-operator -o='jsonpath="{.items[0].metadata.name}"' | sed 's/"//g'`
+    refreshOperatorPod
     ${BIN} logs $operator_pod || true
   }
   echo
@@ -158,6 +158,7 @@ testCustomCluster1() {
   info
   sleep 2
   [ "$CRD" = "1" ] && return 0
+  refreshOperatorPod
   os::cmd::expect_success_and_text "${BIN} create -f $DIR/../examples/test/cluster-1.yaml" '"?my-spark-cluster-1"? created' && \
   os::cmd::try_until_text "${BIN} logs $operator_pod" 'Unable to parse yaml definition of configmap' && \
   os::cmd::try_until_text "${BIN} logs $operator_pod" 'w0rker' && \
@@ -167,6 +168,7 @@ testCustomCluster1() {
 testCustomCluster2() {
   info
   sleep 2
+  refreshOperatorPod
   os::cmd::expect_success_and_text "${BIN} create -f $DIR/../examples/test/${CR}cluster-2.yaml" '"?my-spark-cluster-2"? created' && \
   os::cmd::try_until_text "${BIN} logs $operator_pod | grep my-spark-cluster-2" "created" && \
   os::cmd::try_until_text "${BIN} get pods --no-headers -l radanalytics.io/sparkcluster=my-spark-cluster-2 | wc -l" '3' && \
@@ -200,6 +202,7 @@ testCustomCluster5() {
   # empty config map should just works with the defaults
   info
   sleep 2
+  refreshOperatorPod
   os::cmd::expect_success_and_text "${BIN} create -f $DIR/../examples/test/${CR}cluster-with-config-3.yaml" '"?sparky-cluster-3"? created' && \
   os::cmd::try_until_text "${BIN} get pods --no-headers -l radanalytics.io/sparkcluster=sparky-cluster-3 | wc -l" '2' && \
   os::cmd::try_until_text "${BIN} logs $operator_pod | grep sparky-cluster-3" "created" && \
@@ -254,12 +257,15 @@ testMetricServer() {
   local SVC_IP=`${BIN} get service/spark-operator -o='jsonpath="{.spec.clusterIP}"'|sed 's/"//g'`
   os::cmd::try_until_text "curl $SVC_IP:8080" 'operator_running_clusters'
   sleep 1
+}
+
+refreshOperatorPod() {
   export operator_pod=`${BIN} get pod -l app.kubernetes.io/name=spark-operator -o='jsonpath="{.items[0].metadata.name}"' | sed 's/"//g'`
 }
 
 testKillOperator() {
   info
+  refreshOperatorPod
   os::cmd::expect_success_and_text "${BIN} delete pod $operator_pod" 'pod "?'$operator_pod'"? deleted' && \
   sleep 10
-  export operator_pod=`${BIN} get pod -l app.kubernetes.io/name=spark-operator -o='jsonpath="{.items[0].metadata.name}"' | sed 's/"//g'`
 }
