@@ -229,6 +229,22 @@ testDeleteApp() {
   os::cmd::try_until_text "${BIN} get pods --no-headers -l radanalytics.io/sparkapplication=my-spark-app 2> /dev/null | wc -l" '0'
 }
 
+testPythonApp() {
+  info
+  [ "$CRD" = "1" ] && return 0
+  os::cmd::expect_success_and_text '${BIN} create -f examples/apps/pyspark-ntlk.yaml' '"?ntlk-example"? created' && \
+  # number of pods w/ spark app \geq to 3 (1 executor, 1 driver, 1 submitter)
+  os::cmd::try_until_text "${BIN} get pods --no-headers -l radanalytics.io/sparkapplication=ntlk-example 2> /dev/null | wc -l | sed -e 's/\(.*\)/\1>=3/' | bc -l" '1'
+}
+
+testPythonAppResult() {
+  info
+  [ "$CRD" = "1" ] && return 0
+  sleep 2
+  local driver_pod=`${BIN} get pods --no-headers -l radanalytics.io/sparkapplication=ntlk-example -l spark-role=driver -o='jsonpath="{.items[0].metadata.name}"' | sed 's/"//g'` && \
+  os::cmd::try_until_text "${BIN} logs $driver_pod" 'Lorem'
+}
+
 testMetricServer() {
   info
   os::cmd::expect_success_and_text '${BIN} set env deployment/spark-operator METRICS=true' 'updated' || errorLogs
@@ -269,12 +285,16 @@ run_tests() {
   testAppResult || appErrorLogs
   testDeleteApp || appErrorLogs
 
+  sleep 5
+  testPythonApp || appErrorLogs
+  testPythonAppResult || appErrorLogs
+
   testMetricServer || errorLogs
   logs
 }
 
 main() {
-  export total=16
+  export total=18
   export testIndex=0
   tear_down
   setup_testing_framework
