@@ -78,6 +78,7 @@
     },
     "type": {
       "type": "string",
+      "default": "Java",
       "enum": ["Java", "Scala", "Python", "R"]
     },
     "sleep": {
@@ -101,7 +102,7 @@
     },
     "sparkConfigMap": {"type": "string"}
   },
-  "required": [ "mainApplicationFile", "mainClass" ],
+  "required": [ "mainApplicationFile" ],
   "definitions": {
     "CommonNodeSpec": {
       "type": "object",

@@ -6,8 +6,7 @@ metadata:
     radanalytics.io/kind: sparkapplication
 data:
   config: |-
-    image: jkremser/openshift-spark:ntlk
-    type: Python
+    image: jkremser/spark-operator:2.4.0-ntlk
     mainApplicationFile: local:///app.py
     deps:
       pyFiles:

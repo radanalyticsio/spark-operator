@@ -106,6 +106,10 @@ public class KubernetesAppDeployer {
         }
 
         command.append(" --conf spark.jars.ivy=/tmp/.ivy2");
+        // todo: check all the prerequisites
+        if (app.getMainApplicationFile() == null) {
+            throw new IllegalStateException("mainApplicationFile must be specified");
+        }
         command.append(" ").append(app.getMainApplicationFile());
 
         if (app.getArguments() != null && !app.getArguments().trim().isEmpty()) {
