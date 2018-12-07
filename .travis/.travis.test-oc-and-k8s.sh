@@ -211,8 +211,8 @@ testApp() {
   info
   [ "$CRD" = "1" ] && FOO="test/cr/" || FOO=""
   os::cmd::expect_success_and_text '${BIN} create -f examples/${FOO}app.yaml' '"?my-spark-app"? created' && \
-  # number of pods w/ spark app \geq to 3
-  os::cmd::try_until_text "${BIN} get pods --no-headers -l radanalytics.io/sparkapplication=my-spark-app 2> /dev/null | wc -l | sed -e 's/\(.*\)/\1>=3/' | bc -l" '1'
+  # 1 submitter, 1 driver and 2 executors
+  os::cmd::try_until_text "${BIN} get pods --no-headers -l radanalytics.io/sparkapplication=my-spark-app 2> /dev/null | wc -l" '4'
 }
 
 testAppResult() {
@@ -233,8 +233,8 @@ testPythonApp() {
   info
   [ "$CRD" = "1" ] && return 0
   os::cmd::expect_success_and_text '${BIN} create -f examples/apps/pyspark-ntlk.yaml' '"?ntlk-example"? created' && \
-  # number of pods w/ spark app \geq to 3 (1 executor, 1 driver, 1 submitter)
-  os::cmd::try_until_text "${BIN} get pods --no-headers -l radanalytics.io/sparkapplication=ntlk-example 2> /dev/null | wc -l | sed -e 's/\(.*\)/\1>=3/' | bc -l" '1'
+  # number of pods w/ spark app = 3 (1 executor, 1 driver, 1 submitter)
+  os::cmd::try_until_text "${BIN} get pods --no-headers -l radanalytics.io/sparkapplication=ntlk-example 2> /dev/null | wc -l" '3'
 }
 
 testPythonAppResult() {

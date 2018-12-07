@@ -10,7 +10,12 @@ data:
     mainApplicationFile: local:///opt/spark/examples/jars/spark-examples_2.11-2.3.0.jar
     mainClass: org.apache.spark.examples.SparkPi
     sleep: 300 # repeat each 5 minutes
+    driver:
+      cores: 0.5
+      coreLimit: 500m
     executor:
       instances: 2
+      cores: 0.7
+      coreLimit: 700m
     labels:
       foo: bar

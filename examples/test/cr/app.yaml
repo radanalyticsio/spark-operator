@@ -6,3 +6,10 @@ spec:
   image: quay.io/jkremser/openshift-spark:2.3-latest
   mainApplicationFile: local:///opt/spark/examples/jars/spark-examples_2.11-2.3.0.jar
   mainClass: org.apache.spark.examples.SparkPi
+  driver:
+    cores: 0.5
+    coreLimit: 500m
+  executor:
+    instances: 2
+    cores: 0.7
+    coreLimit: 700m
