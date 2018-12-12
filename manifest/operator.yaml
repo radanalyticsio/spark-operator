@@ -50,8 +50,14 @@ spec:
         #  value: "myproject"
         #- name: FULL_RECONCILIATION_INTERVAL_S
         #  value: "180"
-        #- name: CRD
+        #- name: CRD // if false, the operator will watch on ConfigMaps
         #  value: "true"
+        #- name: METRICS // should we expose metrics for Prometheus?
+        #  value: "false"
+        #- name: METRICS_PORT
+        #  value: "8080"
+        #- name: METRICS_JVM // should we expose also internal JVM metrics?
+        #  value: "false"
         #- name: COLORS
         #  value: "false"
         resources:
