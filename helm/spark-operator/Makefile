@@ -1,0 +1,13 @@
+.PHONY: template
+template:
+	helm template . > template.yaml
+	cat ./template.yaml
+
+
+template-crd:
+	helm template --set operator.env.crd=true .
+	cat ./template.yaml
+
+.PHONY: install
+install:
+	helm install .
