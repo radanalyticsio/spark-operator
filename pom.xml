@@ -11,7 +11,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.radanalytics</groupId>
     <artifactId>spark-operator</artifactId>
-    <version>0.3.2</version>
+    <version>0.3.3-SNAPSHOT</version>
 
     <scm>
         <url>https://github.com/radanalyticsio/spark-operator</url>
