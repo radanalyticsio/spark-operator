@@ -28,17 +28,21 @@
             "type": "string"
           }
         },
-        "jarsDownloadDir": "string",
-        "filesDownloadDir": "string",
+        "jarsDownloadDir": {
+          "type": "string"
+        },
+        "filesDownloadDir": {
+          "type": "string"
+        },
         "downloadTimeout": {
           "type": "integer",
-          "default": 60,
-          "minimum": 0
+          "default": "60",
+          "minimum": "0"
         },
         "maxSimultaneousDownloads": {
           "type": "integer",
-          "default": 5,
-          "minimum": 0
+          "default": "5",
+          "minimum": "0"
         }
       }
     },
@@ -87,8 +91,8 @@
     },
     "sleep": {
       "type": "integer",
-      "default": 31536000,
-      "minimum": 0
+      "default": "31536000",
+      "minimum": "0"
     },
     "labels": {
       "$ref": "#/definitions/Labels"
@@ -116,7 +120,7 @@
           "type": "string",
           "default": "512m"
         },
-        "memoryOverhead": "string",
+        "memoryOverhead": { "type": "string" },
         "image": {
           "type": "string",
           "default": "#/properties/image/default"
@@ -154,8 +158,8 @@
       "properties": {
         "instances": {
           "type": "integer",
-          "default": 1,
-          "minimum": 0
+          "default": "1",
+          "minimum": "0"
         },
         "cores": {
           "type": "string",
@@ -169,12 +173,9 @@
       }
     },
     "Labels": {
-      "type": "object",
+      "type": "string",
       "existingJavaType" : "java.util.Map<String,String>",
-      "properties": {
-        "type": "string",
-        "pattern": "([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9]"
-      }
+      "pattern": "([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9]"
     }
   }
 }

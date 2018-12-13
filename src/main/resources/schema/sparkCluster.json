@@ -51,8 +51,8 @@
       "properties": {
         "instances": {
           "type": "integer",
-          "default": 1,
-          "minimum": 0
+          "default": "1",
+          "minimum": "0"
         },
         "memory": {
           "type": "string"
