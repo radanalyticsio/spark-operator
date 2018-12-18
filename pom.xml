@@ -22,7 +22,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <abstract-operator.version>0.4.9</abstract-operator.version>
+        <abstract-operator.version>0.4.10</abstract-operator.version>
     </properties>
 
     <dependencies>
