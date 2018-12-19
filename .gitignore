@@ -131,3 +131,5 @@ abstract-operator
 # spark shell
 metastore_db/
 derby.log
+
+buildah

@@ -15,15 +15,19 @@ stages:
 jobs:
   include:
     - stage: test
-      name: "Maven & cont. image build"
+      name: "Maven & container image build"
       language: java
-      script: make build-travis test
+      script: make build test
+
+    - stage:
+      name: "Buildah-able?"
+      script: make buildah-travis-deps buildah
 
     - stage: test-oc-and-k8s
       name: "Specs [oc • CMs]"
       env: BIN=oc VERSION=v3.9.0 CRD=0
       script: &oc-script-defaults
-        - make build-travis
+        - make build
         - ./.travis/.travis.prepare.openshift.sh
         - ./.travis/.travis.test-oc-and-k8s.sh
 
@@ -40,7 +44,7 @@ jobs:
       name: "Specs [K8s • CMs]"
       env: BIN=kubectl VERSION=v1.9.0 CRD=0 MINIKUBE_VERSION=v0.25.2
       script: &kc-script-defaults
-        - make build-travis
+        - make build
         - ./.travis/.travis.prepare.minikube.sh
         - ./.travis/.travis.test-oc-and-k8s.sh
 
@@ -53,7 +57,7 @@ jobs:
       name: "Restarts [oc • CMs]"
       env: BIN=oc VERSION=v3.9.0 CRD=0
       script:
-        - make build-travis
+        - make build
         - ./.travis/.travis.prepare.openshift.sh
         - ./.travis/.travis.test-restarts.sh
 
@@ -61,7 +65,7 @@ jobs:
       name: "Restarts [K8s • CRs]"
       env: BIN=kubectl VERSION=v1.9.0 CRD=1 MINIKUBE_VERSION=v0.25.2
       script:
-        - make build-travis
+        - make build
         - ./.travis/.travis.prepare.minikube.sh
         - ./.travis/.travis.test-restarts.sh
 
