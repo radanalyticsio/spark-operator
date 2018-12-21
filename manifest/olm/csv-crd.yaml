@@ -30,7 +30,7 @@ spec:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: spark-operator
+  name: spark-crd-operator
   namespace: default
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
@@ -44,7 +44,7 @@ roleRef:
   apiGroup: ""
 subjects:
   - kind: ServiceAccount
-    name: spark-operator
+    name: spark-crd-operator
     namespace: default
 ---
 apiVersion: operators.coreos.com/v1alpha1
@@ -76,8 +76,8 @@ spec:
   install:
     strategy: deployment
     spec:
-      permissions:
-      - serviceAccountName: spark-operator
+      clusterPermissions:
+      - serviceAccountName: spark-crd-operator
         rules:
         - apiGroups:
           - radanalytics.io
@@ -115,44 +115,8 @@ spec:
                       cpu: "1500m"
               restartPolicy: Always
               terminationGracePeriodSeconds: 5
-              serviceAccountName: spark-operator
-              serviceAccount: spark-operator
-  customresourcedefinitions:
-    owned:
-      - description: Represents an Apache Spark cluster
-        displayName: Spark Cluster
-        kind: sparkcluster
-        name: sparkcluster.radanalytics.io
-        version: v1
-        resources:
-          - kind: Deployment
-            version: v1beta2
-          - kind: ReplicaSet
-            version: v1beta2
-          - kind: Pod
-            version: v1
-        specDescriptors:
-          - description: The desired number of the workers in the cluster.
-            displayName: Worker Nodes
-            path: worker.instances
-            x-descriptors:
-              - 'urn:alm:descriptor:com.tectonic.ui:podCount'
-          - description: The desired number of the masters in the cluster.
-            displayName: Master Nodes
-            path: master.instances
-            x-descriptors:
-              - 'urn:alm:descriptor:com.tectonic.ui:podCount'
-        statusDescriptors:
-          - description: The current status of the application.
-            displayName: Status
-            path: phase
-            x-descriptors:
-              - 'urn:alm:descriptor:io.kubernetes.phase'
-          - description: Explanation for the current status of the application.
-            displayName: Status Details
-            path: reason
-            x-descriptors:
-              - 'urn:alm:descriptor:io.kubernetes.phase:reason'
+              serviceAccountName: spark-crd-operator
+              serviceAccount: spark-crd-operator
   keywords:
     - spark
   provider:
