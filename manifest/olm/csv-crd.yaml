@@ -1,3 +1,4 @@
+---
 kind: CustomResourceDefinition
 apiVersion: apiextensions.k8s.io/v1beta1
 metadata:
@@ -11,9 +12,7 @@ spec:
     singular: sparkcluster
   scope: Namespaced
   version: v1
-
 ---
-
 kind: CustomResourceDefinition
 apiVersion: apiextensions.k8s.io/v1beta1
 metadata:
@@ -27,65 +26,40 @@ spec:
     singular: app
   scope: Namespaced
   version: v1
-
 ---
-
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: spark-operator
-
+  namespace: default
 ---
-
-kind: Role
 apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
 metadata:
-  name: edit-spark-resources
-rules:
-- apiGroups:
-  - radanalytics.io
-  resources:
-  - "*"
-  verbs:
-  - "*"
-- apiGroups:
-  - ""
-  resources:
-  - pods
-  - services
-  - configmaps
-  verbs:
-  - "*"
-
----
-
-kind: RoleBinding
-apiVersion: rbac.authorization.k8s.io/v1beta1
-metadata:
-  name: spark-operator-edit-spark-resources
-subjects:
-- kind: ServiceAccount
-  name: spark-operator
+  name: spark-operator-edit-resources
+  namespace: default
 roleRef:
-  kind: Role
-  name: memcached-operator
-  apiGroup: rbac.authorization.k8s.io
-
+  kind: ClusterRole
+  name: cluster-admin
+  apiGroup: ""
+subjects:
+  - kind: ServiceAccount
+    name: spark-operator
+    namespace: default
 ---
-
 apiVersion: operators.coreos.com/v1alpha1
 kind: ClusterServiceVersion
 metadata:
   name: sparkoperator.v0.0.1
   namespace: default
-  annotations: 'alm-examples: [{"apiVersion": "radanalytics.io/v1","kind": "sparkcluster","metadata": {"name": "sparky-cluster"},"spec": {"master": { "instances": 1 },"sparkConfiguration": [{"name": "spark.executor.memory","value": "2g"}],"worker": {"instances": 2}}}]'
+  annotations: 'alm-examples: [{"apiVersion": "radanalytics.io/v1","kind": "sparkcluster","metadata": {"name": "sparky-cluster"},"spec": {"sparkConfiguration": [{"name": "spark.executor.memory","value": "2g"}],"worker": {"instances": 2}}}]'
 spec:
   displayName: Apache Spark Operator
   description: |
-    **Apache Spark** is foo
+    **Apache Spark** is a unified analytics engine for large-scale data processing.
     # Before you start
     todo: this
-    
+
     Usage:
     ```
     # create cluster
@@ -99,7 +73,7 @@ spec:
         instances: 2
     EOF
     ```
-  install: 
+  install:
     strategy: deployment
     spec:
       permissions:
@@ -111,15 +85,10 @@ spec:
           - "*"
           verbs:
           - "*"
-        - apiGroups:
-          - ""
-          resources:
-          - pods
-          - services
-          - configmaps
-          verbs:
-          - "*"
-      deployments: 
+        - apiGroups: [""]
+          resources: ["pods", "replicationcontrollers", "services", "configmaps"]
+          verbs: ["create", "delete", "deletecollection", "get", "list", "update", "watch", "patch"]
+      deployments:
       - name: spark-operator
         spec:
           replicas: 1
@@ -138,13 +107,12 @@ spec:
                   env:
                   - name: CRD
                     value: "true"
+                  - name: WATCHED_NAMESPACE
+                    value: "*"
                   resources:
-                    requests:
-                      memory: "512Mi"
-                      cpu: "250m"
                     limits:
-                      memory: "512Mi"
-                      cpu: "1000m"
+                      memory: "750Mi"
+                      cpu: "1500m"
               restartPolicy: Always
               terminationGracePeriodSeconds: 5
               serviceAccountName: spark-operator
