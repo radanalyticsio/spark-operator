@@ -70,4 +70,7 @@ devel-kubernetes:
 local-travis-tests: build
 	-docker kill `docker ps -q` || true
 	sed 's;quay.io/radanalyticsio/spark-operator:latest-released;radanalyticsio/spark-operator:latest;g' manifest/operator.yaml > manifest/operator-test.yaml
-	BIN=oc CRD=0 MANIFEST_SUFIX="-test" .travis/.travis.test-oc-and-k8s.sh || rm manifest/operator-test.yaml || true
+	-BIN=oc CRD=0 MANIFEST_SUFIX="-test" .travis/.travis.test-oc-and-k8s.sh || true
+	-BIN=oc CRD=0 MANIFEST_SUFIX="-test" .travis/.travis.test-restarts.sh || true
+	-BIN=oc CRD=0 MANIFEST_SUFIX="-test" .travis/.travis.test-cross-ns.sh || true
+	-rm manifest/operator-test.yaml || true
