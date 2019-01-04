@@ -250,10 +250,8 @@ testPythonAppResult() {
 
 testMetricServer() {
   info
-  os::cmd::expect_success_and_text '${BIN} set env deployment/spark-operator METRICS=true' 'updated' || errorLogs
+  testEditOperator 'METRICS=true'
   os::cmd::expect_success_and_text '${BIN} expose deployment spark-operator --port=8080' '"?spark-operator"? exposed' || errorLogs
-  sleep 1
-  os::cmd::try_until_text "${BIN} get pod -l app.kubernetes.io/name=spark-operator -o yaml" 'ready: true'
   local SVC_IP=`${BIN} get service/spark-operator -o='jsonpath="{.spec.clusterIP}"'|sed 's/"//g'`
   os::cmd::try_until_text "curl $SVC_IP:8080" 'operator_running_clusters'
   sleep 1
@@ -268,4 +266,11 @@ testKillOperator() {
   refreshOperatorPod
   os::cmd::expect_success_and_text "${BIN} delete pod $operator_pod" 'pod "?'$operator_pod'"? deleted' && \
   sleep 10
+}
+
+testEditOperator() {
+  info
+  os::cmd::expect_success_and_text '${BIN} set env deployment/spark-operator ${1}' 'updated' || errorLogs
+  sleep 2
+  os::cmd::try_until_text "${BIN} get pod -l app.kubernetes.io/name=spark-operator -o yaml" 'ready: true'
 }
