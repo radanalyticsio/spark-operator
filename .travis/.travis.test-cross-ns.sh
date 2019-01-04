@@ -16,6 +16,7 @@ source "${DIR}/.travis.test-common.sh"
 
 testCreateClusterInNamespace() {
   info
+  echo -e "\n\n namespace:\n"
   oc project
   [ "$CRD" = "1" ] && FOO="-cr" || FOO=""
   os::cmd::expect_success_and_text "${BIN} create -f $DIR/../examples/cluster$FOO.yaml" '"?my-spark-cluster"? created' && \
@@ -25,13 +26,14 @@ testCreateClusterInNamespace() {
 
 testDeleteClusterInNamespace() {
   info
-  os::cmd::expect_success_and_text '${BIN} delete ${KIND} my-sparky-cluster' '"my-sparky-cluster" deleted'
+  os::cmd::expect_success_and_text '${BIN} delete ${KIND} my-spark-cluster' '"my-spark-cluster" deleted'
   sleep 5
 }
 
 
 run_tests() {
   testEditOperator 'WATCHED_NAMESPACE="*"' || errorLogs
+  sleep 15 # wait long enough, because the full reconciliation is not supported for this use-case (*)
 
   os::cmd::expect_success_and_text '${BIN} new-project foo' 'Now using project' || errorLogs
   testCreateClusterInNamespace || errorLogs
@@ -45,7 +47,7 @@ run_tests() {
 }
 
 main() {
-  export total=5
+  export total=6
   export testIndex=0
   tear_down
   setup_testing_framework

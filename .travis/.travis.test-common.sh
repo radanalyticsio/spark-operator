@@ -52,9 +52,12 @@ setup_testing_framework() {
 }
 
 logs() {
+  checkNs
   echo -e "\n$(tput setaf 3)oc get all:$(tput sgr0)\n"
   ${BIN} get all
   echo -e "\n$(tput setaf 3)Logs:$(tput sgr0)\n"
+
+  [ -z "${operator_pod:-}" ] && refreshOperatorPod
   ${BIN} logs $operator_pod || {
     refreshOperatorPod
     ${BIN} logs $operator_pod || true
@@ -69,11 +72,16 @@ errorLogs() {
 }
 
 appErrorLogs() {
+  checkNs
   echo -e "\n$(tput setaf 3)Spark Application Logs:$(tput sgr0)\n"
   export submitter_pod=`${BIN} get pod -l radanalytics.io/kind=sparkapplication -o='jsonpath="{.items[0].metadata.name}"' | sed 's/"//g'`
   ${BIN} get all
   ${BIN} logs $submitter_pod
   errorLogs
+}
+
+checkNs() {
+  [ "${BIN}" = "oc" ] && [ `oc project -q | grep -v 'myproject'` ] && oc project myproject
 }
 
 info() {
