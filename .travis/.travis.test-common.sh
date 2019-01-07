@@ -81,7 +81,8 @@ appErrorLogs() {
 }
 
 checkNs() {
-  [ "${BIN}" = "oc" ] && [ `oc project -q | grep -v 'myproject'` ] && oc project myproject
+  # switch back to myproject to be able to print the logs correctly
+  [ "${BIN}" = "oc" ] && [ `oc project -q | grep -v 'myproject'` ] && oc project myproject || true
 }
 
 info() {
