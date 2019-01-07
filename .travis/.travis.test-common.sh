@@ -179,7 +179,7 @@ testCustomCluster2() {
   sleep 2
   refreshOperatorPod
   os::cmd::expect_success_and_text "${BIN} create -f $DIR/../examples/test/${CR}cluster-2.yaml" '"?my-spark-cluster-2"? created' && \
-  os::cmd::try_until_text "${BIN} logs $operator_pod | grep my-spark-cluster-2" "created" && \
+  os::cmd::try_until_text "${BIN} logs $operator_pod | grep my-spark-cluster-2" "creat\(ed\|ing\)" && \
   os::cmd::try_until_text "${BIN} get pods --no-headers -l radanalytics.io/sparkcluster=my-spark-cluster-2 | wc -l" '3' && \
   os::cmd::expect_success_and_text '${BIN} delete ${KIND} my-spark-cluster-2' '"my-spark-cluster-2" deleted' && \
   os::cmd::try_until_text "${BIN} logs $operator_pod | grep my-spark-cluster-2" "deleted" && \
