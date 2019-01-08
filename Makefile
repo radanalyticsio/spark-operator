@@ -4,7 +4,10 @@ IMAGE?=radanalyticsio/spark-operator
 build: package image-build
 
 .PHONY: build-travis
-build-travis: install-lib build
+build-travis:
+	echo -e "travis_fold:start:mvn\033[33;1mMaven and container build\033[0m"
+	$(MAKE) install-lib build
+	echo -e "\ntravis_fold:end:mvn\r"
 
 .PHONY: install-parent
 install-parent:
@@ -70,4 +73,7 @@ devel-kubernetes:
 local-travis-tests: build
 	-docker kill `docker ps -q` || true
 	sed 's;quay.io/radanalyticsio/spark-operator:latest-released;radanalyticsio/spark-operator:latest;g' manifest/operator.yaml > manifest/operator-test.yaml
-	BIN=oc CRD=0 MANIFEST_SUFIX="-test" .travis/.travis.test-oc-and-k8s.sh || rm manifest/operator-test.yaml || true
+	-BIN=oc CRD=0 MANIFEST_SUFIX="-test" .travis/.travis.test-oc-and-k8s.sh || true
+	-BIN=oc CRD=0 MANIFEST_SUFIX="-test" .travis/.travis.test-restarts.sh || true
+	-BIN=oc CRD=0 MANIFEST_SUFIX="-test" .travis/.travis.test-cross-ns.sh || true
+	-rm manifest/operator-test.yaml || true

@@ -20,7 +20,7 @@ jobs:
       script: make build-travis test
 
     - stage: test-oc-and-k8s
-      name: "Specs [oc • CMs]"
+      name: "Full specs [oc • CMs]"
       env: BIN=oc VERSION=v3.9.0 CRD=0
       script: &oc-script-defaults
         - make build-travis
@@ -28,7 +28,7 @@ jobs:
         - ./.travis/.travis.test-oc-and-k8s.sh
 
     - stage:
-      name: "Specs [oc • CRs]"
+      name: "Full specs [oc • CRs]"
       env: BIN=oc VERSION=v3.9.0 CRD=1
       script: *oc-script-defaults
 
@@ -37,7 +37,7 @@ jobs:
     #  script: *oc-script-defaults
 
     - stage:
-      name: "Specs [K8s • CMs]"
+      name: "Full specs [K8s • CMs]"
       env: BIN=kubectl VERSION=v1.9.0 CRD=0 MINIKUBE_VERSION=v0.25.2
       script: &kc-script-defaults
         - make build-travis
@@ -45,12 +45,12 @@ jobs:
         - ./.travis/.travis.test-oc-and-k8s.sh
 
     - stage:
-      name: "Specs [K8s • CRs]"
+      name: "Full specs [K8s • CRs]"
       env: BIN=kubectl VERSION=v1.9.0 CRD=1 MINIKUBE_VERSION=v0.25.2
       script: *kc-script-defaults
 
     - stage:
-      name: "Restarts [oc • CMs]"
+      name: "Random restarts [oc • CMs]"
       env: BIN=oc VERSION=v3.9.0 CRD=0
       script:
         - make build-travis
@@ -58,12 +58,25 @@ jobs:
         - ./.travis/.travis.test-restarts.sh
 
     - stage:
-      name: "Restarts [K8s • CRs]"
+      name: "Random restarts [K8s • CRs]"
       env: BIN=kubectl VERSION=v1.9.0 CRD=1 MINIKUBE_VERSION=v0.25.2
       script:
         - make build-travis
         - ./.travis/.travis.prepare.minikube.sh
         - ./.travis/.travis.test-restarts.sh
+
+    - stage:
+      name: "Cross namespaces (WATCHED_NAMESPACES=*) [oc • CMs]"
+      env: BIN=oc VERSION=v3.9.0 CRD=0
+      script: &cross-ns-defaults
+      - make build-travis
+      - ./.travis/.travis.prepare.openshift.sh
+      - ./.travis/.travis.test-cross-ns.sh
+
+    - stage:
+      name: "Cross namespaces (WATCHED_NAMESPACES=*) [oc • CRs]"
+      env: BIN=oc VERSION=v3.9.0 CRD=1
+      script: *cross-ns-defaults
 
     - stage: deploy
       name: "Push container images"

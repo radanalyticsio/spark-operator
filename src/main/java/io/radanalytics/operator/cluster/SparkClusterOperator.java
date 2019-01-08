@@ -40,12 +40,14 @@ public class SparkClusterOperator extends AbstractOperator<SparkCluster> {
         this.clusters = new RunningClusters();
     }
 
+    @Override
     protected void onAdd(SparkCluster cluster) {
         KubernetesResourceList list = getDeployer().getResourceList(cluster);
         client.resourceList(list).inNamespace(namespace).createOrReplace();
         clusters.put(cluster);
     }
 
+    @Override
     protected void onDelete(SparkCluster cluster) {
         String name = cluster.getName();
         client.services().inNamespace(namespace).withLabels(getDeployer().getDefaultLabels(name)).delete();
@@ -54,6 +56,7 @@ public class SparkClusterOperator extends AbstractOperator<SparkCluster> {
         clusters.delete(name);
     }
 
+    @Override
     protected void onModify(SparkCluster newCluster) {
         String name = newCluster.getName();
         int newWorkers = Optional.ofNullable(newCluster.getWorker()).orElse(new RCSpec()).getInstances();
@@ -84,6 +87,10 @@ public class SparkClusterOperator extends AbstractOperator<SparkCluster> {
 //        4. actualSet - desiredSet = toBeDeleted
 //        5. modify / scale
 
+        if ("*".equals(namespace)) {
+            log.info("Skipping full reconciliation for namespace '*' (not supported)");
+            return;
+        }
         log.info("Running full reconciliation for namespace {} and kind {}..", namespace, entityName);
         final AtomicBoolean change = new AtomicBoolean(false);
         Set<SparkCluster> desiredSet = super.getDesiredSet();

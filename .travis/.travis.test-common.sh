@@ -43,7 +43,7 @@ start_minikube() {
 }
 
 tear_down() {
-  docker kill `docker ps -q` || true
+  docker kill `docker ps -q` &> /dev/null || true
 }
 
 setup_testing_framework() {
@@ -52,9 +52,12 @@ setup_testing_framework() {
 }
 
 logs() {
+  checkNs
   echo -e "\n$(tput setaf 3)oc get all:$(tput sgr0)\n"
   ${BIN} get all
   echo -e "\n$(tput setaf 3)Logs:$(tput sgr0)\n"
+
+  [ -z "${operator_pod:-}" ] && refreshOperatorPod
   ${BIN} logs $operator_pod || {
     refreshOperatorPod
     ${BIN} logs $operator_pod || true
@@ -69,6 +72,7 @@ errorLogs() {
 }
 
 appErrorLogs() {
+  checkNs
   echo -e "\n$(tput setaf 3)Spark Application Logs:$(tput sgr0)\n"
   export submitter_pod=`${BIN} get pod -l radanalytics.io/kind=sparkapplication -o='jsonpath="{.items[0].metadata.name}"' | sed 's/"//g'`
   ${BIN} get all
@@ -76,9 +80,14 @@ appErrorLogs() {
   errorLogs
 }
 
+checkNs() {
+  # switch back to myproject to be able to print the logs correctly
+  [ "${BIN}" = "oc" ] && [ `oc project -q | grep -v 'myproject'` ] && oc project myproject || true
+}
+
 info() {
   ((testIndex++))
-  echo "$(tput setaf 3)[$testIndex / $total] - Running ${FUNCNAME[1]}$(tput sgr0)"
+  echo "$(tput setaf 3)[$testIndex / $total] - Running ${FUNCNAME[1]}$(tput sgr0)  ($(date +%T))"
 }
 
 testCreateOperator() {
@@ -119,7 +128,7 @@ testDeleteCluster() {
 testCreateCluster2() {
   info
   sleep 2
-  [ "$CRD" = "1" ] && return 0
+  [ "$CRD" = "1" ] && { echo "skipping for crds.." && return 0 ; }
   os::cmd::expect_success_and_text "${BIN} create -f $DIR/../examples/with-prepared-data.yaml" '"?spark-cluster-with-data"? created' && \
   os::cmd::try_until_text "${BIN} get pod -l radanalytics.io/deployment=spark-cluster-with-data-w -o yaml" 'ready: true' && \
   os::cmd::try_until_text "${BIN} get pod -l radanalytics.io/deployment=spark-cluster-with-data-m -o yaml" 'ready: true'
@@ -128,7 +137,7 @@ testCreateCluster2() {
 testDownloadedData() {
   info
   sleep 2
-  [ "$CRD" = "1" ] && return 0
+  [ "$CRD" = "1" ] && { echo "skipping for crds.." && return 0 ; }
   local worker_pod=`${BIN} get pod -l radanalytics.io/deployment=spark-cluster-with-data-w -o='jsonpath="{.items[0].metadata.name}"' | sed 's/"//g'` && \
   os::cmd::expect_success_and_text "${BIN} exec $worker_pod ls" 'LA.csv' && \
   os::cmd::expect_success_and_text "${BIN} exec $worker_pod ls" 'rows.csv' && \
@@ -138,7 +147,7 @@ testDownloadedData() {
 testFullConfigCluster() {
   info
   sleep 2
-  [ "$CRD" = "1" ] && return 0
+  [ "$CRD" = "1" ] && { echo "skipping for crds.." && return 0 ; }
   os::cmd::expect_success_and_text "${BIN} create cm my-config --from-file=$DIR/../examples/spark-defaults.conf" '"?my-config"? created' && \
   os::cmd::expect_success_and_text "${BIN} create -f $DIR/../examples/cluster-with-config.yaml" '"?sparky-cluster"? created' && \
   os::cmd::try_until_text "${BIN} get pod -l radanalytics.io/deployment=sparky-cluster-w -o yaml" 'ready: true' && \
@@ -157,7 +166,7 @@ testFullConfigCluster() {
 testCustomCluster1() {
   info
   sleep 2
-  [ "$CRD" = "1" ] && return 0
+  [ "$CRD" = "1" ] && { echo "skipping for crds.." && return 0 ; }
   refreshOperatorPod
   os::cmd::expect_success_and_text "${BIN} create -f $DIR/../examples/test/cluster-1.yaml" '"?my-spark-cluster-1"? created' && \
   os::cmd::try_until_text "${BIN} logs $operator_pod" 'Unable to parse yaml definition of configmap' && \
@@ -170,10 +179,10 @@ testCustomCluster2() {
   sleep 2
   refreshOperatorPod
   os::cmd::expect_success_and_text "${BIN} create -f $DIR/../examples/test/${CR}cluster-2.yaml" '"?my-spark-cluster-2"? created' && \
-  os::cmd::try_until_text "${BIN} logs $operator_pod | grep my-spark-cluster-2" "created" && \
+  #os::cmd::try_until_text "${BIN} logs $operator_pod | grep my-spark-cluster-2" "creat\(ed\|ing\)" && \   (colors)
   os::cmd::try_until_text "${BIN} get pods --no-headers -l radanalytics.io/sparkcluster=my-spark-cluster-2 | wc -l" '3' && \
   os::cmd::expect_success_and_text '${BIN} delete ${KIND} my-spark-cluster-2' '"my-spark-cluster-2" deleted' && \
-  os::cmd::try_until_text "${BIN} logs $operator_pod | grep my-spark-cluster-2" "deleted" && \
+  #os::cmd::try_until_text "${BIN} logs $operator_pod | grep my-spark-cluster-2" "deleted" && \   (colors)
   os::cmd::try_until_text "${BIN} get pods --no-headers -l radanalytics.io/sparkcluster=my-spark-cluster-2 | wc -l" '0'
 }
 
@@ -249,11 +258,9 @@ testPythonAppResult() {
 }
 
 testMetricServer() {
+  testEditOperator 'METRICS=true'
   info
-  os::cmd::expect_success_and_text '${BIN} set env deployment/spark-operator METRICS=true' 'updated' || errorLogs
   os::cmd::expect_success_and_text '${BIN} expose deployment spark-operator --port=8080' '"?spark-operator"? exposed' || errorLogs
-  sleep 1
-  os::cmd::try_until_text "${BIN} get pod -l app.kubernetes.io/name=spark-operator -o yaml" 'ready: true'
   local SVC_IP=`${BIN} get service/spark-operator -o='jsonpath="{.spec.clusterIP}"'|sed 's/"//g'`
   os::cmd::try_until_text "curl $SVC_IP:8080" 'operator_running_clusters'
   sleep 1
@@ -268,4 +275,12 @@ testKillOperator() {
   refreshOperatorPod
   os::cmd::expect_success_and_text "${BIN} delete pod $operator_pod" 'pod "?'$operator_pod'"? deleted' && \
   sleep 10
+}
+
+testEditOperator() {
+  info
+  _ENV_PARAM=${1}
+  os::cmd::expect_success_and_text '${BIN} set env deployment/spark-operator ${_ENV_PARAM}' 'updated' || errorLogs
+  sleep 2
+  os::cmd::try_until_text "${BIN} get pod -l app.kubernetes.io/name=spark-operator -o yaml" 'ready: true'
 }

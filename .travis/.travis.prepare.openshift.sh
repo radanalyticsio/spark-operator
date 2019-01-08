@@ -29,9 +29,11 @@ setup_manifest() {
 }
 
 main() {
+  echo -e "travis_fold:start:oc\033[33;1mPrepare OpenShift\033[0m"
   download_openshift
   setup_insecure_registry
   setup_manifest
+  echo -e "\ntravis_fold:end:oc\r"
 }
 
 main

@@ -23,9 +23,9 @@ run_tests() {
   testKillOperator || errorLogs
 
   sleep 10
-  testApp || errorLogs
+  testApp || appErrorLogs
   testKillOperator || errorLogs
-  testAppResult || errorLogs
+  testAppResult || appErrorLogs
   logs
 }
 

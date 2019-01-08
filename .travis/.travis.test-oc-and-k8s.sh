@@ -50,7 +50,7 @@ run_tests() {
 }
 
 main() {
-  export total=18
+  export total=19
   export testIndex=0
   tear_down
   setup_testing_framework
