@@ -43,7 +43,7 @@ start_minikube() {
 }
 
 tear_down() {
-  docker kill `docker ps -q` || true
+  docker kill `docker ps -q` &> /dev/null || true
 }
 
 setup_testing_framework() {
@@ -87,7 +87,7 @@ checkNs() {
 
 info() {
   ((testIndex++))
-  echo "$(tput setaf 3)[$testIndex / $total] - Running ${FUNCNAME[1]}$(tput sgr0)"
+  echo "$(tput setaf 3)[$testIndex / $total] - Running ${FUNCNAME[1]}$(tput sgr0)  ($(date +%T))"
 }
 
 testCreateOperator() {
