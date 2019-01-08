@@ -4,7 +4,10 @@ IMAGE?=radanalyticsio/spark-operator
 build: package image-build
 
 .PHONY: build-travis
-build-travis: install-lib build
+build-travis:
+	echo -e "travis_fold:start:mvn\033[33;1mMaven and container build\033[0m"
+	$(MAKE) install-lib build
+	echo -e "\ntravis_fold:end:mvn\r"
 
 .PHONY: install-parent
 install-parent:

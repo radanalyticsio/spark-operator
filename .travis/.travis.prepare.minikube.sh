@@ -29,9 +29,11 @@ setup_manifest() {
 }
 
 main() {
+  echo -e "travis_fold:start:k8s\033[33;1mPrepare Minikube\033[0m"
   download_kubectl
   download_minikube
   setup_manifest
+  echo -e "\ntravis_fold:end:k8s\r"
 }
 
 main
