@@ -12,8 +12,7 @@ cache:
 
 stages:
   - test
-  - test-oc-and-k8s
-  - test-restarts
+  - Kubernetes and Openshift tests
   - deploy
 
 jobs:
