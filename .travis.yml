@@ -6,6 +6,10 @@ services:
 # skip install step
 install: true
 
+cache:
+  directories:
+  - $HOME/.m2
+
 stages:
   - test
   - test-oc-and-k8s
@@ -19,8 +23,8 @@ jobs:
       language: java
       script: make build-travis test
 
-    - stage: test-oc-and-k8s
-      name: "Full specs [oc • CMs]"
+    - stage: Kubernetes and Openshift tests
+      name: "[oc • CMs] Full specs"
       env: BIN=oc VERSION=v3.9.0 CRD=0
       script: &oc-script-defaults
         - make build-travis
