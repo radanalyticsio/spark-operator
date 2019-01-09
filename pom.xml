@@ -1,4 +1,4 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0                       http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
     <parent>
         <groupId>io.radanalytics</groupId>
@@ -8,13 +8,13 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.radanalytics</groupId>
     <artifactId>spark-operator</artifactId>
-    <version>0.3.3</version>
+    <version>0.3.4-SNAPSHOT</version>
 
     <scm>
         <url>https://github.com/radanalyticsio/spark-operator</url>
         <connection>scm:git:git@github.com:radanalyticsio/spark-operator.git</connection>
         <developerConnection>scm:git:git@github.com:radanalyticsio/spark-operator.git</developerConnection>
-        <tag>0.3.3</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <properties>
