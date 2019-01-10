@@ -124,14 +124,12 @@ spec:
         spec:
           replicas: 1
           selector:
-            matchLabels:
+            matchLabels: &default-labels
               app.kubernetes.io/name: spark-operator
-              app.kubernetes.io/version: v0.3.2-v1alpha1
+              app.kubernetes.io/version: v0.3.3-v1alpha1
           template:
             metadata:
-              labels:
-                app.kubernetes.io/name: spark-operator
-                app.kubernetes.io/version: v0.3.2-v1alpha1
+              labels: *default-labels
             spec:
               containers:
                 - name: spark-operator
