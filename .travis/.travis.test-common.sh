@@ -214,7 +214,7 @@ testCustomCluster5() {
   refreshOperatorPod
   os::cmd::expect_success_and_text "${BIN} create -f $DIR/../examples/test/${CR}cluster-with-config-3.yaml" '"?sparky-cluster-3"? created' && \
   os::cmd::try_until_text "${BIN} get pods --no-headers -l radanalytics.io/sparkcluster=sparky-cluster-3 | wc -l" '2' && \
-  os::cmd::try_until_text "${BIN} logs $operator_pod | grep sparky-cluster-3" "created" && \
+  #os::cmd::try_until_text "${BIN} logs $operator_pod | grep sparky-cluster-3" "created" && \
   os::cmd::expect_success_and_text '${BIN} delete ${KIND} sparky-cluster-3' '"sparky-cluster-3" deleted' && \
   os::cmd::try_until_text "${BIN} get pods --no-headers -l radanalytics.io/sparkcluster=my-spark-cluster-3 | wc -l" '0'
 }
