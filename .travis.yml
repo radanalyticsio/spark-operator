@@ -31,7 +31,7 @@ jobs:
         - ./.travis/.travis.test-oc-and-k8s.sh
 
     - stage:
-      name: "Full specs [oc • CRs]"
+      name: "[oc • CRs] Full specs"
       env: BIN=oc VERSION=v3.9.0 CRD=1
       script: *oc-script-defaults
 
@@ -40,7 +40,7 @@ jobs:
     #  script: *oc-script-defaults
 
     - stage:
-      name: "Full specs [K8s • CMs]"
+      name: "[K8s • CMs] Full specs"
       env: BIN=kubectl VERSION=v1.9.0 CRD=0 MINIKUBE_VERSION=v0.25.2
       script: &kc-script-defaults
         - make build-travis
@@ -48,12 +48,12 @@ jobs:
         - ./.travis/.travis.test-oc-and-k8s.sh
 
     - stage:
-      name: "Full specs [K8s • CRs]"
+      name: "[K8s • CRs] Full specs"
       env: BIN=kubectl VERSION=v1.9.0 CRD=1 MINIKUBE_VERSION=v0.25.2
       script: *kc-script-defaults
 
     - stage:
-      name: "Random restarts [oc • CMs]"
+      name: "[oc • CMs] Random restarts"
       env: BIN=oc VERSION=v3.9.0 CRD=0
       script:
         - make build-travis
@@ -61,7 +61,7 @@ jobs:
         - ./.travis/.travis.test-restarts.sh
 
     - stage:
-      name: "Random restarts [K8s • CRs]"
+      name: "[K8s • CRs] Random restarts"
       env: BIN=kubectl VERSION=v1.9.0 CRD=1 MINIKUBE_VERSION=v0.25.2
       script:
         - make build-travis
@@ -69,7 +69,7 @@ jobs:
         - ./.travis/.travis.test-restarts.sh
 
     - stage:
-      name: "Cross namespaces (WATCHED_NAMESPACES=*) [oc • CMs]"
+      name: "[oc • CMs] Cross namespaces (WATCHED_NAMESPACES=*)"
       env: BIN=oc VERSION=v3.9.0 CRD=0
       script: &cross-ns-defaults
       - make build-travis
@@ -77,7 +77,7 @@ jobs:
       - ./.travis/.travis.test-cross-ns.sh
 
     - stage:
-      name: "Cross namespaces (WATCHED_NAMESPACES=*) [oc • CRs]"
+      name: "[oc • CRs] Cross namespaces (WATCHED_NAMESPACES=*)"
       env: BIN=oc VERSION=v3.9.0 CRD=1
       script: *cross-ns-defaults
 
