@@ -3,7 +3,7 @@
     <parent>
         <groupId>io.radanalytics</groupId>
         <artifactId>operator-parent-pom</artifactId>
-        <version>0.3.10</version>
+        <version>0.3.11</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.radanalytics</groupId>
@@ -19,7 +19,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <abstract-operator.version>0.4.14</abstract-operator.version>
+        <abstract-operator.version>0.4.15</abstract-operator.version>
     </properties>
 
     <dependencies>
