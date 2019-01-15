@@ -33,18 +33,14 @@ public class SparkClusterOperator extends AbstractOperator<SparkCluster> {
 
     private static final Logger log = LoggerFactory.getLogger(AbstractOperator.class.getName());
 
-    private final RunningClusters clusters;
+    private RunningClusters clusters;
     private KubernetesSparkClusterDeployer deployer;
-
-    public SparkClusterOperator() {
-        this.clusters = new RunningClusters();
-    }
 
     @Override
     protected void onAdd(SparkCluster cluster) {
         KubernetesResourceList list = getDeployer().getResourceList(cluster);
         client.resourceList(list).inNamespace(namespace).createOrReplace();
-        clusters.put(cluster);
+        getClusters().put(cluster);
     }
 
     @Override
@@ -53,7 +49,7 @@ public class SparkClusterOperator extends AbstractOperator<SparkCluster> {
         client.services().inNamespace(namespace).withLabels(getDeployer().getDefaultLabels(name)).delete();
         client.replicationControllers().inNamespace(namespace).withLabels(getDeployer().getDefaultLabels(name)).delete();
         client.pods().inNamespace(namespace).withLabels(getDeployer().getDefaultLabels(name)).delete();
-        clusters.delete(name);
+        getClusters().delete(name);
     }
 
     @Override
@@ -61,7 +57,7 @@ public class SparkClusterOperator extends AbstractOperator<SparkCluster> {
         String name = newCluster.getName();
         int newWorkers = Optional.ofNullable(newCluster.getWorker()).orElse(new RCSpec()).getInstances();
 
-        SparkCluster existingCluster = clusters.getCluster(name);
+        SparkCluster existingCluster = getClusters().getCluster(name);
         if (null == existingCluster) {
             log.error("something went wrong, unable to scale existing cluster. Perhaps it wasn't deployed properly.");
             return;
@@ -75,7 +71,7 @@ public class SparkClusterOperator extends AbstractOperator<SparkCluster> {
             log.info("{}recreating{} cluster  {}{}{}", re(), xx(), ye(), existingCluster.getName(), xx());
             KubernetesResourceList list = getDeployer().getResourceList(newCluster);
             client.resourceList(list).inNamespace(namespace).createOrReplace();
-            clusters.put(newCluster);
+            getClusters().put(newCluster);
         }
     }
 
@@ -133,20 +129,20 @@ public class SparkClusterOperator extends AbstractOperator<SparkCluster> {
             if (actualWorkers != null && desiredWorkers != actualWorkers) {
                 change.set(true);
                 // update the internal representation with the actual # of workers and call onModify
-                if (clusters.getCluster(dCluster.getName()) == null) {
+                if (getClusters().getCluster(dCluster.getName()) == null) {
                     // deep copy via json -> room for optimization
                     ObjectMapper om = new ObjectMapper();
                     try {
                         SparkCluster actualCluster = om.readValue(om.writeValueAsString(dCluster), SparkCluster.class);
                         Optional.ofNullable(actualCluster.getWorker()).ifPresent(w -> w.setInstances(actualWorkers));
-                        clusters.put(actualCluster);
+                        getClusters().put(actualCluster);
                     } catch (IOException e) {
                         log.warn(e.getMessage());
                         e.printStackTrace();
                         return;
                     }
                 } else {
-                    Optional.ofNullable(clusters.getCluster(dCluster.getName())).map(SparkCluster::getWorker)
+                    Optional.ofNullable(getClusters().getCluster(dCluster.getName())).map(SparkCluster::getWorker)
                             .ifPresent(worker -> worker.setInstances(actualWorkers));
                 }
                 log.info("scaling cluster {}", dCluster.getName());
@@ -156,13 +152,14 @@ public class SparkClusterOperator extends AbstractOperator<SparkCluster> {
 
         // first reconciliation after (re)start -> update the clusters instance
         if (!fullReconciliationRun) {
-            clusters.resetMetrics();
-            desiredMap.entrySet().forEach(e -> clusters.put(e.getValue()));
+            getClusters().resetMetrics();
+            desiredMap.entrySet().forEach(e -> getClusters().put(e.getValue()));
         }
 
         if (!change.get()) {
             log.info("no change was detected during the reconciliation");
         }
+        MetricsHelper.reconciliationsTotal.labels(namespace).inc();
     }
 
     private Map<String, Integer> getActual() {
@@ -195,5 +192,12 @@ public class SparkClusterOperator extends AbstractOperator<SparkCluster> {
         retVal &= oldC.equals(newC);
         newC.getWorker().setInstances(backup);
         return retVal;
+    }
+
+    private RunningClusters getClusters() {
+        if (null == clusters){
+            clusters = new RunningClusters(namespace);
+        }
+        return clusters;
     }
 }
