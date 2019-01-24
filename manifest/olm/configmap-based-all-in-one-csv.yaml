@@ -30,7 +30,6 @@ apiVersion: operators.coreos.com/v1alpha1
 kind: ClusterServiceVersion
 metadata:
   name: sparkoperator.v0.3.3
-  namespace: default
   annotations: 'alm-examples: [{"apiVersion": "v1","kind": "ConfigMap","metadata": {"name": "my-spark-cluster","labels": {"radanalytics.io/kind": "sparkcluster"}},"data": {"config": "worker:\n  instances: \"2\""}}]'
 spec:
   displayName: Apache Spark Operator
@@ -52,6 +51,15 @@ spec:
         worker:
           instances: "2"
     ```
+  installModes:
+  - type: OwnNamespace
+    supported: true
+  - type: SingleNamespace
+    supported: true
+  - type: MultiNamespace
+    supported: true
+  - type: AllNamespaces
+    supported: true
   install:
     strategy: deployment
     spec:
