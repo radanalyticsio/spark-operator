@@ -1,0 +1,108 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: spark-operator
+---
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: edit-spark-resources
+rules:
+- apiGroups: [""]
+  resources: ["pods", "replicationcontrollers", "services", "configmaps"]
+  verbs: ["create", "delete", "deletecollection", "get", "list", "update", "watch", "patch"]
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: spark-operator-edit-spark-resources
+subjects:
+- kind: ServiceAccount
+  name: spark-operator
+roleRef:
+  kind: Role
+  name: edit-spark-resources
+  apiGroup: ""
+---
+
+apiVersion: operators.coreos.com/v1alpha1
+kind: ClusterServiceVersion
+metadata:
+  name: sparkoperator.v0.3.3
+  annotations: 'alm-examples: [{"apiVersion": "v1","kind": "ConfigMap","metadata": {"name": "my-spark-cluster","labels": {"radanalytics.io/kind": "sparkcluster"}},"data": {"config": "worker:\n  instances: \"2\""}}]'
+spec:
+  displayName: Apache Spark Operator
+  description: |
+    **Apache Spark** is a unified analytics engine for large-scale data processing.
+
+    Usage:
+    ```
+    # create cluster
+    cat <<EOF | kubectl create -f -
+    apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: my-spark-cluster
+      labels:
+        radanalytics.io/kind: sparkcluster
+    data:
+      config: |-
+        worker:
+          instances: "2"
+    ```
+  installModes:
+  - type: OwnNamespace
+    supported: true
+  - type: SingleNamespace
+    supported: true
+  - type: MultiNamespace
+    supported: true
+  - type: AllNamespaces
+    supported: true
+  install:
+    strategy: deployment
+    spec:
+      permissions:
+      - serviceAccountName: spark-operator
+        rules:
+        - apiGroups: [""]
+          resources: ["pods", "replicationcontrollers", "services", "configmaps"]
+          verbs: ["create", "delete", "deletecollection", "get", "list", "update", "watch", "patch"]
+      deployments:
+      - name: spark-operator
+        spec:
+          replicas: 1
+          selector:
+            matchLabels:
+              app.kubernetes.io/name: spark-operator
+              app.kubernetes.io/version: v0.3.3-v1alpha1
+          template:
+            metadata:
+              labels:
+                app.kubernetes.io/name: spark-operator
+                app.kubernetes.io/version: v0.3.3-v1alpha1
+            spec:
+              containers:
+                - name: spark-operator
+                  image: quay.io/radanalyticsio/spark-operator:latest-released
+                  imagePullPolicy: Always
+              restartPolicy: Always
+              terminationGracePeriodSeconds: 5
+              serviceAccountName: spark-operator
+              serviceAccount: spark-operator
+  keywords:
+    - spark
+    - operator
+    - kubernets
+  provider:
+    name: Radanalytics.io
+    url: www.radanalytics.io
+  maturity: alpha
+  version: 0.3.3
+  maintainers:
+    - email: jkremser@redhat.com
+      name: Red Hat, Inc.
+  labels:
+    alm-owner-enterprise-app: spark-operator
+    alm-status-descriptors: spark-operator.v0.3.3
