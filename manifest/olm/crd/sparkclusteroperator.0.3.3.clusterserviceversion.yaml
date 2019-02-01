@@ -55,6 +55,12 @@ spec:
         - apiGroups: [""]
           resources: ["pods", "replicationcontrollers", "services", "configmaps"]
           verbs: ["create", "delete", "deletecollection", "get", "list", "update", "watch", "patch"]
+        - apiGroups:
+          - apiextensions.k8s.io
+          resources:
+          - customresourcedefinitions
+          verbs:
+          - list
       deployments:
       - name: spark-operator
         namespace: openshift-operators
@@ -77,8 +83,10 @@ spec:
                   env:
                   - name: CRD
                     value: "true"
-                  - name: WATCHED_NAMESPACE
-                    value: "openshift_operators"
+                  - name: WATCH_NAMESPACE
+                    valueFrom:
+                      fieldRef:
+                        fieldPath: metadata.annotations['olm.targetNamespaces']
                   resources:
                     limits:
                       memory: "750Mi"
