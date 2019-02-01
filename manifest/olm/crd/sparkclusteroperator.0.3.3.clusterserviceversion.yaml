@@ -77,7 +77,7 @@ spec:
                   env:
                   - name: CRD
                     value: "true"
-                  - name: WATCHED_NAMESPACE
+                  - name: WATCH_NAMESPACE
                     value: "openshift_operators"
                   resources:
                     limits:

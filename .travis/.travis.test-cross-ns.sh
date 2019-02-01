@@ -32,7 +32,7 @@ testDeleteClusterInNamespace() {
 
 
 run_tests() {
-  testEditOperator 'WATCHED_NAMESPACE="*"' || errorLogs
+  testEditOperator 'WATCH_NAMESPACE="*"' || errorLogs
   sleep 15 # wait long enough, because the full reconciliation is not supported for this use-case (*)
 
   os::cmd::expect_success_and_text '${BIN} new-project foo' 'Now using project' || errorLogs
