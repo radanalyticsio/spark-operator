@@ -62,6 +62,8 @@ logs() {
     refreshOperatorPod
     ${BIN} logs $operator_pod || true
   }
+  echo -e "\n$(tput setaf 3)Events:$(tput sgr0)\n"
+  ${BIN} get events --sort-by=.metadata.creationTimestamp
   echo
 }
 

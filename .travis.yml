@@ -6,9 +6,20 @@ services:
 # skip install step
 install: true
 
+before_cache:
+  # Save tagged docker images
+  - >
+    mkdir -p $HOME/docker && docker images -a --filter='dangling=false' --format '{{.Repository}}:{{.Tag}} {{.ID}}'
+    | xargs -n 2 -t sh -c 'test -e $HOME/docker/$1.tar.gz || docker save $0 | gzip -2 > $HOME/docker/$1.tar.gz'
+
+before_install:
+  # Load cached docker images
+  - if [[ -d $HOME/docker ]]; then ls $HOME/docker/*.tar.gz | xargs -I {file} sh -c "zcat {file} | docker load"; fi
+
 cache:
   directories:
   - $HOME/.m2
+  - $HOME/docker
 
 stages:
   - test
@@ -20,7 +31,12 @@ jobs:
     - stage: test
       name: "Maven & cont. image build"
       language: java
-      script: make build-travis test
+      script:
+        # Pull docker images that will be cached
+        - docker pull quay.io/jkremser/openshift-spark:2.4.0
+        - docker pull quay.io/jkremser/openshift-spark:2.3-latest
+        # run the tests
+        - make build-travis test
 
     - stage: Kubernetes and Openshift tests
       name: "[oc • CMs] Full specs"
