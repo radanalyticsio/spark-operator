@@ -5,9 +5,9 @@ metadata:
 spec:
   group: radanalytics.io
   names:
-    kind: sparkapplication
-    listKind: sparkapplicationList
-    plural: sparkapplications
-    singular: sparkapplication
+    kind: SparkApplication
+    listKind: SparkApplicationList
+    plural: SparkApplications
+    singular: SparkApplication
   scope: Namespaced
   version: v1

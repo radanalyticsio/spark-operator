@@ -58,7 +58,7 @@ kind: ConfigMap
 metadata:
   name: my-cluster
   labels:
-    radanalytics.io/kind: sparkcluster
+    radanalytics.io/kind: SparkCluster
 data:
   config: |-
     worker:
@@ -82,7 +82,7 @@ and then create the Spark clusters by creating the custom resources (CR).
 
 ```bash
 kubectl apply -f examples/cluster-cr.yaml
-kubectl get sparkclusters
+kubectl get SparkClusters
 ```
 
 ### Images

@@ -3,7 +3,7 @@ kind: ConfigMap
 metadata:
   name: ntlk-example
   labels:
-    radanalytics.io/kind: sparkapplication
+    radanalytics.io/kind: SparkApplication
 data:
   config: |-
     image: jkremser/spark-operator:2.4.0-ntlk
