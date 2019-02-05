@@ -85,7 +85,7 @@ jobs:
         - ./.travis/.travis.test-restarts.sh
 
     - stage:
-      name: "[oc • CMs] Cross namespaces (WATCHED_NAMESPACES=*)"
+      name: "[oc • CMs] Cross namespaces (WATCH_NAMESPACES=*)"
       env: BIN=oc VERSION=v3.9.0 CRD=0
       script: &cross-ns-defaults
       - make build-travis
@@ -93,7 +93,7 @@ jobs:
       - ./.travis/.travis.test-cross-ns.sh
 
     - stage:
-      name: "[oc • CRs] Cross namespaces (WATCHED_NAMESPACES=*)"
+      name: "[oc • CRs] Cross namespaces (WATCH_NAMESPACES=*)"
       env: BIN=oc VERSION=v3.9.0 CRD=1
       script: *cross-ns-defaults
 

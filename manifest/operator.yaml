@@ -46,7 +46,7 @@ spec:
       - name: spark-operator
         image: radanalyticsio/spark-operator:latest
         #env:
-        #- name: WATCHED_NAMESPACE # if not specified the same ns as the operator's will be used, use * for all (+ set cluster rights)
+        #- name: WATCH_NAMESPACE # if not specified the same ns as the operator's will be used, use * for all (+ set cluster rights)
         #  value: "myproject"
         #- name: FULL_RECONCILIATION_INTERVAL_S
         #  value: "180"
