@@ -98,7 +98,7 @@ testCreateOperator() {
   os::cmd::expect_success_and_text "${BIN} create -f $DIR/../manifest/operator$FOO$MANIFEST_SUFIX.yaml" '"?spark-operator"? created' && \
   os::cmd::try_until_text "${BIN} get pod -l app.kubernetes.io/name=spark-operator -o yaml" 'ready: true'
   if [ "$CRD" = "1" ]; then
-    os::cmd::try_until_text "${BIN} get crd" 'SparkClusters.radanalytics.io'
+    os::cmd::try_until_text "${BIN} get crd" 'sparkclusters.radanalytics.io'
   fi
   sleep 10
 }
@@ -114,7 +114,7 @@ testCreateCluster1() {
 testScaleCluster() {
   info
   if [ "$CRD" = "1" ]; then
-    os::cmd::expect_success_and_text '${BIN} patch SparkCluster my-spark-cluster -p "{\"spec\":{\"worker\": {\"instances\": 1}}}" --type=merge' '"?my-spark-cluster"? patched' || errorLogs
+    os::cmd::expect_success_and_text '${BIN} patch sparkcluster my-spark-cluster -p "{\"spec\":{\"worker\": {\"instances\": 1}}}" --type=merge' '"?my-spark-cluster"? patched' || errorLogs
   else
     os::cmd::expect_success_and_text '${BIN} patch cm my-spark-cluster -p "{\"data\":{\"config\": \"worker:\n  instances: 1\"}}"' '"?my-spark-cluster"? patched' || errorLogs
   fi
