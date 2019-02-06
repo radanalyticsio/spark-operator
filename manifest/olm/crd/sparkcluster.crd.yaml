@@ -7,7 +7,7 @@ spec:
   names:
     kind: SparkCluster
     listKind: SparkClusterList
-    plural: SparkClusters
-    singular: SparkCluster
+    plural: sparkclusters
+    singular: sparkcluster
   scope: Namespaced
   version: v1

@@ -7,7 +7,7 @@ spec:
   names:
     kind: SparkApplication
     listKind: SparkApplicationList
-    plural: SparkApplications
-    singular: SparkApplication
+    plural: sparkapplications
+    singular: sparkapplication
   scope: Namespaced
   version: v1
