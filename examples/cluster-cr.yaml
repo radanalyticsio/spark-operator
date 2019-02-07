@@ -1,5 +1,5 @@
 apiVersion: radanalytics.io/v1
-kind: sparkcluster
+kind: SparkCluster
 metadata:
   name: my-spark-cluster
 spec:

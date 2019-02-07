@@ -32,7 +32,7 @@ kind: ConfigMap
 metadata:
   name: my-cluster
   labels:
-    radanalytics.io/kind: sparkcluster
+    radanalytics.io/kind: SparkCluster
 data:
   config: |-
     worker:
@@ -45,7 +45,7 @@ or for CRDs:
 ```
 cat <<EOF | kubectl create -f -
 apiVersion: radanalytics.io/v1
-kind: sparkcluster
+kind: SparkCluster
 metadata:
   name: my-cluster
 spec:

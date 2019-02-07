@@ -5,7 +5,7 @@ BIN=${BIN:-oc}
 MANIFEST_SUFIX=${MANIFEST_SUFIX:-""}
 if [ "$CRD" = "1" ]; then
   CR="cr/"
-  KIND="sparkcluster"
+  KIND="SparkCluster"
 else
   CR=""
   KIND="cm"

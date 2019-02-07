@@ -3,7 +3,7 @@ kind: ConfigMap
 metadata:
   name: my-spark-app
   labels:
-    radanalytics.io/kind: sparkapplication
+    radanalytics.io/kind: SparkApplication
 data:
   config: |-
     image: quay.io/jkremser/openshift-spark:2.3-latest

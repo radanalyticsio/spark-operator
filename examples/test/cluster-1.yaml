@@ -3,7 +3,7 @@ kind: ConfigMap
 metadata:
   name: my-spark-cluster-1
   labels:
-    radanalytics.io/kind: sparkcluster
+    radanalytics.io/kind: SparkCluster
 data:
   # this should fail
   config: |-

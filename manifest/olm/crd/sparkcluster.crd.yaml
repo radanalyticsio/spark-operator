@@ -5,8 +5,8 @@ metadata:
 spec:
   group: radanalytics.io
   names:
-    kind: sparkcluster
-    listKind: sparkclusterList
+    kind: SparkCluster
+    listKind: SparkClusterList
     plural: sparkclusters
     singular: sparkcluster
   scope: Namespaced

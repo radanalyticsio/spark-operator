@@ -5,7 +5,7 @@ BIN=${BIN:-oc}
 MANIFEST_SUFIX=${MANIFEST_SUFIX:-""}
 if [ "$CRD" = "1" ]; then
   CR="cr/"
-  KIND="sparkcluster"
+  KIND="SparkCluster"
 else
   CR=""
   KIND="cm"
@@ -76,7 +76,7 @@ errorLogs() {
 appErrorLogs() {
   checkNs
   echo -e "\n$(tput setaf 3)Spark Application Logs:$(tput sgr0)\n"
-  export submitter_pod=`${BIN} get pod -l radanalytics.io/kind=sparkapplication -o='jsonpath="{.items[0].metadata.name}"' | sed 's/"//g'`
+  export submitter_pod=`${BIN} get pod -l radanalytics.io/kind=SparkApplication -o='jsonpath="{.items[0].metadata.name}"' | sed 's/"//g'`
   ${BIN} get all
   ${BIN} logs $submitter_pod
   errorLogs
@@ -118,13 +118,13 @@ testScaleCluster() {
   else
     os::cmd::expect_success_and_text '${BIN} patch cm my-spark-cluster -p "{\"data\":{\"config\": \"worker:\n  instances: 1\"}}"' '"?my-spark-cluster"? patched' || errorLogs
   fi
-  os::cmd::try_until_text "${BIN} get pods --no-headers -l radanalytics.io/sparkcluster=my-spark-cluster | wc -l" '2'
+  os::cmd::try_until_text "${BIN} get pods --no-headers -l radanalytics.io/SparkCluster=my-spark-cluster | wc -l" '2'
 }
 
 testDeleteCluster() {
   info
   os::cmd::expect_success_and_text '${BIN} delete ${KIND} my-spark-cluster' '"?my-spark-cluster"? deleted' && \
-  os::cmd::try_until_text "${BIN} get pods --no-headers -l radanalytics.io/sparkcluster=my-spark-cluster 2> /dev/null | wc -l" '0'
+  os::cmd::try_until_text "${BIN} get pods --no-headers -l radanalytics.io/SparkCluster=my-spark-cluster 2> /dev/null | wc -l" '0'
 }
 
 testCreateCluster2() {
@@ -154,7 +154,7 @@ testFullConfigCluster() {
   os::cmd::expect_success_and_text "${BIN} create -f $DIR/../examples/cluster-with-config.yaml" '"?sparky-cluster"? created' && \
   os::cmd::try_until_text "${BIN} get pod -l radanalytics.io/deployment=sparky-cluster-w -o yaml" 'ready: true' && \
   os::cmd::try_until_text "${BIN} get pod -l radanalytics.io/deployment=sparky-cluster-m -o yaml" 'ready: true' && \
-  os::cmd::try_until_text "${BIN} get pods --no-headers -l radanalytics.io/sparkcluster=sparky-cluster | wc -l" '3' && \
+  os::cmd::try_until_text "${BIN} get pods --no-headers -l radanalytics.io/SparkCluster=sparky-cluster | wc -l" '3' && \
   sleep 10 && \
   local worker_pod=`${BIN} get pod -l radanalytics.io/deployment=sparky-cluster-w -o='jsonpath="{.items[0].metadata.name}"' | sed 's/"//g'` && \
   os::cmd::expect_success_and_text "${BIN} exec $worker_pod ls" 'README.md' && \
@@ -182,17 +182,17 @@ testCustomCluster2() {
   refreshOperatorPod
   os::cmd::expect_success_and_text "${BIN} create -f $DIR/../examples/test/${CR}cluster-2.yaml" '"?my-spark-cluster-2"? created' && \
   #os::cmd::try_until_text "${BIN} logs $operator_pod | grep my-spark-cluster-2" "creat\(ed\|ing\)" && \   (colors)
-  os::cmd::try_until_text "${BIN} get pods --no-headers -l radanalytics.io/sparkcluster=my-spark-cluster-2 | wc -l" '3' && \
+  os::cmd::try_until_text "${BIN} get pods --no-headers -l radanalytics.io/SparkCluster=my-spark-cluster-2 | wc -l" '3' && \
   os::cmd::expect_success_and_text '${BIN} delete ${KIND} my-spark-cluster-2' '"my-spark-cluster-2" deleted' && \
   #os::cmd::try_until_text "${BIN} logs $operator_pod | grep my-spark-cluster-2" "deleted" && \   (colors)
-  os::cmd::try_until_text "${BIN} get pods --no-headers -l radanalytics.io/sparkcluster=my-spark-cluster-2 | wc -l" '0'
+  os::cmd::try_until_text "${BIN} get pods --no-headers -l radanalytics.io/SparkCluster=my-spark-cluster-2 | wc -l" '0'
 }
 
 testCustomCluster3() {
   info
   sleep 2
   os::cmd::expect_success_and_text "${BIN} create -f $DIR/../examples/test/${CR}cluster-with-config-1.yaml" '"?sparky-cluster-1"? created' && \
-  os::cmd::try_until_text "${BIN} get pods --no-headers -l radanalytics.io/sparkcluster=sparky-cluster-1 | wc -l" '2' && \
+  os::cmd::try_until_text "${BIN} get pods --no-headers -l radanalytics.io/SparkCluster=sparky-cluster-1 | wc -l" '2' && \
   local worker_pod=`${BIN} get pod -l radanalytics.io/deployment=sparky-cluster-1-w -o='jsonpath="{.items[0].metadata.name}"' | sed 's/"//g'` && \
   os::cmd::try_until_text "${BIN} exec $worker_pod cat /opt/spark/conf/spark-defaults.conf" 'spark.executor.memory 1g' && \
   os::cmd::expect_success_and_text "${BIN} exec $worker_pod ls" 'README.md' && \
@@ -203,7 +203,7 @@ testCustomCluster4() {
   info
   sleep 2
   os::cmd::expect_success_and_text "${BIN} create -f $DIR/../examples/test/${CR}cluster-with-config-2.yaml" '"?sparky-cluster-2"? created' && \
-  os::cmd::try_until_text "${BIN} get pods --no-headers -l radanalytics.io/sparkcluster=sparky-cluster-2 | wc -l" '2' && \
+  os::cmd::try_until_text "${BIN} get pods --no-headers -l radanalytics.io/SparkCluster=sparky-cluster-2 | wc -l" '2' && \
   local worker_pod=`${BIN} get pod -l radanalytics.io/deployment=sparky-cluster-2-w -o='jsonpath="{.items[0].metadata.name}"' | sed 's/"//g'` && \
   os::cmd::try_until_text "${BIN} exec $worker_pod cat /opt/spark/conf/spark-defaults.conf" 'spark.executor.memory 3g' && \
   os::cmd::expect_success_and_text '${BIN} delete ${KIND} sparky-cluster-2' '"sparky-cluster-2" deleted'
@@ -215,10 +215,10 @@ testCustomCluster5() {
   sleep 2
   refreshOperatorPod
   os::cmd::expect_success_and_text "${BIN} create -f $DIR/../examples/test/${CR}cluster-with-config-3.yaml" '"?sparky-cluster-3"? created' && \
-  os::cmd::try_until_text "${BIN} get pods --no-headers -l radanalytics.io/sparkcluster=sparky-cluster-3 | wc -l" '2' && \
+  os::cmd::try_until_text "${BIN} get pods --no-headers -l radanalytics.io/SparkCluster=sparky-cluster-3 | wc -l" '2' && \
   #os::cmd::try_until_text "${BIN} logs $operator_pod | grep sparky-cluster-3" "created" && \
   os::cmd::expect_success_and_text '${BIN} delete ${KIND} sparky-cluster-3' '"sparky-cluster-3" deleted' && \
-  os::cmd::try_until_text "${BIN} get pods --no-headers -l radanalytics.io/sparkcluster=my-spark-cluster-3 | wc -l" '0'
+  os::cmd::try_until_text "${BIN} get pods --no-headers -l radanalytics.io/SparkCluster=my-spark-cluster-3 | wc -l" '0'
 }
 
 testApp() {
@@ -226,21 +226,21 @@ testApp() {
   [ "$CRD" = "1" ] && FOO="test/cr/" || FOO=""
   os::cmd::expect_success_and_text '${BIN} create -f examples/${FOO}app.yaml' '"?my-spark-app"? created' && \
   # 1 submitter, 1 driver and 2 executors
-  os::cmd::try_until_text "${BIN} get pods --no-headers -l radanalytics.io/sparkapplication=my-spark-app 2> /dev/null | wc -l" '4'
+  os::cmd::try_until_text "${BIN} get pods --no-headers -l radanalytics.io/SparkApplication=my-spark-app 2> /dev/null | wc -l" '4'
 }
 
 testAppResult() {
   info
   sleep 2
-  local driver_pod=`${BIN} get pods --no-headers -l radanalytics.io/sparkapplication=my-spark-app -l spark-role=driver -o='jsonpath="{.items[0].metadata.name}"' | sed 's/"//g'` && \
+  local driver_pod=`${BIN} get pods --no-headers -l radanalytics.io/SparkApplication=my-spark-app -l spark-role=driver -o='jsonpath="{.items[0].metadata.name}"' | sed 's/"//g'` && \
   os::cmd::try_until_text "${BIN} logs $driver_pod" 'Pi is roughly 3.1'
 }
 
 testDeleteApp() {
   info
-  [ "$CRD" = "1" ] && FOO="sparkapplication" || FOO="cm"
+  [ "$CRD" = "1" ] && FOO="SparkApplication" || FOO="cm"
   os::cmd::expect_success_and_text '${BIN} delete ${FOO} my-spark-app' '"my-spark-app" deleted' && \
-  os::cmd::try_until_text "${BIN} get pods --no-headers -l radanalytics.io/sparkapplication=my-spark-app 2> /dev/null | wc -l" '0'
+  os::cmd::try_until_text "${BIN} get pods --no-headers -l radanalytics.io/SparkApplication=my-spark-app 2> /dev/null | wc -l" '0'
 }
 
 testPythonApp() {
@@ -248,14 +248,14 @@ testPythonApp() {
   [ "$CRD" = "1" ] && return 0
   os::cmd::expect_success_and_text '${BIN} create -f examples/apps/pyspark-ntlk.yaml' '"?ntlk-example"? created' && \
   # number of pods w/ spark app = 3 (1 executor, 1 driver, 1 submitter)
-  os::cmd::try_until_text "${BIN} get pods --no-headers -l radanalytics.io/sparkapplication=ntlk-example 2> /dev/null | wc -l" '3'
+  os::cmd::try_until_text "${BIN} get pods --no-headers -l radanalytics.io/SparkApplication=ntlk-example 2> /dev/null | wc -l" '3'
 }
 
 testPythonAppResult() {
   info
   [ "$CRD" = "1" ] && return 0
   sleep 2
-  local driver_pod=`${BIN} get pods --no-headers -l radanalytics.io/sparkapplication=ntlk-example -l spark-role=driver -o='jsonpath="{.items[0].metadata.name}"' | sed 's/"//g'` && \
+  local driver_pod=`${BIN} get pods --no-headers -l radanalytics.io/SparkApplication=ntlk-example -l spark-role=driver -o='jsonpath="{.items[0].metadata.name}"' | sed 's/"//g'` && \
   os::cmd::try_until_text "${BIN} logs $driver_pod" 'Lorem'
 }
 

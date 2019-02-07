@@ -3,7 +3,7 @@ kind: ConfigMap
 metadata:
   name: spark-cluster-with-metrics
   labels:
-    radanalytics.io/kind: sparkcluster
+    radanalytics.io/kind: SparkCluster
 data:
   config: |-
     metrics: true
@@ -21,7 +21,7 @@ spec:
     port: 7777
     protocol: TCP
   selector:
-    radanalytics.io/sparkcluster: spark-cluster-with-metrics
+    radanalytics.io/SparkCluster: spark-cluster-with-metrics
     radanalytics.io/podType: master
 ---
 apiVersion: v1
@@ -37,7 +37,7 @@ spec:
     port: 7777
     protocol: TCP
   selector:
-    radanalytics.io/sparkcluster: spark-cluster-with-metrics
+    radanalytics.io/SparkCluster: spark-cluster-with-metrics
     radanalytics.io/podType: worker
 ---
 apiVersion: v1
