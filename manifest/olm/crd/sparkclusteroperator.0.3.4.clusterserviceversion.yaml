@@ -1,15 +1,53 @@
 apiVersion: operators.coreos.com/v1alpha1
 kind: ClusterServiceVersion
 metadata:
-  name: sparkoperator.v0.3.3
+  name: sparkoperator.v0.3.4
   namespace: openshift-operators
   annotations:
+    alm-examples: |-
+      [
+        {
+          "apiVersion": "radanalytics.io/v1",
+          "kind": "sparkcluster",
+          "metadata": {
+            "name": "my-spark-cluster"
+          },
+          "spec": {
+            "worker": {
+              "instances": "2"
+            },
+            "master": {
+              "instances": "1"
+            }
+          }
+        },
+        {
+          "apiVersion": "radanalytics.io/v1",
+          "kind": "sparkapplication",
+          "metadata": {
+            "name": "my-spark-app"
+          },
+          "spec": {
+            "mainApplicationFile": "local:///opt/spark/examples/jars/spark-examples_2.11-2.3.0.jar",
+            "mainClass": "org.apache.spark.examples.SparkPi",
+            "driver": {
+              "cores": 0.2,
+              "coreLimit": "500m"
+            },
+            "executor": {
+              "instances": 2,
+              "cores": 1,
+              "coreLimit": "1000m"
+            }
+          }
+        }
+      ]
     categories: apache spark, apache, spark
     certified: "false"
     description: An operator for managing the Apache Spark clusters and intelligent applications that spawn those clusters.
     support: jkremser@redhat.com
     createdAt: 2019-01-17T12:00:00Z
-    containerImage: quay.io/radanalyticsio/spark-operator:latest-released
+    containerImage: quay.io/radanalyticsio/spark-operator:0.3.4
 spec:
   displayName: Apache Spark Operator
   description: |
@@ -55,6 +93,12 @@ spec:
         - apiGroups: [""]
           resources: ["pods", "replicationcontrollers", "services", "configmaps"]
           verbs: ["create", "delete", "deletecollection", "get", "list", "update", "watch", "patch"]
+        - apiGroups:
+          - apiextensions.k8s.io
+          resources:
+          - customresourcedefinitions
+          verbs:
+          - list
       deployments:
       - name: spark-operator
         namespace: openshift-operators
@@ -63,22 +107,24 @@ spec:
           selector:
             matchLabels:
               app.kubernetes.io/name: spark-operator
-              app.kubernetes.io/version: v0.3.3-v1alpha1
+              app.kubernetes.io/version: v0.3.4-v1alpha1
           template:
             metadata:
               labels:
                 app.kubernetes.io/name: spark-operator
-                app.kubernetes.io/version: v0.3.3-v1alpha1
+                app.kubernetes.io/version: v0.3.4-v1alpha1
             spec:
               containers:
                 - name: spark-operator
-                  image: quay.io/radanalyticsio/spark-operator:latest-released
+                  image: quay.io/radanalyticsio/spark-operator:0.3.4
                   imagePullPolicy: Always
                   env:
                   - name: CRD
                     value: "true"
                   - name: WATCH_NAMESPACE
-                    value: "openshift_operators"
+                    valueFrom:
+                      fieldRef:
+                        fieldPath: metadata.annotations['olm.targetNamespaces']
                   resources:
                     limits:
                       memory: "750Mi"
@@ -111,10 +157,10 @@ spec:
     name: Radanalytics.io
     url: www.radanalytics.io
   maturity: alpha
-  version: 0.3.3
+  version: 0.3.4
   maintainers:
     - email: jkremser@redhat.com
       name: Red Hat, Inc.
   labels:
     alm-owner-enterprise-app: spark-operator
-    alm-status-descriptors: spark-operator.v0.3.3
+    alm-status-descriptors: spark-operator.v0.3.4
