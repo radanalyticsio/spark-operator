@@ -8,7 +8,7 @@ metadata:
       [
         {
           "apiVersion": "radanalytics.io/v1",
-          "kind": "sparkcluster",
+          "kind": "SparkCluster",
           "metadata": {
             "name": "my-spark-cluster"
           },
@@ -23,7 +23,7 @@ metadata:
         },
         {
           "apiVersion": "radanalytics.io/v1",
-          "kind": "sparkapplication",
+          "kind": "SparkApplication",
           "metadata": {
             "name": "my-spark-app"
           },
@@ -137,7 +137,7 @@ spec:
     owned:
     - name: sparkclusters.radanalytics.io
       version: v1
-      kind: sparkcluster
+      kind: SparkCluster
       displayName: Spark Cluster
       description: Apache Spark cluster
       specDescriptors:
@@ -148,7 +148,7 @@ spec:
         - 'urn:alm:descriptor:com.tectonic.ui:podCount'
     - name: sparkapplications.radanalytics.io
       version: v1
-      kind: sparkapplication
+      kind: SparkApplication
       displayName: Spark Application
       description: Apache Spark application
   keywords:
