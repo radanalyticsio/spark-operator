@@ -2,6 +2,8 @@
 
 set -xe
 
+RUN=${RUN:-"1"}
+
 download_openshift() {
   echo "Downloading oc binary for VERSION=${VERSION}"
   sudo docker cp $(docker create docker.io/openshift/origin:$VERSION):/bin/oc /usr/local/bin/oc
@@ -36,4 +38,4 @@ main() {
   echo -e "\ntravis_fold:end:oc\r"
 }
 
-main
+[ "$RUN" = "1" ] && main || echo "$0 sourced"
