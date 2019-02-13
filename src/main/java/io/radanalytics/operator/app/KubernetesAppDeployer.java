@@ -140,7 +140,6 @@ public class KubernetesAppDeployer {
                 .withNewTemplate().withNewMetadata().withLabels(getDefaultLabels(name)).withName(name + "-submitter")
                 .endMetadata()
                 .withNewSpec()
-                .withRestartPolicy(app.getRestartPolicy().value())
                 .withContainers(containerBuilder.build())
                 .withServiceAccountName(driver.getServiceAccount())
                 .endSpec().endTemplate().endSpec().build();
