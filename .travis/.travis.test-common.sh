@@ -18,7 +18,7 @@ cluster_up() {
   if [ "$BIN" = "oc" ]; then
     set -x
     oc cluster up
-    [ "$CRD" = "1" ] && oc login -u system:admin
+    [ "$CRD" = "1" ] && oc login -u system:admin && oc project default
     set +x
   else
     echo "minikube"
@@ -83,8 +83,11 @@ appErrorLogs() {
 }
 
 checkNs() {
-  # switch back to default to be able to print the logs correctly
-  [ "${BIN}" = "oc" ] && [ `oc project -q | grep -v 'default'` ] && oc project myproject || true
+  # switch back to default/myproject to be able to print the logs correctly
+  [ "${BIN}" = "oc" ] && {
+    [ "$CRD" = "0" ] && [ `oc project -q | grep -v 'myproject'` ] && oc project myproject || true
+    [ "$CRD" = "1" ] && [ `oc project -q | grep -v 'default'` ] && oc project default || true
+  } || true
 }
 
 info() {
