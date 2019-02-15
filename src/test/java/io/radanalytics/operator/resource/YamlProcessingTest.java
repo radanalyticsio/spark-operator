@@ -83,7 +83,7 @@ public class YamlProcessingTest {
 
         assertEquals(clusterInfo.getName(), "foo");
         assertEquals(clusterInfo.getWorker().getInstances().intValue(), 2);
-        assertEquals(clusterInfo.getCustomImage(), DEFAULT_SPARK_IMAGE);
+        assertEquals(clusterInfo.getCustomImage(), null);
     }
 
     @Test
