@@ -72,7 +72,10 @@ For deployment on OpenShift use the same commands as above, but with `oc` instea
 
 ### Custom Resource Definitions (CRD)
 
-This operator can also work with CRDs. Assuming the admin user is logged in, you can install the operator with:
+This operator can also work with CRDs. For OpenShift, we are assuming the admin user is logged in (`oc login -u system:admin`)
+ and you have switched the project to `"default"` (`oc project default`).
+
+you can install the operator with:
 
 ```bash
 kubectl apply -f manifest/operator-crd.yaml
@@ -83,6 +86,13 @@ and then create the Spark clusters by creating the custom resources (CR).
 ```bash
 kubectl apply -f examples/cluster-cr.yaml
 kubectl get SparkClusters
+```
+
+or Spark applications that are natively scheduled on Spark Clusters by:
+
+```bash
+kubectl apply -f examples/test/cr/app.yaml
+kubectl get SparkApplications
 ```
 
 ### Images
