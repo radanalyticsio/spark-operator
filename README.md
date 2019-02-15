@@ -94,3 +94,14 @@ Image name         | Description | Layers | quay.io | docker.io
 `:x.y.z`           | one particular released version | [![Layers info](https://images.microbadger.com/badges/image/radanalyticsio/spark-operator:0.1.5.svg)](https://microbadger.com/images/radanalyticsio/spark-operator:0.1.5) |  | 
 
 For each variant there is also available an image with `-alpine` suffix based on Alpine for instance [![Layers info](https://images.microbadger.com/badges/image/radanalyticsio/spark-operator:latest-released-alpine.svg)](https://microbadger.com/images/radanalyticsio/spark-operator:latest-released-alpine)
+
+# Related projects
+
+The radanalyticsio/spark-operator is not the only Kubernetes operator service
+that targets Apache Spark.
+
+* [GoogleCloudPlatform/spark-on-k8s-operator](https://github.com/GoogleCloudPlatform/spark-on-k8s-operator)
+  is an operator which shares a similar schema for the Spark cluster and application
+  resources. One major difference between it and the radanalyticsio/spark-operator
+  is that the latter has been designed to work well in environments where a
+  user has a limited role-based access to Kubernetes, such as on OpenShift.
