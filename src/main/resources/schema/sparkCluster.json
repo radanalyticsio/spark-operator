@@ -14,8 +14,7 @@
       "$ref": "#/definitions/RCSpec"
     },
     "customImage": {
-      "type": "string",
-      "default": "quay.io/jkremser/openshift-spark:2.4.0"
+      "type": "string"
     },
     "metrics": {
       "type": "boolean",
