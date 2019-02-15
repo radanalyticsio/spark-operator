@@ -21,6 +21,10 @@
       "type": "boolean",
       "default": "false"
     },
+    "sparkWebUI": {
+      "type": "boolean",
+      "default": "true"
+    },
     "sparkConfigurationMap": {
       "type": "string"
     },

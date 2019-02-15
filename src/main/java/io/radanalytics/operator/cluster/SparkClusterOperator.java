@@ -185,6 +185,15 @@ public class SparkClusterOperator extends AbstractOperator<SparkCluster> {
         return deployer;
     }
 
+    /**
+     * This method verifies if any two instances of SparkCluster are the same ones up to the number of
+     * workers. This way we can call the scale instead of recreating the whole cluster.
+     *
+     * @param oldC the first instance of SparkCluster we are comparing
+     * @param newC the second instance of SparkCluster we are comparing
+     * @return true if both instances represent the same spark cluster but differs only in number of workers (it is safe
+     * to call scale method)
+     */
     private boolean isOnlyScale(SparkCluster oldC, SparkCluster newC) {
         boolean retVal = oldC.getWorker().getInstances() != newC.getWorker().getInstances();
         int backup = Optional.ofNullable(newC.getWorker()).orElse(new RCSpec()).getInstances();

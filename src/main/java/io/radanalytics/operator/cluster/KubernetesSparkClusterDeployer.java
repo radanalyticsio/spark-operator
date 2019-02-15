@@ -38,8 +38,12 @@ public class KubernetesSparkClusterDeployer {
             ReplicationController masterRc = getRCforMaster(cluster);
             ReplicationController workerRc = getRCforWorker(cluster);
             Service masterService = getService(false, name, 7077, allMasterLabels);
-            Service masterUiService = getService(true, name, 8080, allMasterLabels);
-            KubernetesList resources = new KubernetesListBuilder().withItems(masterRc, workerRc, masterService, masterUiService).build();
+            List<HasMetadata> list = new ArrayList<>(Arrays.asList(masterRc, workerRc, masterService));
+            if (cluster.getSparkWebUI()) {
+                Service masterUiService = getService(true, name, 8080, allMasterLabels);
+                list.add(masterUiService);
+            }
+            KubernetesList resources = new KubernetesListBuilder().withItems(list).build();
             return resources;
         }
     }
@@ -82,14 +86,18 @@ public class KubernetesSparkClusterDeployer {
         });
         if (isMaster) {
             ContainerPort apiPort = new ContainerPortBuilder().withName("spark-master").withContainerPort(7077).withProtocol("TCP").build();
-            ContainerPort uiPort = new ContainerPortBuilder().withName("spark-webui").withContainerPort(8080).withProtocol("TCP").build();
             ports.add(apiPort);
-            ports.add(uiPort);
+            if (cluster.getSparkWebUI()) {
+                ContainerPort uiPort = new ContainerPortBuilder().withName("spark-webui").withContainerPort(8080).withProtocol("TCP").build();
+                ports.add(uiPort);
+            }
         } else {
-            ContainerPort uiPort = new ContainerPortBuilder().withName("spark-webui").withContainerPort(8081).withProtocol("TCP").build();
-            ports.add(uiPort);
             envVars.add(env("SPARK_MASTER_ADDRESS", "spark://" + name + ":7077"));
-            envVars.add(env("SPARK_MASTER_UI_ADDRESS", "http://" + name + "-ui:8080"));
+            if (cluster.getSparkWebUI()) {
+                ContainerPort uiPort = new ContainerPortBuilder().withName("spark-webui").withContainerPort(8081).withProtocol("TCP").build();
+                ports.add(uiPort);
+                envVars.add(env("SPARK_MASTER_UI_ADDRESS", "http://" + name + "-ui:8080"));
+            }
         }
         if (cluster.getMetrics()) {
             envVars.add(env("SPARK_METRICS_ON", "prometheus"));
@@ -104,11 +112,9 @@ public class KubernetesSparkClusterDeployer {
                 .withSuccessThreshold(1)
                 .withTimeoutSeconds(1).build();
 
-        Probe generalProbe = new ProbeBuilder().withFailureThreshold(3).withNewHttpGet()
-                .withPath("/")
-                .withNewPort().withIntVal(isMaster ? 8080 : 8081).endPort()
-                .withScheme("HTTP")
-                .endHttpGet()
+        Probe generalProbe = new ProbeBuilder().withFailureThreshold(3).withNewTcpSocket()
+                .withNewPort().withIntVal(7077).endPort()
+                .endTcpSocket()
                 .withPeriodSeconds(10)
                 .withSuccessThreshold(1)
                 .withInitialDelaySeconds(8 + cluster.getDownloadData().size() * 5)
@@ -148,7 +154,7 @@ public class KubernetesSparkClusterDeployer {
         if (isMaster) {
             containerBuilder = containerBuilder.withReadinessProbe(generalProbe).withLivenessProbe(masterLiveness);
         } else {
-            containerBuilder.withLivenessProbe(generalProbe);
+            //containerBuilder.withLivenessProbe(generalProbe);
         }
 
         Map<String, String> labels = getDefaultLabels(name);
