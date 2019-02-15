@@ -18,7 +18,7 @@ cluster_up() {
   if [ "$BIN" = "oc" ]; then
     set -x
     oc cluster up
-    [ "$CRD" = "1" ] && oc login -u system:admin && oc project default
+    [ "$CRD" = "1" ] && { oc login -u system:admin ; sleep .2 ; oc project default ; }
     set +x
   else
     echo "minikube"
