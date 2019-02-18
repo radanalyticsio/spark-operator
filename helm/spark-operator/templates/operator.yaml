@@ -17,7 +17,7 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: spark-operator
-    namespace: {{ default "default" .Values.env.namespace }}
+    namespace: "{{ .Release.Namespace }}"
 {{- else }}
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1beta1
@@ -67,7 +67,7 @@ spec:
         image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
         env:
         - name: WATCH_NAMESPACE
-          value: {{ .Values.env.namespace }}
+          value: "{{ .Values.env.namespace }}"
         - name: FULL_RECONCILIATION_INTERVAL_S
           value: "{{ .Values.env.reconciliationInterval }}"
         - name: CRD
