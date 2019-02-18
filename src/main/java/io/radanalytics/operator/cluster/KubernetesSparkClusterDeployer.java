@@ -114,7 +114,12 @@ public class KubernetesSparkClusterDeployer {
                 .withInitialDelaySeconds(8 + cluster.getDownloadData().size() * 5)
                 .withTimeoutSeconds(1).build();
 
-        ContainerBuilder containerBuilder = new ContainerBuilder().withEnv(envVars).withImage(cluster.getCustomImage())
+        String imageRef = getDefaultSparkImage(); // from Constants
+        if (cluster.getCustomImage() != null) {
+            imageRef = cluster.getCustomImage();
+        }
+
+        ContainerBuilder containerBuilder = new ContainerBuilder().withEnv(envVars).withImage(imageRef)
                 .withImagePullPolicy("IfNotPresent")
                 .withName(name + (isMaster ? "-m" : "-w"))
                 .withTerminationMessagePath("/dev/termination-log")

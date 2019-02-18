@@ -14,6 +14,7 @@ import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.RollableScalableResource;
 import io.radanalytics.operator.common.AbstractOperator;
 import io.radanalytics.operator.common.Operator;
+import io.radanalytics.operator.Constants;
 import io.radanalytics.types.RCSpec;
 import io.radanalytics.types.SparkCluster;
 import org.slf4j.Logger;
@@ -35,6 +36,11 @@ public class SparkClusterOperator extends AbstractOperator<SparkCluster> {
 
     private RunningClusters clusters;
     private KubernetesSparkClusterDeployer deployer;
+
+    @Override
+    protected void onInit() {
+        log.info("{} operator default spark image = {}", this.entityName, Constants.getDefaultSparkImage());
+    }
 
     @Override
     protected void onAdd(SparkCluster cluster) {
