@@ -112,9 +112,18 @@ public class KubernetesSparkClusterDeployer {
                 .withSuccessThreshold(1)
                 .withTimeoutSeconds(1).build();
 
-        Probe generalProbe = new ProbeBuilder().withFailureThreshold(3).withNewTcpSocket()
-                .withNewPort().withIntVal(7077).endPort()
-                .endTcpSocket()
+        Probe workerLiveness = new ProbeBuilder().withNewExec().withCommand(Arrays.asList("/bin/bash", "-c", "curl localhost:8081 | grep -e 'Master URL:[^<]+'")).endExec()
+                .withFailureThreshold(3)
+                .withInitialDelaySeconds(4 + cluster.getDownloadData().size() * 5)
+                .withPeriodSeconds(10)
+                .withSuccessThreshold(1)
+                .withTimeoutSeconds(1).build();
+
+        Probe generalReadinessProbe = new ProbeBuilder().withFailureThreshold(3).withNewHttpGet()
+                .withPath("/")
+                .withNewPort().withIntVal(isMaster ? 8080 : 8081).endPort()
+                .withScheme("HTTP")
+                .endHttpGet()
                 .withPeriodSeconds(10)
                 .withSuccessThreshold(1)
                 .withInitialDelaySeconds(8 + cluster.getDownloadData().size() * 5)
@@ -126,6 +135,9 @@ public class KubernetesSparkClusterDeployer {
                 .withTerminationMessagePath("/dev/termination-log")
                 .withTerminationMessagePolicy("File")
                 .withPorts(ports);
+
+        containerBuilder.withReadinessProbe(generalReadinessProbe)
+                .withLivenessProbe(isMaster ? masterLiveness : workerLiveness);
 
         // limits
         if (isMaster) {
@@ -150,13 +162,7 @@ public class KubernetesSparkClusterDeployer {
             }
         }
 
-
-        if (isMaster) {
-            containerBuilder = containerBuilder.withReadinessProbe(generalProbe).withLivenessProbe(masterLiveness);
-        } else {
-            //containerBuilder.withLivenessProbe(generalProbe);
-        }
-
+        // labels
         Map<String, String> labels = getDefaultLabels(name);
         labels.put(prefix + LabelsHelper.OPERATOR_RC_TYPE_LABEL, isMaster ? OPERATOR_TYPE_MASTER_LABEL : OPERATOR_TYPE_WORKER_LABEL);
         if (cluster.getLabels() != null) labels.putAll(cluster.getLabels());
