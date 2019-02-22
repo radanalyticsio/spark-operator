@@ -1,4 +1,5 @@
-IMAGE?=radanalyticsio/spark-operator
+IMAGE ?= radanalyticsio/spark-operator
+#GO_BIN := $(shell which go)
 
 .PHONY: build
 build: package image-build
@@ -21,17 +22,27 @@ buildah:
 	command -v buildah || docker cp $$(docker create docker.io/tomkukral/buildah:latest ls):/usr/bin/buildah ./buildah
 	echo -e "\n\nbuildah version: " && ./buildah -v || ./buildah -v && echo -e "\n"
 	buildah bud -f Dockerfile.centos . /dev/null || ./buildah bud -f Dockerfile.centos .
-	#buildah bud -f Dockerfile.alpine . /dev/null || ./buildah bud -f Dockerfile.alpine . # this fails for the alpine img
+	buildah bud -f Dockerfile.alpine . /dev/null || ./buildah bud -f Dockerfile.alpine .
+
+blabla:
+	sudo touch $(shell type -P go)"-foo"
 
 .PHONY: buildah-travis-deps
 buildah-travis-deps:
+	echo -e "travis_fold:start:buildah-deps\033[33;1mInstalling Buildah and its dependencies\033[0m"
+	#sudo cp $(GO_BIN) $(GO_BIN)_bak && sudo apt-get update && sudo apt-get -y install golang-1.10-go && sudo cp /usr/lib/go-1.10/bin/go $(GO_BIN) && go version
+	git clone https://github.com/containers/buildah ${GOPATH}/src/github.com/containers/buildah
+	cd ${GOPATH}/src/github.com/containers/buildah && sudo make install.libseccomp.sudo
+	#sudo cp $(GO_BIN)_bak $(GO_BIN) && go version
+	cd ${GOPATH}/src/github.com/containers/buildah && make runc all TAGS="apparmor seccomp" && sudo make install install.runc
+	echo -e "\ntravis_fold:end:buildah-deps\r"
 	#sudo apt-get -y install software-properties-common
-	sudo add-apt-repository -y ppa:alexlarsson/flatpak
+	#sudo add-apt-repository -y ppa:alexlarsson/flatpak
 	#sudo add-apt-repository -y ppa:gophers/archive
-	sudo apt-add-repository -y ppa:projectatomic/ppa
-	sudo apt-get -y -qq update
+	#sudo apt-add-repository -y ppa:projectatomic/ppa
+	#sudo apt-get -y -qq update
 	#sudo apt-get -y install bats btrfs-tools git libapparmor-dev libdevmapper-dev libglib2.0-dev libgpgme11-dev libostree-dev libseccomp-dev libselinux1-dev skopeo-containers go-md2man
-	sudo apt-get -y install libostree-dev libostree-1-1
+	#sudo apt-get -y install libostree-dev libostree-1-1
 	#sudo apt-get -y install golang-1.10
 
 .PHONY: image-build-alpine

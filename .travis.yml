@@ -1,7 +1,10 @@
-language: java
+language: go
 
 services:
   - docker
+
+go:
+  - "1.10"
 
 # skip install step
 install: true
