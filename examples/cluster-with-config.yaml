@@ -15,7 +15,8 @@ data:
       memory: "1Gi"                                       # optional no defaults
       cpu: 0.2                                            # optional no defaults
     customImage: quay.io/jkremser/openshift-spark:2.4.0   # optional defaults to quay.io/jkremser/openshift-spark:2.4.0
-    metrics: true                                         # on each pod expose the metrics endpoint on port 7777 for prometheus
+    metrics: false                                        # on each pod expose the metrics endpoint on port 7777 for prometheus, defautls to false
+    sparkWebUI: true                                      # create a service with the Spark UI, defautls to true
     env:                                                  # optional
     - name: SPARK_WORKER_CORES
       value: 2
