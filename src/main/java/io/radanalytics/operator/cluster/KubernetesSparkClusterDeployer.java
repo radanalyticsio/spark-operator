@@ -112,7 +112,8 @@ public class KubernetesSparkClusterDeployer {
                 .withSuccessThreshold(1)
                 .withTimeoutSeconds(1).build();
 
-        Probe workerLiveness = new ProbeBuilder().withNewExec().withCommand(Arrays.asList("/bin/bash", "-c", "curl -s localhost:8081 | grep -e 'Master URL:.*spark://'")).endExec()
+        Probe workerLiveness = new ProbeBuilder().withNewExec().withCommand(Arrays.asList("/bin/bash", "-c", "curl -s localhost:8081 | grep -e 'Master URL:.*spark://'" +
+                " || echo Unable to connect to the Spark master at $SPARK_MASTER_ADDRESS")).endExec()
                 .withFailureThreshold(3)
                 .withInitialDelaySeconds(4 + cluster.getDownloadData().size() * 5)
                 .withPeriodSeconds(10)
