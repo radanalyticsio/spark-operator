@@ -24,6 +24,8 @@ run_custom_test() {
 run_tests() {
   testCreateCluster1 || errorLogs
   testScaleCluster || errorLogs
+  sleep 45
+  testNoPodRestartsOccurred "my-spark-cluster" || errorLogs
   testDeleteCluster || errorLogs
   sleep 5
 
@@ -50,7 +52,7 @@ run_tests() {
 }
 
 main() {
-  export total=19
+  export total=20
   export testIndex=0
   tear_down
   setup_testing_framework
