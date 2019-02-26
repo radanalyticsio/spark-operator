@@ -114,6 +114,13 @@ testCreateCluster1() {
   os::cmd::try_until_text "${BIN} get pod -l radanalytics.io/deployment=my-spark-cluster-m -o yaml" 'ready: true'
 }
 
+testNoPodRestartsOccurred() {
+  info
+  _CLUSTER=${1}
+  os::cmd::try_until_text "${BIN} get pod -l radanalytics.io/deployment=${_CLUSTER}-w -o yaml" 'restartCount: 0' && \
+  os::cmd::try_until_text "${BIN} get pod -l radanalytics.io/deployment=${_CLUSTER}-m -o yaml" 'restartCount: 0'
+}
+
 testScaleCluster() {
   info
   if [ "$CRD" = "1" ]; then

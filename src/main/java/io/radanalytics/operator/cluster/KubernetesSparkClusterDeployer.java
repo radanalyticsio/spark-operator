@@ -105,14 +105,15 @@ public class KubernetesSparkClusterDeployer {
             ports.add(metricsPort);
         }
 
-        Probe masterLiveness = new ProbeBuilder().withNewExec().withCommand(Arrays.asList("/bin/bash", "-c", "curl localhost:8080 | grep -e Status.*ALIVE")).endExec()
+        Probe masterLiveness = new ProbeBuilder().withNewExec().withCommand(Arrays.asList("/bin/bash", "-c", "curl -s localhost:8080 | grep -e Status.*ALIVE")).endExec()
                 .withFailureThreshold(3)
                 .withInitialDelaySeconds(4 + cluster.getDownloadData().size() * 5)
                 .withPeriodSeconds(10)
                 .withSuccessThreshold(1)
                 .withTimeoutSeconds(1).build();
 
-        Probe workerLiveness = new ProbeBuilder().withNewExec().withCommand(Arrays.asList("/bin/bash", "-c", "curl localhost:8081 | grep -e 'Master URL:[^<]+'")).endExec()
+        Probe workerLiveness = new ProbeBuilder().withNewExec().withCommand(Arrays.asList("/bin/bash", "-c", "curl -s localhost:8081 | grep -e 'Master URL:.*spark://'" +
+                " || echo Unable to connect to the Spark master at $SPARK_MASTER_ADDRESS")).endExec()
                 .withFailureThreshold(3)
                 .withInitialDelaySeconds(4 + cluster.getDownloadData().size() * 5)
                 .withPeriodSeconds(10)
