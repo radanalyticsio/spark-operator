@@ -56,14 +56,15 @@ EOF
 
 ### Configuration
 
-_The following table lists the configurable parameters of the Spark operator chart and their default values._
+_The following table lists the configurable parameters of the Spark operator chart and their default values._ Some combinations of parameters will not create valid list of resources, for instance when using cross-namespace watching, make sure the `ClusterRole` is assigned to the `ServiceAccount`.
 
 | Parameter                    | Description                                                  | Default                                 |
 | ---------------------------- | ------------------------------------------------------------ | --------------------------------------- |
 | `image.repository`           | The name of the operator image                               | `quay.io/radanalyticsio/spark-operator` |
 | `image.tag`                  | The image tag representing the version of the operator       | `latest-released`                       |
 | `image.pullPolicy`           | Container image pull policy                                  | `IfNotPresent`                          |
-| `env.namespace`              | Kubernetes namespace where Spark operator watches for events. If `*` is used, it watches in all namespaces, if empty string is used, it will watch only in the same namespace the operator is deployed in.   | `""`                                    |
+| `env.installNamespace`       | Kubernetes namespace where Spark operator install its resources.  | `"default" default is there only for CRDs |
+| `env.watchNamespace`         | K8s namespace where Spark operator listens for events. If `*` is used, it watches in all namespaces, if an empty string is used, it will watch only in the same namespace as the operator is deployed in.   | `""`                                    |
 | `env.crd`                    | Whether to use CustomResource or ConfigMap based approach.   | `false`                                 |
 | `env.reconciliationInterval` | How often (in seconds) the full reconciliation should be run | `180`                                   |
 | `env.metrics`                | Whether to start metrics server to be scraped by Prometheus. | `false`                                 |
