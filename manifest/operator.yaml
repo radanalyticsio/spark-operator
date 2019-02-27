@@ -39,8 +39,20 @@ spec:
       - name: spark-operator
         image: quay.io/radanalyticsio/spark-operator:latest-released
         env:
-        - name: CRD
+        - name: CRD # if false, the operator will watch on ConfigMaps
           value: "true"
+        #- name: WATCH_NAMESPACE # if not specified the same ns as the operator's will be used, use * for all (+ set cluster rights)
+        #  value: "default"
+        #- name: FULL_RECONCILIATION_INTERVAL_S
+        #  value: "180"
+        #- name: METRICS # should we expose metrics for Prometheus?
+        #  value: "false"
+        #- name: METRICS_PORT
+        #  value: "8080"
+        #- name: METRICS_JVM # should we expose also internal JVM metrics?
+        #  value: "false"
+        #- name: COLORS
+        #  value: "false"
         resources:
           requests:
             memory: "512Mi"
