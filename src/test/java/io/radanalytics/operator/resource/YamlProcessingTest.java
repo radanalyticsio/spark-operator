@@ -4,8 +4,8 @@ package io.radanalytics.operator.resource;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.radanalytics.types.SparkApplication;
 import io.radanalytics.types.SparkCluster;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -14,30 +14,25 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.*;
 
 public class YamlProcessingTest {
 
     private String path1 = "examples/cluster-cm.yaml";
-    private String path2 = "examples/with-prepared-data.yaml";
-    private String path3 = "examples/cluster-with-config.yaml";
+    private String path2 = "examples/test/cm/app.yaml";
+    private String path3 = "examples/test/cm/cluster-with-config-1.yaml";
     private String cluster1;
-    private String cluster2;
-    private String cluster3;
+    private String application;
     private KubernetesClient client = new DefaultKubernetesClient();
 
     @Before
     public void prepare() throws IOException {
-//        this.cluster1 = readFile(path1);
-//        this.cluster2 = readFile(path2);
+        this.cluster1 = readFile(path1);
+        this.application = readFile(path2);
         ConfigMap cm1 = client.configMaps().load(path1).get();
         ConfigMap cm2 = client.configMaps().load(path2).get();
-        ConfigMap cm3 = client.configMaps().load(path3).get();
         this.cluster1 = cm1.getData().get("config");
-        this.cluster2 = cm2.getData().get("config");
-        this.cluster3 = cm3.getData().get("config");
+        this.application = cm2.getData().get("config");
     }
 
     @Test
@@ -52,12 +47,12 @@ public class YamlProcessingTest {
 
     @Test
     public void testParseCM2() {
-        ConfigMap cm2 = client.configMaps().load(path2).get();
-        SparkCluster clusterInfo = HasDataHelper.parseCM(SparkCluster.class, cm2);
+        ConfigMap cm1 = client.configMaps().load(path2).get();
+        SparkApplication sparkApplication = HasDataHelper.parseCM(SparkApplication.class, cm1);
 
-        assertNull(clusterInfo.getMaster());
-        assertEquals(clusterInfo.getDownloadData().size(), 2);
-        assertEquals(clusterInfo.getDownloadData().get(0).getTo(), "/tmp/");
+        assertEquals(sparkApplication.getName(), "my-spark-app");
+        assertEquals(sparkApplication.getMainClass(), "org.apache.spark.examples.SparkPi");
+        assertEquals(sparkApplication.getExecutor().getInstances().intValue(), 2);
     }
 
     @Test
@@ -65,15 +60,12 @@ public class YamlProcessingTest {
         ConfigMap cm3 = client.configMaps().load(path3).get();
         SparkCluster clusterInfo = HasDataHelper.parseCM(SparkCluster.class, cm3);
 
-        assertEquals(clusterInfo.getMaster().getInstances().intValue(), 1);
-        assertEquals(clusterInfo.getSparkConfiguration().size(), 2);
+        assertNull(clusterInfo.getMaster());
+        assertEquals(clusterInfo.getSparkConfiguration().size(), 1);
         assertEquals(clusterInfo.getSparkConfiguration().get(0).getName(), "spark.executor.memory");
 
-        assertEquals(clusterInfo.getEnv().size(), 2);
-        assertEquals(clusterInfo.getEnv().get(0).getName(), "SPARK_WORKER_CORES");
-        assertEquals(clusterInfo.getEnv().get(0).getValue(), "2");
-
-        assertEquals(clusterInfo.getSparkConfigurationMap(), "my-config");
+        assertEquals(clusterInfo.getDownloadData().size(), 1);
+        assertEquals(clusterInfo.getDownloadData().get(0).getTo(), "/tmp/");
     }
 
     @Test
@@ -87,11 +79,11 @@ public class YamlProcessingTest {
 
     @Test
     public void testParseYaml2() {
-        SparkCluster clusterInfo = HasDataHelper.parseYaml(SparkCluster.class, cluster2, "bar");
+        SparkApplication sparkApplication = HasDataHelper.parseYaml(SparkApplication.class, application, "bar");
 
-        assertEquals(clusterInfo.getName(), "bar");
-        assertNull(clusterInfo.getMaster());
-        assertEquals(clusterInfo.getDownloadData().size(), 2);
+        assertEquals(sparkApplication.getName(), "bar");
+        assertNull(sparkApplication.getArguments());
+        assertEquals(sparkApplication.getSleep().intValue(), 300);
     }
 
     @Test
