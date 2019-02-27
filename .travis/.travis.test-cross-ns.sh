@@ -4,10 +4,10 @@ DIR="${DIR:-$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )}"
 BIN=${BIN:-oc}
 MANIFEST_SUFIX=${MANIFEST_SUFIX:-""}
 if [ "$CRD" = "1" ]; then
-  CR="cr/"
+  CM=""
   KIND="SparkCluster"
 else
-  CR=""
+  CM="cm/"
   KIND="cm"
 fi
 
@@ -18,7 +18,7 @@ testCreateClusterInNamespace() {
   info
   echo -e "\n\n namespace:\n"
   oc project
-  [ "$CRD" = "1" ] && FOO="-cr" || FOO=""
+  [ "$CRD" = "0" ] && FOO="-cm" || FOO=""
   os::cmd::expect_success_and_text "${BIN} create -f $DIR/../examples/cluster$FOO.yaml" '"?my-spark-cluster"? created' && \
   os::cmd::try_until_text "${BIN} get pod -l radanalytics.io/deployment=my-spark-cluster-w -o yaml" 'ready: true' && \
   os::cmd::try_until_text "${BIN} get pod -l radanalytics.io/deployment=my-spark-cluster-m -o yaml" 'ready: true'

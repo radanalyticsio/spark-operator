@@ -1,28 +1,21 @@
+# for creating these resources it requires the user to be logged in as system admin
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: spark-operator
 ---
-kind: Role
 apiVersion: rbac.authorization.k8s.io/v1beta1
-metadata:
-  name: edit-resources
-rules:
-- apiGroups: [""]
-  resources: ["pods", "replicationcontrollers", "services", "configmaps"]
-  verbs: ["create", "delete", "deletecollection", "get", "list", "update", "watch", "patch"]
----
-apiVersion: rbac.authorization.k8s.io/v1beta1
-kind: RoleBinding
+kind: ClusterRoleBinding
 metadata:
   name: spark-operator-edit-resources
 roleRef:
-  kind: Role
-  name: edit-resources
+  kind: ClusterRole
+  name: cluster-admin
   apiGroup: ""
 subjects:
   - kind: ServiceAccount
     name: spark-operator
+    namespace: default
 ---
 apiVersion: apps/v1beta1
 kind: Deployment
@@ -44,22 +37,10 @@ spec:
       serviceAccountName: spark-operator
       containers:
       - name: spark-operator
-        image: radanalyticsio/spark-operator:latest-released
-        #env:
-        #- name: WATCH_NAMESPACE # if not specified the same ns as the operator's will be used, use * for all (+ set cluster rights)
-        #  value: "default"
-        #- name: FULL_RECONCILIATION_INTERVAL_S
-        #  value: "180"
-        #- name: CRD # if false, the operator will watch on ConfigMaps
-        #  value: "true"
-        #- name: METRICS # should we expose metrics for Prometheus?
-        #  value: "false"
-        #- name: METRICS_PORT
-        #  value: "8080"
-        #- name: METRICS_JVM # should we expose also internal JVM metrics?
-        #  value: "false"
-        #- name: COLORS
-        #  value: "false"
+        image: quay.io/radanalyticsio/spark-operator:latest-released
+        env:
+        - name: CRD
+          value: "true"
         resources:
           requests:
             memory: "512Mi"

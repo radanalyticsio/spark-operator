@@ -20,7 +20,7 @@ import static org.junit.Assert.assertNull;
 
 public class YamlProcessingTest {
 
-    private String path1 = "examples/cluster.yaml";
+    private String path1 = "examples/cluster-cm.yaml";
     private String path2 = "examples/with-prepared-data.yaml";
     private String path3 = "examples/cluster-with-config.yaml";
     private String cluster1;
