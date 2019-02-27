@@ -44,7 +44,7 @@ spec:
       serviceAccountName: spark-operator
       containers:
       - name: spark-operator
-        image: radanalyticsio/spark-operator:latest-released
+        image: quay.io/radanalyticsio/spark-operator:latest-released
         #env:
         #- name: WATCH_NAMESPACE # if not specified the same ns as the operator's will be used, use * for all (+ set cluster rights)
         #  value: "default"
