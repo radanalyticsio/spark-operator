@@ -22,10 +22,10 @@ setup_insecure_registry() {
 
 setup_manifest() {
   sed -i'' 's;quay.io/radanalyticsio/spark-operator:latest-released;radanalyticsio/spark-operator:latest;g' manifest/operator.yaml
-  sed -i'' 's;quay.io/radanalyticsio/spark-operator:latest-released;radanalyticsio/spark-operator:latest;g' manifest/operator-crd.yaml
+  sed -i'' 's;quay.io/radanalyticsio/spark-operator:latest-released;radanalyticsio/spark-operator:latest;g' manifest/operator-cm.yaml
   sed -i'' 's;imagePullPolicy: .*;imagePullPolicy: Never;g' manifest/operator.yaml
-  sed -i'' 's;imagePullPolicy: .*;imagePullPolicy: Never;g' manifest/operator-crd.yaml
-  [ "$CRD" = "1" ] && FOO="-crd" || FOO=""
+  sed -i'' 's;imagePullPolicy: .*;imagePullPolicy: Never;g' manifest/operator-cm.yaml
+  [ "$CRD" = "0" ] && FOO="-cm" || FOO=""
   echo -e "'\nmanifest${FOO}:\n-----------\n"
   cat manifest/operator${FOO}.yaml
 }

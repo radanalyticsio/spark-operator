@@ -41,7 +41,7 @@ spec:
         env:
         - name: CRD # if false, the operator will watch on ConfigMaps
           value: "true"
-        #- name: WATCH_NAMESPACE # if not specified the same ns as the operator's will be used, use * for all (+ set cluster rights)
+        #- name: WATCH_NAMESPACE # if not specified the same ns as the operator's will be used, use * for all
         #  value: "default"
         #- name: FULL_RECONCILIATION_INTERVAL_S
         #  value: "180"
