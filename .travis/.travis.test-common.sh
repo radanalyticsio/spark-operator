@@ -43,7 +43,11 @@ start_minikube() {
 }
 
 tear_down() {
-  docker kill `docker ps -q` &> /dev/null || true
+  if [ "$BIN" = "oc" ]; then
+    docker kill `docker ps -q` &> /dev/null || true
+  else
+    minikube delete &> /dev/null || true
+  fi
 }
 
 setup_testing_framework() {
