@@ -86,13 +86,15 @@ For deployment on OpenShift use the same commands as above (with `oc` instead of
 
 ### Config Map approach
 
-This operator can also work with Config Maps instad of CRDs. This can be useful in situations when user is not allowed to create CRDs or ClusterRoleBinding resources. The schema for config maps is almost identical to custom resources and you can check the [examples](./examples/test/cm).
+This operator can also work with Config Maps instead of CRDs. This can be useful in situations when user is not allowed to create CRDs or `ClusterRoleBinding` resources. The schema for config maps is almost identical to custom resources and you can check the [examples](./examples/test/cm).
 
 ```bash
 kubectl apply -f manifest/operator-cm.yaml
 ```
 
-and then create the Spark clusters by creating the config map (CM).
+The manifest above is almost the same as the [operator.yaml](./manifest/operator.yaml). If the environmental variable `CRD` is set to `false`, the operator will watch on config maps with certain labels.
+
+You can then create the Spark clusters as usual by creating the config map (CM).
 
 ```bash
 kubectl apply -f examples/cluster-cm.yaml
