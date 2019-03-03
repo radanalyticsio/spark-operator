@@ -6,7 +6,7 @@ image:
 env:
   installNamespace: ""         # into which namespace the deployment and RBAC resources for operator should be created
   watchNamespace: ""           # empty string represents the same ns as the operator's installNamespace, use * for all
-  crd: false                   # if false, the operator will watch on ConfigMaps
+  crd: true                    # if false, the operator will watch on ConfigMaps
   reconciliationInterval: 180  # how often (in seconds) the full reconciliation should be run
   metrics: false               # should we expose metrics for Prometheus?
   metricsPort: 8080            # port for the metrics http server

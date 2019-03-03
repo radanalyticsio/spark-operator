@@ -1,34 +1,31 @@
-apiVersion: v1
-kind: ConfigMap
+apiVersion: radanalytics.io/v1
+kind: SparkCluster
 metadata:
   name: sparky-cluster                                  # compulsory
-  labels:
-    radanalytics.io/kind: SparkCluster                       # compulsory
-data:
-  config: |-
-    worker:
-      instances: "2"                                      # optional defaults to 1
-      memory: "1Gi"                                       # optional no defaults
-      cpu: 0.2                                            # optional no defaults
-    master:
-      instances: "1"                                      # optional defaults to 1
-      memory: "1Gi"                                       # optional no defaults
-      cpu: 0.2                                            # optional no defaults
-    customImage: quay.io/jkremser/openshift-spark:2.4.0   # optional defaults to quay.io/jkremser/openshift-spark:2.4.0
-    metrics: false                                        # on each pod expose the metrics endpoint on port 7777 for prometheus, defautls to false
-    sparkWebUI: true                                      # create a service with the Spark UI, defautls to true
-    env:                                                  # optional
-    - name: SPARK_WORKER_CORES
-      value: 2
-    - name: FOO
-      value: bar
-    sparkConfigurationMap: my-config                    # optional defaults to ${name}-config
-                                                        # kubectl create configmap my-config --from-file=example/config.conf
-    sparkConfiguration:                                 # optional, it overrides the config defined above
-    - name: spark.executor.memory
-      value: 1g
-    - name: spark.sql.conf.autoBroadcastJoinThreshold
-      value: 20971520
-    downloadData:                                       # optional, it downloads these files to each node
-    - url: https://raw.githubusercontent.com/Jiri-Kremser/spark-operator/master/README.md
-      to: /tmp/
+spec:
+  worker:
+    instances: "2"                                      # optional defaults to 1
+    memory: "1Gi"                                       # optional no defaults
+    cpu: 0.2                                            # optional no defaults
+  master:
+    instances: "1"                                      # optional defaults to 1
+    memory: "1Gi"                                       # optional no defaults
+    cpu: 0.2                                            # optional no defaults
+  customImage: quay.io/jkremser/openshift-spark:2.4.0   # optional defaults to quay.io/jkremser/openshift-spark:2.4.0
+  metrics: false                                        # on each pod expose the metrics endpoint on port 7777 for prometheus, defautls to false
+  sparkWebUI: true                                      # create a service with the Spark UI, defautls to true
+  env:                                                  # optional
+  - name: SPARK_WORKER_CORES
+    value: 2
+  - name: FOO
+    value: bar
+  sparkConfigurationMap: my-config                    # optional defaults to ${name}-config
+                                                      # kubectl create configmap my-config --from-file=example/config.conf
+  sparkConfiguration:                                 # optional, it overrides the config defined above
+  - name: spark.executor.memory
+    value: 1g
+  - name: spark.sql.conf.autoBroadcastJoinThreshold
+    value: 20971520
+  downloadData:                                       # optional, it downloads these files to each node
+  - url: https://raw.githubusercontent.com/Jiri-Kremser/spark-operator/master/README.md
+    to: /tmp/

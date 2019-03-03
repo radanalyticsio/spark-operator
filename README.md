@@ -3,7 +3,7 @@
 [![Build status](https://travis-ci.org/radanalyticsio/spark-operator.svg?branch=master)](https://travis-ci.org/radanalyticsio/spark-operator)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0)
 
-`{ConfigMap|CRD}`-based approach for managing the Spark clusters in Kubernetes and OpenShift.
+`{CRD|ConfigMap}`-based approach for managing the Spark clusters in Kubernetes and OpenShift.
 
 This operator uses [abstract-operator](https://github.com/jvm-operators/abstract-operator) library.
 
@@ -11,7 +11,7 @@ This operator uses [abstract-operator](https://github.com/jvm-operators/abstract
 asciinema rec -i 3
 docker run -\-rm -v $PWD:/data asciinema/asciicast2gif -s 1.18 -w 104 -h 27 -t monokai 189204.cast demo.gif
 -->
-[![Watch the full asciicast](https://github.com/radanalyticsio/spark-operator/raw/master/ascii.gif)](https://asciinema.org/a/189204?&cols=104&rows=27&theme=monokai)
+[![Watch the full asciicast](https://github.com/radanalyticsio/spark-operator/raw/master/ascii.gif)](https://asciinema.org/a/230927?&cols=123&rows=27&theme=monokai)
 
 # How does it work
 ![UML diagram](https://github.com/radanalyticsio/spark-operator/raw/master/standardized-UML-diagram.png "UML Diagram")
@@ -40,9 +40,9 @@ my-spark-cluster-w-vg9k2           1/1       Running   0          10s
 spark-operator-510388731-852b2     1/1       Running   0          27s
 ```
 
-Once you don't need the cluster anymore, you can delete it by deleting the config map resource by:
+Once you don't need the cluster anymore, you can delete it by deleting the custom resource by:
 ```bash
-kubectl delete cm my-spark-cluster
+kubectl delete sparkcluster my-spark-cluster
 ```
 
 # Very Quick Start
@@ -54,45 +54,58 @@ kubectl apply -f http://bit.ly/sparkop
 # create cluster
 cat <<EOF | kubectl apply -f -
 apiVersion: v1
-kind: ConfigMap
+kind: SparkCluster
 metadata:
   name: my-cluster
-  labels:
-    radanalytics.io/kind: SparkCluster
-data:
-  config: |-
-    worker:
-      instances: "2"
+spec:
+  worker:
+    instances: "2"
+EOF
+```
+
+## Spark Applications
+
+Apart from managing clusters with Apache Spark, this operator can also manage Spark applications similarly as the `GoogleCloudPlatform/spark-on-k8s-operator`. These applications spawn their own Spark cluster for their needs and it uses the Kubernetes as the native scheduling mechanism for Spark. For more details, consult the [Spark docs](https://spark.apache.org/docs/latest/running-on-kubernetes.html).
+
+```bash
+# create spark application
+cat <<EOF | kubectl apply -f -
+apiVersion: v1
+kind: SparkApplication
+metadata:
+  name: my-cluster
+spec:
+  mainApplicationFile: local:///opt/spark/examples/jars/spark-examples_2.11-2.3.0.jar
+  mainClass: org.apache.spark.examples.SparkPi
 EOF
 ```
 
 ### OpenShift
 
-For deployment on OpenShift use the same commands as above, but with `oc` instead of `kubectl`.
+For deployment on OpenShift use the same commands as above (with `oc` instead of `kubectl` if `kubectl` is not installed) and make sure the logged user can create CRDs: `oc login -u system:admin && oc project default`
 
-### Custom Resource Definitions (CRD)
+### Config Map approach
 
-This operator can also work with CRDs. For OpenShift, we are assuming the admin user is logged in (`oc login -u system:admin`)
- and you have switched the project to `"default"` (`oc project default`).
-
-you can install the operator with:
+This operator can also work with Config Maps instead of CRDs. This can be useful in situations when user is not allowed to create CRDs or `ClusterRoleBinding` resources. The schema for config maps is almost identical to custom resources and you can check the [examples](./examples/test/cm).
 
 ```bash
-kubectl apply -f manifest/operator-crd.yaml
+kubectl apply -f manifest/operator-cm.yaml
 ```
 
-and then create the Spark clusters by creating the custom resources (CR).
+The manifest above is almost the same as the [operator.yaml](./manifest/operator.yaml). If the environmental variable `CRD` is set to `false`, the operator will watch on config maps with certain labels.
+
+You can then create the Spark clusters as usual by creating the config map (CM).
 
 ```bash
-kubectl apply -f examples/cluster-cr.yaml
-kubectl get SparkClusters
+kubectl apply -f examples/cluster-cm.yaml
+kubectl get cm -l radanalytics.io/kind=SparkCluster
 ```
 
-or Spark applications that are natively scheduled on Spark Clusters by:
+or Spark applications that are natively scheduled on Spark clusters by:
 
 ```bash
-kubectl apply -f examples/test/cr/app.yaml
-kubectl get SparkApplications
+kubectl apply -f examples/test/cm/app.yaml
+kubectl get cm -l radanalytics.io/kind=SparkApplication
 ```
 
 ### Images
@@ -105,13 +118,28 @@ Image name         | Description | Layers | quay.io | docker.io
 
 For each variant there is also available an image with `-alpine` suffix based on Alpine for instance [![Layers info](https://images.microbadger.com/badges/image/radanalyticsio/spark-operator:latest-released-alpine.svg)](https://microbadger.com/images/radanalyticsio/spark-operator:latest-released-alpine)
 
-# Related projects
+### Related projects
 
 The radanalyticsio/spark-operator is not the only Kubernetes operator service
 that targets Apache Spark.
 
 * [GoogleCloudPlatform/spark-on-k8s-operator](https://github.com/GoogleCloudPlatform/spark-on-k8s-operator)
   is an operator which shares a similar schema for the Spark cluster and application
-  resources. One major difference between it and the radanalyticsio/spark-operator
+  resources. One major difference between it and the `radanalyticsio/spark-operator`
   is that the latter has been designed to work well in environments where a
-  user has a limited role-based access to Kubernetes, such as on OpenShift.
+  user has a limited role-based access to Kubernetes, such as on OpenShift and also that
+  `radanalyticsio/spark-operator` can deploy standalone Spark clusters.
+
+### Troubleshooting
+
+Show the log:
+
+```bash
+kubectl logs -f `kubectl get pod -l app.kubernetes.io/name=spark-operator -o='jsonpath="{.items[0].metadata.name}"' | sed 's/"//g'`
+```
+
+Run the operator from your host (also possible with the debugger):
+
+```bash
+java -jar target/spark-operator-*.jar
+```
