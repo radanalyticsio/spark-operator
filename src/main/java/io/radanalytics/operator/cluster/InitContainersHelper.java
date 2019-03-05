@@ -71,6 +71,7 @@ public class InitContainersHelper {
             downloaderCmd.append(url);
             downloaderCmd.append(param);
             downloaderCmd.append(to);
+            downloaderCmd.append(" ; ");
         });
 
         Container downloader = new ContainerBuilder()
