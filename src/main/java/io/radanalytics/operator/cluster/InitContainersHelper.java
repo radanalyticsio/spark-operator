@@ -137,7 +137,7 @@ public class InitContainersHelper {
             // add/replace the content of NEW_CONF_DIR_PATH with all the files that comes from the config map
             overrideConfigCmd.append("cp -r ");
             overrideConfigCmd.append(cmMountPath);
-            overrideConfigCmd.append("/* ");
+            overrideConfigCmd.append("/..data/* ");
             overrideConfigCmd.append(NEW_CONF_DIR_PATH);
             if (!config.isEmpty()) {
                 overrideConfigCmd.append(" ; ");
