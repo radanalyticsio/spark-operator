@@ -209,12 +209,12 @@ public class InitContainersHelper {
      * @return expected time for initial delay for the probes
      */
     public static int getExpectedDelay(SparkCluster cluster, boolean cmExists, boolean isMaster) {
-        int delay = 5;
+        int delay = 6;
         if (isMaster) {
             if (null != cluster.getMaster() && null != cluster.getMaster().getCpu()) {
                 try {
                     double cpu = Double.parseDouble(cluster.getMaster().getCpu());
-                    delay += (1.0 / cpu) * 3;
+                    delay += (1.0 / cpu) * 3.5;
                 } catch (NumberFormatException nfe) {
                     // ignore
                 }
@@ -224,7 +224,7 @@ public class InitContainersHelper {
             if (null != cluster.getWorker() && null != cluster.getWorker().getCpu()) {
                 try {
                     double cpu = Double.parseDouble(cluster.getWorker().getCpu());
-                    delay += (1.0 / cpu) * 3;
+                    delay += (1.0 / cpu) * 3.5;
                 } catch (NumberFormatException nfe) {
                     // ignore
                 }
