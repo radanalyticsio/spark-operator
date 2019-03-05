@@ -23,9 +23,9 @@ spec:
                                                       # kubectl create configmap my-config --from-file=example/config.conf
   sparkConfiguration:                                 # optional, it overrides the config defined above
   - name: spark.executor.memory
-    value: 1g
+    value: 0.5g
   - name: spark.sql.conf.autoBroadcastJoinThreshold
     value: 20971520
   downloadData:                                       # optional, it downloads these files to each node
-  - url: https://raw.githubusercontent.com/Jiri-Kremser/spark-operator/master/README.md
+  - url: https://raw.githubusercontent.com/radanalyticsio/spark-operator/master/README.md
     to: /tmp/

@@ -8,5 +8,5 @@ spec:
   - name: spark.executor.memory
     value: 1g
   downloadData:
-  - url: https://raw.githubusercontent.com/Jiri-Kremser/spark-operator/master/README.md
+  - url: https://raw.githubusercontent.com/radanalyticsio/spark-operator/master/README.md
     to: /tmp/
