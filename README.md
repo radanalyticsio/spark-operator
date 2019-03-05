@@ -135,6 +135,12 @@ that targets Apache Spark.
 Show the log:
 
 ```bash
+# last 25 log entries
+kubectl logs --tail 25 -l app.kubernetes.io/name=spark-operator
+```
+
+```bash
+# follow logs
 kubectl logs -f `kubectl get pod -l app.kubernetes.io/name=spark-operator -o='jsonpath="{.items[0].metadata.name}"' | sed 's/"//g'`
 ```
 
