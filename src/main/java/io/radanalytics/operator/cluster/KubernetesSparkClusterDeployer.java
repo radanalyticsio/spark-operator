@@ -3,7 +3,6 @@ package io.radanalytics.operator.cluster;
 import io.fabric8.kubernetes.api.model.*;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.radanalytics.operator.resource.LabelsHelper;
-import io.radanalytics.types.DownloadDatum;
 import io.radanalytics.types.RCSpec;
 import io.radanalytics.types.SparkCluster;
 
@@ -105,29 +104,34 @@ public class KubernetesSparkClusterDeployer {
             ports.add(metricsPort);
         }
 
-        Probe masterLiveness = new ProbeBuilder().withNewExec().withCommand(Arrays.asList("/bin/bash", "-c", "curl -s localhost:8080 | grep -e Status.*ALIVE")).endExec()
+        final String cmName = InitContainersHelper.getExpectedCMName(cluster);
+        final boolean cmExists = cmExists(cmName);
+        final int expectedMasterDelay = InitContainersHelper.getExpectedDelay(cluster, cmExists, true);
+        final int expectedWorkerDelay = InitContainersHelper.getExpectedDelay(cluster, cmExists, false);
+        Probe masterReadiness = new ProbeBuilder().withNewExec().withCommand(Arrays.asList("/bin/bash", "-c", "curl -s localhost:8080 | grep -e Status.*ALIVE")).endExec()
                 .withFailureThreshold(3)
-                .withInitialDelaySeconds(4 + cluster.getDownloadData().size() * 5)
-                .withPeriodSeconds(10)
+                .withInitialDelaySeconds(expectedMasterDelay - 4)
+                .withPeriodSeconds(7)
                 .withSuccessThreshold(1)
                 .withTimeoutSeconds(1).build();
 
-        Probe workerLiveness = new ProbeBuilder().withNewExec().withCommand(Arrays.asList("/bin/bash", "-c", "curl -s localhost:8081 | grep -e 'Master URL:.*spark://'" +
+        Probe workerReadiness = new ProbeBuilder().withNewExec().withCommand(Arrays.asList("/bin/bash", "-c", "curl -s localhost:8081 | grep -e 'Master URL:.*spark://'" +
                 " || echo Unable to connect to the Spark master at $SPARK_MASTER_ADDRESS")).endExec()
                 .withFailureThreshold(3)
-                .withInitialDelaySeconds(4 + cluster.getDownloadData().size() * 5)
-                .withPeriodSeconds(10)
+                .withInitialDelaySeconds(expectedWorkerDelay - 4)
+                .withPeriodSeconds(7)
                 .withSuccessThreshold(1)
                 .withTimeoutSeconds(1).build();
 
-        Probe generalReadinessProbe = new ProbeBuilder().withFailureThreshold(3).withNewHttpGet()
+        Probe generalLivenessProbe = new ProbeBuilder().withFailureThreshold(3).withNewHttpGet()
                 .withPath("/")
                 .withNewPort().withIntVal(isMaster ? 8080 : 8081).endPort()
                 .withScheme("HTTP")
                 .endHttpGet()
                 .withPeriodSeconds(10)
                 .withSuccessThreshold(1)
-                .withInitialDelaySeconds(8 + cluster.getDownloadData().size() * 5)
+                .withFailureThreshold(6)
+                .withInitialDelaySeconds(isMaster ? expectedMasterDelay : expectedWorkerDelay)
                 .withTimeoutSeconds(1).build();
 
         String imageRef = getDefaultSparkImage(); // from Constants
@@ -142,8 +146,8 @@ public class KubernetesSparkClusterDeployer {
                 .withTerminationMessagePolicy("File")
                 .withPorts(ports);
 
-        containerBuilder.withReadinessProbe(generalReadinessProbe)
-                .withLivenessProbe(isMaster ? masterLiveness : workerLiveness);
+        containerBuilder.withLivenessProbe(generalLivenessProbe)
+                .withReadinessProbe(isMaster ? masterReadiness : workerReadiness);
 
         // limits
         if (isMaster) {
@@ -206,91 +210,21 @@ public class KubernetesSparkClusterDeployer {
                 .withNewSpec().withContainers(containerBuilder.build())
                 .endSpec().endTemplate().endSpec().build();
 
-        final String cmName = cluster.getSparkConfigurationMap() == null ? name + "-config" : cluster.getSparkConfigurationMap();
-        final boolean cmExists = cmExists(cmName);
+        // add init containers that will prepare the data on the nodes or override the configuration
         if (!cluster.getDownloadData().isEmpty() || !cluster.getSparkConfiguration().isEmpty() || cmExists) {
-            addInitContainers(rc, cluster, cmExists);
+            InitContainersHelper.addInitContainers(rc, cluster, cmExists);
         }
-        return rc;
-    }
-
-    private ReplicationController addInitContainers(ReplicationController rc,
-                                                    SparkCluster cluster,
-                                                    boolean cmExists) {
-        final List<DownloadDatum> downloadData = cluster.getDownloadData();
-        final List<io.radanalytics.types.NameValue> config = cluster.getSparkConfiguration();
-        final boolean needInitContainer = !downloadData.isEmpty() || !config.isEmpty();
-        final StringBuilder command = new StringBuilder();
-        if (needInitContainer) {
-            downloadData.forEach(dl -> {
-                String url = dl.getUrl();
-                String to = dl.getTo();
-                // if 'to' ends with slash, we know it's a directory and we use the -P switch to change the prefix,
-                // otherwise using -O for renaming the downloaded file
-                String param = to.endsWith("/") ? " -P " : " -O ";
-                command.append("wget ");
-                command.append(url);
-                command.append(param);
-                command.append(to);
-                command.append(" && ");
-            });
-            if (cmExists) {
-                command.append("cp /tmp/config/* /opt/spark/conf");
-                command.append(" && ");
-            }
-            if (!config.isEmpty()) {
-                command.append("echo -e \"");
-                config.forEach(kv -> {
-                    command.append(kv.getName());
-                    command.append(" ");
-                    command.append(kv.getValue());
-                    command.append("\\n");
-                });
-                command.append("\" >> /opt/spark/conf/spark-defaults.conf");
-                command.append(" && ");
-            }
-            command.delete(command.length() - 4, command.length());
-        }
-
-        final VolumeMount m1 = new VolumeMountBuilder().withName("data-dir").withMountPath("/tmp").build();
-        final VolumeMount m2 = new VolumeMountBuilder().withName("configmap-dir").withMountPath("/tmp/config").build();
-        final VolumeMount m3 = new VolumeMountBuilder().withName("conf-dir").withMountPath("/opt/spark/conf").build();
-        final Volume v1 = new VolumeBuilder().withName("data-dir").withNewEmptyDir().endEmptyDir().build();
-        final Volume v2 = new VolumeBuilder().withName("configmap-dir").withNewConfigMap().withName(cluster.getSparkConfigurationMap()).endConfigMap().build();
-        final Volume v3 = new VolumeBuilder().withName("conf-dir").withNewEmptyDir().endEmptyDir().build();
-        final List<VolumeMount> mounts = new ArrayList<>(2);
-        final List<Volume> volumes = new ArrayList<>(2);
-        if (!downloadData.isEmpty()) {
-            mounts.add(m1);
-            volumes.add(v1);
-        }
-        if (cmExists) {
-            mounts.add(m2);
-            volumes.add(v2);
-        }
-        if (cmExists || !config.isEmpty()) {
-            mounts.add(m3);
-            volumes.add(v3);
-        }
-        PodSpec spec = rc.getSpec().getTemplate().getSpec();
-        if (needInitContainer) {
-            Container initContainer = new ContainerBuilder()
-                    .withName("downloader")
-                    .withImage("busybox")
-                    .withCommand("/bin/sh", "-c")
-                    .withArgs(command.toString())
-                    .withVolumeMounts(mounts)
-                    .build();
-            spec.setInitContainers(Arrays.asList(initContainer));
-        }
-        spec.getContainers().get(0).setVolumeMounts(mounts);
-        spec.setVolumes(volumes);
-        rc.getSpec().getTemplate().setSpec(spec);
         return rc;
     }
 
     private boolean cmExists(String name) {
-        ConfigMap configMap = client.configMaps().inNamespace(namespace).withName(name).get();
+        ConfigMap configMap;
+        if ("*".equals(namespace)) {
+            List<ConfigMap> items = client.configMaps().inAnyNamespace().withField("metadata.name", name).list().getItems();
+            configMap = items != null && !items.isEmpty() ? items.get(0) : null;
+        } else {
+            configMap = client.configMaps().inNamespace(namespace).withName(name).get();
+        }
         return configMap != null && configMap.getData() != null && !configMap.getData().isEmpty();
     }
 
