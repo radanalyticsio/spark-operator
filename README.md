@@ -118,6 +118,23 @@ Image name         | Description | Layers | quay.io | docker.io
 
 For each variant there is also available an image with `-alpine` suffix based on Alpine for instance [![Layers info](https://images.microbadger.com/badges/image/radanalyticsio/spark-operator:latest-released-alpine.svg)](https://microbadger.com/images/radanalyticsio/spark-operator:latest-released-alpine)
 
+### Configuring the operator
+
+The spark-operator contains several defaults that are implicit to the creation
+of Spark clusters and applications. Here are a list of environment variables
+that can be set to adjust the default behaviors of the operator.
+
+* `CRD` set to `true` if the operator the operator should respond to Custom
+  Resource Definitions, and set to `false` if it should respone to ConfigMaps.
+* `DEFAULT_SPARK_CLUSTER_IMAGE` a container image reference that will be used
+  for all pods in a `SparkCluster` deployment.
+* `DEFAULT_SPARK_APP_IMAGE` a container image reference that will be used for
+  all executor pods in a `SparkApplication` deployment.
+
+_Please note that these environment variable must be set in the operator's
+container, see [cluster.yaml](manifest/cluster.yaml) and
+[cluster-cm.yaml](manifest/cluster-cm.yaml) for operator deployment information._
+
 ### Related projects
 
 The radanalyticsio/spark-operator is not the only Kubernetes operator service
