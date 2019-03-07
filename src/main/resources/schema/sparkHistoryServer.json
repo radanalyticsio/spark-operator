@@ -1,0 +1,63 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "description": "A Spark history server configuration",
+  "type": "object",
+  "extends": {
+    "type": "object",
+    "existingJavaType": "io.radanalytics.operator.common.EntityInfo"
+  }, // export SPARK_HISTORY_OPTS="$SPARK_HISTORY_OPTS -Dspark.history.ui.port=9000"
+  "properties": {
+    "sharedVolume": {
+      "type": "object",
+      "properties": {
+        "claimName": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string",
+          "default": "history-server-storage"
+        },
+        "mountPath": {
+          "name": {
+            "type": "string",
+            "default": "/history/spark-events"
+          }
+        }
+      },
+      "required": ["claimName"]
+    },
+
+    "logDirectory": {
+      "type": "string",
+      "default": "file:/history/spark-events"
+    },
+    "updateInterval": {
+      "type": "integer",
+      "default": "10",
+      "minimum": "1"
+    },
+    "retainedApplications": {
+      "type": "integer",
+      "default": "50",
+      "minimum": "1"
+    },
+    "cleaner": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": "false"
+        },
+        "interval": {
+          "type": "string",
+          "default": "1d"
+        },
+        "maxAge": {
+          "type": "string",
+          "default": "7d"
+        }
+      }
+    }
+  },
+  "required": [ ]
+}

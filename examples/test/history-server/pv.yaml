@@ -1,0 +1,13 @@
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: history-pv
+  labels:
+    type: history-pv
+spec:
+  capacity:
+    storage: 0.2Gi
+  accessModes:
+  - ReadWriteMany
+  hostPath:
+    path: "/tmp/spark-events"

@@ -41,7 +41,9 @@
         "type": "object",
         "properties": {
           "url": { "type": "string" },
-          "to": { "type": "string" }
+          "to": { "type": "string" },
+          "required": { "type": "boolean", "default": "false" },
+          "downloadTimeout": { "type": "integer", "minimum": "0" }
         },
         "required": ["url", "to"]
       }

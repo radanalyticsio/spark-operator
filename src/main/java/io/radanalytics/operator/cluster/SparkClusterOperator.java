@@ -32,7 +32,7 @@ import static io.radanalytics.operator.resource.LabelsHelper.OPERATOR_RC_TYPE_LA
 @Operator(forKind = SparkCluster.class, prefix = "radanalytics.io")
 public class SparkClusterOperator extends AbstractOperator<SparkCluster> {
 
-    private static final Logger log = LoggerFactory.getLogger(AbstractOperator.class.getName());
+    private static final Logger log = LoggerFactory.getLogger(SparkClusterOperator.class.getName());
 
     private RunningClusters clusters;
     private KubernetesSparkClusterDeployer deployer;
