@@ -53,8 +53,7 @@
       "$ref": "#/definitions/ExecutorSpec"
     },
     "image": {
-      "type": "string",
-      "default": "quay.io/jkremser/openshift-spark:2.3-latest"
+      "type": "string"
     },
     "mainApplicationFile": {
       "type": "string"

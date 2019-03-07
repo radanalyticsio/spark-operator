@@ -9,6 +9,7 @@ import io.radanalytics.types.SparkApplication;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static io.radanalytics.operator.Constants.getDefaultSparkAppImage;
 import static io.radanalytics.operator.cluster.KubernetesSparkClusterDeployer.env;
 import static io.radanalytics.operator.resource.LabelsHelper.OPERATOR_KIND_LABEL;
 
@@ -38,6 +39,11 @@ public class KubernetesAppDeployer {
 
         final DriverSpec driver = Optional.ofNullable(app.getDriver()).orElse(new DriverSpec());
         final ExecutorSpec executor = Optional.ofNullable(app.getExecutor()).orElse(new ExecutorSpec());
+ 
+        String imageRef = getDefaultSparkAppImage(); // from Constants
+        if (app.getImage() != null) {
+            imageRef = app.getImage();
+        }
 
         StringBuilder command = new StringBuilder();
         command.append("/opt/spark/bin/spark-submit");
@@ -48,7 +54,7 @@ public class KubernetesAppDeployer {
         command.append(" --conf spark.kubernetes.namespace=").append(namespace);
         command.append(" --deploy-mode ").append(app.getMode());
         command.append(" --conf spark.app.name=").append(name);
-        command.append(" --conf spark.kubernetes.container.image=").append(app.getImage());
+        command.append(" --conf spark.kubernetes.container.image=").append(imageRef);
         command.append(" --conf spark.kubernetes.submission.waitAppCompletion=false");
         command.append(" --conf spark.driver.cores=").append(driver.getCores());
         command.append(" --conf spark.kubernetes.driver.limit.cores=").append(driver.getCoreLimit());
@@ -124,7 +130,7 @@ public class KubernetesAppDeployer {
         final String cmd = "echo -e '\\ncmd:\\n" + command.toString().replaceAll("'", "").replaceAll("--", "\\\\n--") + "\\n\\n' && " + command.toString();
         ContainerBuilder containerBuilder = new ContainerBuilder()
                 .withEnv(envVars)
-                .withImage(app.getImage())
+                .withImage(imageRef)
                 .withImagePullPolicy(app.getImagePullPolicy().value())
                 .withName(name + "-submitter")
                 .withTerminationMessagePath("/dev/termination-log")
