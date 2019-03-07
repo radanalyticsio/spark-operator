@@ -124,16 +124,18 @@ The spark-operator contains several defaults that are implicit to the creation
 of Spark clusters and applications. Here are a list of environment variables
 that can be set to adjust the default behaviors of the operator.
 
-* `CRD` set to `true` if the operator the operator should respond to Custom
-  Resource Definitions, and set to `false` if it should respone to ConfigMaps.
+* `CRD` set to `true` if the operator should respond to Custom
+  Resources, and set to `false` if it should respone to ConfigMaps.
 * `DEFAULT_SPARK_CLUSTER_IMAGE` a container image reference that will be used
-  for all pods in a `SparkCluster` deployment.
-* `DEFAULT_SPARK_APP_IMAGE` a container image reference that will be used for
-  all executor pods in a `SparkApplication` deployment.
+  as a default for all pods in a `SparkCluster` deployment when the image is
+  not specified in the cluster manifest.
+* `DEFAULT_SPARK_APP_IMAGE` a container image reference that will be used as a
+  default for all executor pods in a `SparkApplication` deployment when the
+  image is not specified in the application manifest.
 
-_Please note that these environment variable must be set in the operator's
-container, see [cluster.yaml](manifest/cluster.yaml) and
-[cluster-cm.yaml](manifest/cluster-cm.yaml) for operator deployment information._
+_Please note that these environment variables must be set in the operator's
+container, see [operator.yaml](manifest/operator.yaml) and
+[operator-cm.yaml](manifest/operator-cm.yaml) for operator deployment information._
 
 ### Related projects
 
