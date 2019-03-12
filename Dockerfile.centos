@@ -4,6 +4,6 @@ ENV JAVA_OPTS="-XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap
 
 LABEL BASE_IMAGE="fabric8/java-centos-openjdk8-jdk:1.5.1"
 
-ADD target/spark-operator-*.jar /spark-operator.jar
+ADD ./target/spark-operator-0.3.6-SNAPSHOT /spark-operator
 
-CMD ["/usr/bin/java", "-jar", "/spark-operator.jar"]
+CMD ["/spark-operator"]

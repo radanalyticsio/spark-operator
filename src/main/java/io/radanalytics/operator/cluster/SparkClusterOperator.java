@@ -38,6 +38,10 @@ public class SparkClusterOperator extends AbstractOperator<SparkCluster> {
     private RunningClusters clusters;
     private KubernetesSparkClusterDeployer deployer;
 
+    public SparkClusterOperator() {
+
+    }
+
     @Override
     protected void onInit() {
         log.info("{} operator default spark image = {}", this.entityName, Constants.getDefaultSparkImage());
