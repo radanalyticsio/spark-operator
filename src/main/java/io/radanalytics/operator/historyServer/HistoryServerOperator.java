@@ -1,5 +1,6 @@
 package io.radanalytics.operator.historyServer;
 
+import io.fabric8.kubernetes.api.model.KubernetesResourceList;
 import io.radanalytics.operator.common.AbstractOperator;
 import io.radanalytics.operator.common.Operator;
 import io.radanalytics.types.SparkHistoryServer;
@@ -22,8 +23,8 @@ public class HistoryServerOperator extends AbstractOperator<SparkHistoryServer> 
         log.info("Spark history server added");
 
         // todo: create deployment, start the history server, put all the config into env variable, expose service if necessary
-//        KubernetesResourceList list = deployer.getResourceList(server, namespace);
-//        client.resourceList(list).inNamespace(namespace).createOrReplace();
+        KubernetesResourceList list = deployer.getResourceList(server, namespace, isOpenshift);
+        client.resourceList(list).inNamespace(namespace).createOrReplace();
     }
 
     @Override
