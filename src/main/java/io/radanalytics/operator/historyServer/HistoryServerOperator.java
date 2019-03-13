@@ -2,7 +2,6 @@ package io.radanalytics.operator.historyServer;
 
 import io.radanalytics.operator.common.AbstractOperator;
 import io.radanalytics.operator.common.Operator;
-import io.radanalytics.types.SparkApplication;
 import io.radanalytics.types.SparkHistoryServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,11 +10,11 @@ import org.slf4j.LoggerFactory;
 public class HistoryServerOperator extends AbstractOperator<SparkHistoryServer> {
 
     private static final Logger log = LoggerFactory.getLogger(HistoryServerOperator.class.getName());
-    private KubernetesAppDeployer deployer;
+    private KubernetesHistoryServerDeployer deployer;
 
     @Override
     protected void onInit() {
-        this.deployer = new KubernetesAppDeployer(entityName, prefix);
+        this.deployer = new KubernetesHistoryServerDeployer(entityName, prefix);
     }
 
     @Override

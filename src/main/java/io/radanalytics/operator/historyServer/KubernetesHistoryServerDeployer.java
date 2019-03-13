@@ -1,35 +1,55 @@
 package io.radanalytics.operator.historyServer;
 
 import io.fabric8.kubernetes.api.model.*;
-import io.radanalytics.types.Deps;
-import io.radanalytics.types.DriverSpec;
-import io.radanalytics.types.ExecutorSpec;
-import io.radanalytics.types.SparkApplication;
+import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
+import io.radanalytics.types.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static io.radanalytics.operator.Constants.getDefaultSparkImage;
 import static io.radanalytics.operator.cluster.KubernetesSparkClusterDeployer.env;
 import static io.radanalytics.operator.resource.LabelsHelper.OPERATOR_KIND_LABEL;
 
-public class KubernetesAppDeployer {
+public class KubernetesHistoryServerDeployer {
 
     private String entityName;
     private String prefix;
 
-    KubernetesAppDeployer(String entityName, String prefix) {
+    KubernetesHistoryServerDeployer(String entityName, String prefix) {
         this.entityName = entityName;
         this.prefix = prefix;
     }
 
-    public KubernetesResourceList getResourceList(SparkApplication app, String namespace) {
-        checkForInjectionVulnerabilities(app, namespace);
+    public KubernetesResourceList getResourceList(SparkHistoryServer hs, String namespace) {
+
+        // todo: create deployment, start the history server, put all the config into env variable, expose service if necessary
+
+
+        String imageRef = getDefaultSparkImage(); // from Constants
+        if (cluster.getCustomImage() != null) {
+            imageRef = cluster.getCustomImage();
+        }
+
+        checkForInjectionVulnerabilities(hs, namespace);
+        Map<String, String> defaultLabels = getDefaultLabels(hs.getName());
+
+        new ContainerBuilder().withName("history-server").withImage(hs.getCustomImage())
+
+        new DeploymentBuilder().withNewMetadata().withName(hs.getName()).withLabels(defaultLabels).endMetadata()
+                .withNewSpec().withReplicas(1).withNewSelector().withMatchLabels(defaultLabels).endSelector()
+                .withNewStrategy().withType("Recreate").endStrategy()
+                .withNewTemplate().withNewMetadata().withLabels(defaultLabels).endMetadata()
+                .withNewSpec().withServiceAccountName("spark-operator")
+                .withContainers(null).endSpec();
+
+
         ReplicationController submitter = getSubmitterRc(app, namespace);
         KubernetesList resources = new KubernetesListBuilder().withItems(submitter).build();
         return resources;
     }
 
-    private ReplicationController getSubmitterRc(SparkApplication app, String namespace) {
+    private ReplicationController getSubmitterRc(SparkHistoryServer hs, String namespace) {
         final String name = app.getName();
 
         List<EnvVar> envVars = new ArrayList<>();
@@ -160,7 +180,7 @@ public class KubernetesAppDeployer {
         return map;
     }
 
-    private void checkForInjectionVulnerabilities(SparkApplication app, String namespace) {
+    private void checkForInjectionVulnerabilities(SparkHistoryServer hs, String namespace) {
         //todo: this
     }
 }
