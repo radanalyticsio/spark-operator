@@ -8,7 +8,7 @@ spec:
     name: sdf
     mountPath: /tmp/spark-events
 
-  expose: false
+  expose: true
   logDirectory: /history/spark-events
   updateInterval: 5
   retainedApplications: 50

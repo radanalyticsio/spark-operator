@@ -5,6 +5,7 @@ import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import io.fabric8.kubernetes.api.model.apps.DeploymentFluent;
 import io.fabric8.kubernetes.api.model.apps.DeploymentSpecFluent;
+import io.fabric8.kubernetes.api.model.extensions.*;
 import io.fabric8.openshift.api.model.Route;
 import io.fabric8.openshift.api.model.RouteBuilder;
 import io.radanalytics.operator.resource.LabelsHelper;
@@ -36,7 +37,7 @@ public class KubernetesHistoryServerDeployer {
 
         Container historyServerContainer = new ContainerBuilder().withName("history-server")
                 .withImage(Optional.ofNullable(hs.getCustomImage()).orElse(getDefaultSparkImage()))
-                .withCommand("/bin/sh -c")
+                .withCommand(Arrays.asList("/bin/sh", "-c"))
                 .withArgs("mkdir /tmp/spark-events && /entrypoint ls && /opt/spark/bin/spark-class") // todo: shared path on fs
                 .withEnv(env("SPARK_HISTORY_OPTS", "-Dspark.history.ui.port=9001"))
                 .withPorts(new ContainerPortBuilder().withName("web-ui").withContainerPort(9001).build())
@@ -56,11 +57,12 @@ public class KubernetesHistoryServerDeployer {
                     .withPorts(new ServicePortBuilder().withName("web-ui").withPort(9001).build()).endSpec().build();
             resources.add(service);
             if (isOpenshift) {
-//                Route route = new RouteBuilder().withNewMetadata().withName(hs.getName())
-//                        .withLabels(defaultLabels).endMetadata()
-//                        .withNewSpec().withNewPort().withNewTargetPort(9001).endPort().withNewTo("Service", hs.getName(), 100)
-//                        .endSpec().build();
-//                resources.add(route);
+                Ingress ingress = new IngressBuilder().withNewMetadata().withName(hs.getName())
+                        .withLabels(defaultLabels).endMetadata()
+                        .withNewSpec().withRules(new IngressRuleBuilder().withNewHttp()
+                                .withPaths(new HTTPIngressPathBuilder().withNewBackend().withServiceName(hs.getName()).withNewServicePort(9001).endBackend().build()).endHttp().build())
+                        .endSpec().build();
+                resources.add(ingress);
             }
         }
 
