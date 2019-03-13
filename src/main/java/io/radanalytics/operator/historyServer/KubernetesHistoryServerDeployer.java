@@ -38,7 +38,7 @@ public class KubernetesHistoryServerDeployer {
         Container historyServerContainer = new ContainerBuilder().withName("history-server")
                 .withImage(Optional.ofNullable(hs.getCustomImage()).orElse(getDefaultSparkImage()))
                 .withCommand(Arrays.asList("/bin/sh", "-c"))
-                .withArgs("mkdir /tmp/spark-events && /entrypoint ls && /opt/spark/bin/spark-class") // todo: shared path on fs
+                .withArgs("mkdir /tmp/spark-events && /entrypoint ls && /opt/spark/bin/spark-class org.apache.spark.deploy.history.HistoryServer") // todo: shared path on fs
                 .withEnv(env("SPARK_HISTORY_OPTS", "-Dspark.history.ui.port=9001"))
                 .withPorts(new ContainerPortBuilder().withName("web-ui").withContainerPort(9001).build())
                 .build();
