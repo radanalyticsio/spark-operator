@@ -28,29 +28,16 @@ public class KubernetesHistoryServerDeployer {
     }
 
     public KubernetesResourceList getResourceList(SparkHistoryServer hs, String namespace, boolean isOpenshift) {
-
         checkForInjectionVulnerabilities(hs, namespace);
-        Map<String, String> defaultLabels = getDefaultLabels(hs.getName());
-
         List<HasMetadata> resources = new ArrayList<>();
+
+        Map<String, String> defaultLabels = getDefaultLabels(hs.getName());
         int uiPort = hs.getInternalPort();
 
-        Container historyServerContainer = new ContainerBuilder().withName("history-server")
-                .withImage(Optional.ofNullable(hs.getCustomImage()).orElse(getDefaultSparkImage()))
-                .withCommand(Arrays.asList("/bin/sh", "-xc"))
-                .withArgs("mkdir /tmp/spark-events && /entrypoint ls && /opt/spark/bin/spark-class org.apache.spark.deploy.history.HistoryServer") // todo: shared path on fs
-                .withEnv(env("SPARK_HISTORY_OPTS", getHistoryOpts(hs)))
-                .withPorts(new ContainerPortBuilder().withName("web-ui").withContainerPort(uiPort).build())
-                .build();
-
-        Deployment deployment = new DeploymentBuilder().withNewMetadata().withName(hs.getName()).withLabels(defaultLabels).endMetadata()
-                .withNewSpec().withReplicas(1).withNewSelector().withMatchLabels(defaultLabels).endSelector()
-                .withNewStrategy().withType("Recreate").endStrategy()
-                .withNewTemplate().withNewMetadata().withLabels(defaultLabels).endMetadata()
-                .withNewSpec().withServiceAccountName("spark-operator")
-                .withContainers(historyServerContainer).endSpec().endTemplate().endSpec().build();
+        Deployment deployment = getDeployment(hs, defaultLabels);
         resources.add(deployment);
 
+        // expose the service using Ingress or Route
         if (hs.getExpose()) {
             Service service = new ServiceBuilder().withNewMetadata().withLabels(defaultLabels).withName(hs.getName())
                     .endMetadata().withNewSpec().withSelector(defaultLabels)
@@ -75,6 +62,24 @@ public class KubernetesHistoryServerDeployer {
 
         KubernetesList k8sResources = new KubernetesListBuilder().withItems(resources).build();
         return k8sResources;
+    }
+
+    private Deployment getDeployment(SparkHistoryServer hs, Map<String, String> labels) {
+        Container historyServerContainer = new ContainerBuilder().withName("history-server")
+                .withImage(Optional.ofNullable(hs.getCustomImage()).orElse(getDefaultSparkImage()))
+                .withCommand(Arrays.asList("/bin/sh", "-xc"))
+                .withArgs("mkdir /tmp/spark-events && /entrypoint ls && /opt/spark/bin/spark-class org.apache.spark.deploy.history.HistoryServer") // todo: shared path on fs
+                .withEnv(env("SPARK_HISTORY_OPTS", getHistoryOpts(hs)))
+                .withPorts(new ContainerPortBuilder().withName("web-ui").withContainerPort(hs.getInternalPort()).build())
+                .build();
+
+        Deployment deployment = new DeploymentBuilder().withNewMetadata().withName(hs.getName()).withLabels(labels).endMetadata()
+                .withNewSpec().withReplicas(1).withNewSelector().withMatchLabels(labels).endSelector()
+                .withNewStrategy().withType("Recreate").endStrategy()
+                .withNewTemplate().withNewMetadata().withLabels(labels).endMetadata()
+                .withNewSpec().withServiceAccountName("spark-operator")
+                .withContainers(historyServerContainer).endSpec().endTemplate().endSpec().build();
+        return deployment;
     }
 
     private String getHistoryOpts(SparkHistoryServer hs) {
@@ -117,12 +122,6 @@ public class KubernetesHistoryServerDeployer {
     public Map<String, String> getDefaultLabels(String name) {
         Map<String, String> map = new HashMap<>(3);
         map.put(prefix + OPERATOR_KIND_LABEL, entityName);
-        map.put(prefix + entityName, name);
-        return map;
-    }
-
-    public Map<String, String> getLabelsForDeletion(String name) {
-        Map<String, String> map = new HashMap<>(2);
         map.put(prefix + entityName, name);
         return map;
     }
