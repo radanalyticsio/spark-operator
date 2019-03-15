@@ -1,12 +1,10 @@
 kind: PersistentVolume
 apiVersion: v1
 metadata:
-  name: history-pv
-  labels:
-    type: history-pv
+  name: spark-history-pv
 spec:
   capacity:
-    storage: 0.2Gi
+    storage: 0.3Gi
   accessModes:
   - ReadWriteMany
   hostPath:
