@@ -35,6 +35,32 @@
       "existingJavaType" : "java.util.Map<String,String>",
       "type" : "object"
     },
+    "historyServer": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "sharedVolume": {
+          "type": "object",
+          "properties": {
+            "size": {
+              "type": "string",
+              "default": "0.3Gi"
+            },
+            "mountPath": {
+              "type": "string",
+              "default": "/history/spark-events"
+            },
+            "matchLabels": {
+              "type": "object",
+              "existingJavaType": "java.util.Map<String,String>"
+            }
+          }
+        },
+        "required": ["name"]
+      }
+    },
     "downloadData": {
       "type": "array",
       "items": {

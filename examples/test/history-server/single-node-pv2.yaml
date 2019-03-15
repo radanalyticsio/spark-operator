@@ -1,7 +1,9 @@
 kind: PersistentVolume
 apiVersion: v1
 metadata:
-  name: spark-history-pv
+  name: spark-master-pv1
+  labels:
+    sparkClusterName: my-spark-cluster-with-history-1
 spec:
   capacity:
     storage: 0.3Gi

@@ -10,21 +10,20 @@
     "sharedVolume": {
       "type": "object",
       "properties": {
-        "claimName": {
-          "type": "string"
-        },
-        "name": {
+        "size": {
           "type": "string",
-          "default": "history-server-storage"
+          "default": "0.3Gi"
         },
         "mountPath": {
-          "name": {
-            "type": "string",
-            "default": "/history/spark-events"
-          }
+          "type": "string",
+          "default": "/history/spark-events"
+        },
+        "matchLabels": {
+          "type": "object",
+          "existingJavaType": "java.util.Map<String,String>"
         }
       },
-      "required": ["claimName"]
+      "required": []
     },
     "expose": {
       "type": "boolean",
@@ -140,5 +139,5 @@
       "description": "Local directory where to cache application history data. If set, the history server will store application data on disk instead of keeping it in memory. The data written to disk will be re-used in the event of a history server restart."
     }
   },
-  "required": [ ]
+  "required": []
 }

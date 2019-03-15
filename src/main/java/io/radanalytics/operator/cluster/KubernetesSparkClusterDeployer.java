@@ -4,6 +4,7 @@ import io.fabric8.kubernetes.api.model.*;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.radanalytics.operator.resource.LabelsHelper;
 import io.radanalytics.types.RCSpec;
+import io.radanalytics.types.SharedVolume;
 import io.radanalytics.types.SparkCluster;
 
 import java.util.*;
@@ -160,6 +161,12 @@ public class KubernetesSparkClusterDeployer {
             if (!limits.isEmpty()) {
                 containerBuilder.withResources(new ResourceRequirements(limits, limits));
             }
+
+            if (null != cluster.getHistoryServer()) {
+                SharedVolume sharedVolume = Optional.ofNullable(cluster.getHistoryServer().getSharedVolume()).orElse(new SharedVolume());
+                containerBuilder.withVolumeMounts(new VolumeMountBuilder().withName("history-server-volume")
+                        .withMountPath(sharedVolume.getMountPath()).build());
+            }
         } else {
             final RCSpec worker = Optional.ofNullable(cluster.getWorker()).orElse(new RCSpec());
 
@@ -195,7 +202,9 @@ public class KubernetesSparkClusterDeployer {
                 podLabels.putAll(cluster.getWorker().getLabels());
         }
 
-        ReplicationController rc = new ReplicationControllerBuilder().withNewMetadata()
+//        ReplicationController rc =
+
+        PodTemplateSpecFluent.SpecNested<ReplicationControllerSpecFluent.TemplateNested<ReplicationControllerFluent.SpecNested<ReplicationControllerBuilder>>> rcBuilder = new ReplicationControllerBuilder().withNewMetadata()
                 .withName(podName).withLabels(labels)
                 .endMetadata()
                 .withNewSpec().withReplicas(
@@ -207,8 +216,15 @@ public class KubernetesSparkClusterDeployer {
                 )
                 .withSelector(selector)
                 .withNewTemplate().withNewMetadata().withLabels(podLabels).endMetadata()
-                .withNewSpec().withContainers(containerBuilder.build())
-                .endSpec().endTemplate().endSpec().build();
+                .withNewSpec().withContainers(containerBuilder.build());
+
+        if (isMaster && null != cluster.getHistoryServer()) {
+            rcBuilder = rcBuilder.withVolumes(new VolumeBuilder().withName("history-server-volume").withNewPersistentVolumeClaim()
+                    .withClaimName()
+                    // todo: create also PVC
+                    .endPersistentVolumeClaim().build());
+        }
+        ReplicationController rc = rcBuilder.endSpec().endTemplate().endSpec().build();
 
         // add init containers that will prepare the data on the nodes or override the configuration
         if (!cluster.getDownloadData().isEmpty() || !cluster.getSparkConfiguration().isEmpty() || cmExists) {

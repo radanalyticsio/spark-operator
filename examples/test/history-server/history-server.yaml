@@ -1,15 +1,16 @@
 apiVersion: radanalytics.io/v1
 kind: SparkHistoryServer
 metadata:
-  name: history-server
+  name: my-history-server
 spec:
   sharedVolume:
-    claimName: history-pv
-    name: sdf
-    mountPath: /tmp/spark-events
+    size: 0.3Gi
+    mountPath: /history/spark-events
+    matchLabels:
+      myCustomLabel: foobar
 
-  expose: false
-  logDirectory: /tmp/spark-events
+  expose: true
+  logDirectory: /history/spark-events
   updateInterval: 5
   retainedApplications: 50
 

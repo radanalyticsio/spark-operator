@@ -1,7 +1,9 @@
 kind: PersistentVolume
 apiVersion: v1
 metadata:
-  name: spark-history-pv
+  name: spark-master-pv2
+  labels:
+    radanalytics.io/SparkCluster: my-spark-cluster-with-history-2
 spec:
   capacity:
     storage: 0.3Gi

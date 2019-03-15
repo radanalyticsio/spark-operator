@@ -3,6 +3,8 @@ package io.radanalytics.operator.historyServer;
 import io.fabric8.kubernetes.api.model.*;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
+import io.fabric8.kubernetes.api.model.apps.DeploymentFluent;
+import io.fabric8.kubernetes.api.model.apps.DeploymentSpecFluent;
 import io.fabric8.kubernetes.api.model.extensions.HTTPIngressPathBuilder;
 import io.fabric8.kubernetes.api.model.extensions.Ingress;
 import io.fabric8.kubernetes.api.model.extensions.IngressBuilder;
@@ -37,6 +39,11 @@ public class KubernetesHistoryServerDeployer {
         Deployment deployment = getDeployment(hs, defaultLabels);
         resources.add(deployment);
 
+        if (null != hs.getSharedVolume()) {
+            PersistentVolumeClaim pvc = getPersistentVolumeClaim(hs, defaultLabels);
+            resources.add(pvc);
+        }
+
         // expose the service using Ingress or Route
         if (hs.getExpose()) {
             Service service = new ServiceBuilder().withNewMetadata().withLabels(defaultLabels).withName(hs.getName())
@@ -65,21 +72,47 @@ public class KubernetesHistoryServerDeployer {
     }
 
     private Deployment getDeployment(SparkHistoryServer hs, Map<String, String> labels) {
-        Container historyServerContainer = new ContainerBuilder().withName("history-server")
+        String volumeName = "history-server-volume";
+
+        ContainerBuilder containerBuilder = new ContainerBuilder().withName("history-server")
                 .withImage(Optional.ofNullable(hs.getCustomImage()).orElse(getDefaultSparkImage()))
                 .withCommand(Arrays.asList("/bin/sh", "-xc"))
-                .withArgs("mkdir /tmp/spark-events && /entrypoint ls && /opt/spark/bin/spark-class org.apache.spark.deploy.history.HistoryServer") // todo: shared path on fs
+                .withArgs("mkdir /tmp/spark-events && /entrypoint ls && /opt/spark/bin/spark-class org.apache.spark.deploy.history.HistoryServer")
                 .withEnv(env("SPARK_HISTORY_OPTS", getHistoryOpts(hs)))
-                .withPorts(new ContainerPortBuilder().withName("web-ui").withContainerPort(hs.getInternalPort()).build())
-                .build();
+                .withPorts(new ContainerPortBuilder().withName("web-ui").withContainerPort(hs.getInternalPort()).build());
+        if (null != hs.getSharedVolume()) {
+            containerBuilder = containerBuilder.withVolumeMounts(new VolumeMountBuilder().withName(volumeName).withMountPath(hs.getSharedVolume().getMountPath()).build());
+        }
+        Container historyServerContainer = containerBuilder.build();
 
-        Deployment deployment = new DeploymentBuilder().withNewMetadata().withName(hs.getName()).withLabels(labels).endMetadata()
+        PodTemplateSpecFluent.SpecNested<DeploymentSpecFluent.TemplateNested<DeploymentFluent.SpecNested<DeploymentBuilder>>> deploymentBuilder = new DeploymentBuilder()
+                .withNewMetadata().withName(hs.getName()).withLabels(labels).endMetadata()
                 .withNewSpec().withReplicas(1).withNewSelector().withMatchLabels(labels).endSelector()
                 .withNewStrategy().withType("Recreate").endStrategy()
                 .withNewTemplate().withNewMetadata().withLabels(labels).endMetadata()
                 .withNewSpec().withServiceAccountName("spark-operator")
-                .withContainers(historyServerContainer).endSpec().endTemplate().endSpec().build();
+                .withContainers(historyServerContainer);
+        if (null != hs.getSharedVolume()) {
+            deploymentBuilder = deploymentBuilder.withVolumes(new VolumeBuilder().withName(volumeName).withNewPersistentVolumeClaim()
+                    .withReadOnly(true).withClaimName(hs.getName() + "-claim").endPersistentVolumeClaim().build());
+        }
+        Deployment deployment = deploymentBuilder.endSpec().endTemplate().endSpec().build();
+
         return deployment;
+    }
+
+    private PersistentVolumeClaim getPersistentVolumeClaim(SparkHistoryServer hs, Map<String, String> labels) {
+        Map<String,Quantity> requests = new HashMap<>();
+        requests.put("storage", new QuantityBuilder().withAmount(hs.getSharedVolume().getSize()).build());
+        Map<String, String> matchLabels = hs.getSharedVolume().getMatchLabels();
+        if (null == matchLabels || matchLabels.isEmpty()) {
+            matchLabels.put(prefix + entityName, hs.getName());
+        }
+        PersistentVolumeClaim pvc = new PersistentVolumeClaimBuilder().withNewMetadata().withName(hs.getName() + "-claim").withLabels(labels).endMetadata()
+                .withNewSpec().withAccessModes("ReadWriteMany")
+                .withNewSelector().withMatchLabels(matchLabels).endSelector()
+                .withNewResources().withRequests(requests).endResources().endSpec().build();
+        return pvc;
     }
 
     private String getHistoryOpts(SparkHistoryServer hs) {
