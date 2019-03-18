@@ -41,6 +41,12 @@
         "name": {
           "type": "string"
         },
+        "type": {
+          "type": "string",
+          "default": "sharedVolume",
+          "enum": ["sharedVolume", "remoteStorage"],
+          "javaEnumNames" : ["sharedVolume","remoteStorage"]
+        },
         "sharedVolume": {
           "type": "object",
           "properties": {
@@ -58,7 +64,10 @@
             }
           }
         },
-        "required": ["name"]
+        "remoteURI": {
+          "type": "string",
+          "description": "s3 bucket or hdfs path"
+        }
       }
     },
     "downloadData": {

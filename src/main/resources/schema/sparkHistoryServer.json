@@ -7,6 +7,12 @@
     "existingJavaType": "io.radanalytics.operator.common.EntityInfo"
   },
   "properties": {
+    "type": {
+      "type": "string",
+      "default": "sharedVolume",
+      "enum": ["sharedVolume", "remoteStorage"],
+      "javaEnumNames" : ["sharedVolume","remoteStorage"]
+    },
     "sharedVolume": {
       "type": "object",
       "properties": {
@@ -22,8 +28,11 @@
           "type": "object",
           "existingJavaType": "java.util.Map<String,String>"
         }
-      },
-      "required": []
+      }
+    },
+    "remoteURI": {
+      "type": "string",
+      "description": "s3 bucket or hdfs path"
     },
     "expose": {
       "type": "boolean",

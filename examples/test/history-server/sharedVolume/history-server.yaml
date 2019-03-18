@@ -3,6 +3,7 @@ kind: SparkHistoryServer
 metadata:
   name: my-history-server
 spec:
+  type: sharedVolume
   sharedVolume:
     size: 0.3Gi
     mountPath: /history/spark-events
