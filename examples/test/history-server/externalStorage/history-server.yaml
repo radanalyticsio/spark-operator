@@ -11,9 +11,9 @@ spec:
 
   expose: true
   logDirectory: /history/spark-events
-  updateInterval: 5
+  updateInterval: 10
   retainedApplications: 50
 
   cleaner:
-    enabled: true
-    interval: 1
+    enabled: false
+#    interval: 10
