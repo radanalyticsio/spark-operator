@@ -1,7 +1,10 @@
 package io.radanalytics.operator.cluster;
 
 import io.fabric8.kubernetes.api.model.*;
+import io.radanalytics.operator.historyServer.HistoryServerHelper;
 import io.radanalytics.types.DownloadDatum;
+import io.radanalytics.types.HistoryServer;
+import io.radanalytics.types.SharedVolume;
 import io.radanalytics.types.SparkCluster;
 
 import java.util.ArrayList;
@@ -24,6 +27,7 @@ public class InitContainersHelper {
      *
      * Optionally adds the init containers that do:
      * <ol>
+     *     <li>makes the path for the history server writable by group</li>
      *     <li>downloads the data with curl if it's specified</li>
      *     <li>backups the original (default) Spark configuration into <code>NEW_CONF_DIR_PATH</code></li>
      *     <li>copies/replaces the config files in the <code>NEW_CONF_DIR_PATH</code> with the files coming from the config map</li>
@@ -39,8 +43,13 @@ public class InitContainersHelper {
      */
     public static final ReplicationController addInitContainers(ReplicationController rc,
                                                                  SparkCluster cluster,
-                                                                 boolean cmExists) {
+                                                                 boolean cmExists,
+                                                                 boolean isMaster) {
         PodSpec podSpec = rc.getSpec().getTemplate().getSpec();
+
+        if (isMaster && HistoryServerHelper.needsVolume(cluster)) {
+            createChmodHistoryServerContainer(cluster, podSpec);
+        }
 
         if (!cluster.getDownloadData().isEmpty()) {
             createDownloader(cluster, podSpec);
@@ -109,6 +118,34 @@ public class InitContainersHelper {
         podSpec.getInitContainers().add(backup);
 
         return backup;
+    }
+
+    private static Container createChmodHistoryServerContainer(SparkCluster cluster, PodSpec podSpec) {
+        SharedVolume sharedVolume = Optional.ofNullable(cluster.getHistoryServer().getSharedVolume()).orElse(new SharedVolume());
+        final VolumeMount mount = new VolumeMountBuilder().withName("history-server-volume").withMountPath(sharedVolume.getMountPath()).build();
+
+        Container chmod = new ContainerBuilder()
+                .withName("chmod-history-server")
+//                .withNewSecurityContext().withPrivileged(true).endSecurityContext()
+                .withImage("busybox")
+                .withCommand("/bin/sh", "-xc")
+                .withArgs("mkdir -p " + sharedVolume.getMountPath() + " || true ; chmod -R go+ws " + sharedVolume.getMountPath() + " || true")
+                .withVolumeMounts(mount)
+                .build();
+
+        Volume historyVolume = new VolumeBuilder()
+                .withName("history-server-volume")
+                .withNewPersistentVolumeClaim()
+                .withReadOnly(false)
+                .withClaimName(cluster.getName() + "-claim")
+                .endPersistentVolumeClaim()
+                .build();
+
+        podSpec.getContainers().get(0).getVolumeMounts().add(mount);
+        podSpec.getVolumes().add(historyVolume);
+        podSpec.getInitContainers().add(chmod);
+
+        return chmod;
     }
 
     private static Container createConfigOverrideContainer(SparkCluster cluster, PodSpec podSpec, boolean cmExists) {
@@ -209,6 +246,7 @@ public class InitContainersHelper {
      * @return expected time for initial delay for the probes
      */
     public static int getExpectedDelay(SparkCluster cluster, boolean cmExists, boolean isMaster) {
+        // todo: honor the chmod init cont.
         int delay = 6;
         if (isMaster) {
             if (null != cluster.getMaster() && null != cluster.getMaster().getCpu()) {

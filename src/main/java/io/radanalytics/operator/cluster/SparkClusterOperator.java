@@ -55,6 +55,7 @@ public class SparkClusterOperator extends AbstractOperator<SparkCluster> {
         client.services().inNamespace(namespace).withLabels(getDeployer().getDefaultLabels(name)).delete();
         client.replicationControllers().inNamespace(namespace).withLabels(getDeployer().getDefaultLabels(name)).delete();
         client.pods().inNamespace(namespace).withLabels(getDeployer().getDefaultLabels(name)).delete();
+        client.persistentVolumeClaims().inNamespace(namespace).withLabels(getDeployer().getDefaultLabels(name)).delete();
         getClusters().delete(name);
     }
 

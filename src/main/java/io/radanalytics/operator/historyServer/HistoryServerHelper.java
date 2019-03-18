@@ -7,10 +7,10 @@ import io.radanalytics.types.SparkHistoryServer;
 public class HistoryServerHelper {
 
     public static boolean needsVolume(SparkHistoryServer hs) {
-        return HistoryServer.Type.sharedVolume.equals(hs.getType());
+        return HistoryServer.Type.sharedVolume.value().equals(hs.getType().value());
     }
 
     public static boolean needsVolume(SparkCluster cluster) {
-        return null != cluster.getHistoryServer() && HistoryServer.Type.sharedVolume.equals(cluster.getHistoryServer().getType());
+        return null != cluster.getHistoryServer() && HistoryServer.Type.sharedVolume.value().equals(cluster.getHistoryServer().getType().value());
     }
 }

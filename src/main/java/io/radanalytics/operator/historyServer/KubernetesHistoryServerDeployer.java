@@ -39,7 +39,7 @@ public class KubernetesHistoryServerDeployer {
         Deployment deployment = getDeployment(hs, defaultLabels);
         resources.add(deployment);
 
-        if (null != hs.getSharedVolume()) {
+        if (HistoryServerHelper.needsVolume(hs) && null != hs.getSharedVolume()) {
             PersistentVolumeClaim pvc = getPersistentVolumeClaim(hs, defaultLabels);
             resources.add(pvc);
         }
@@ -80,7 +80,7 @@ public class KubernetesHistoryServerDeployer {
                 .withArgs("mkdir /tmp/spark-events && /entrypoint ls && /opt/spark/bin/spark-class org.apache.spark.deploy.history.HistoryServer")
                 .withEnv(env("SPARK_HISTORY_OPTS", getHistoryOpts(hs)))
                 .withPorts(new ContainerPortBuilder().withName("web-ui").withContainerPort(hs.getInternalPort()).build());
-        if (null != hs.getSharedVolume()) {
+        if (HistoryServerHelper.needsVolume(hs) && null != hs.getSharedVolume()) {
             containerBuilder = containerBuilder.withVolumeMounts(new VolumeMountBuilder().withName(volumeName).withMountPath(hs.getSharedVolume().getMountPath()).build());
         }
         Container historyServerContainer = containerBuilder.build();
@@ -92,9 +92,9 @@ public class KubernetesHistoryServerDeployer {
                 .withNewTemplate().withNewMetadata().withLabels(labels).endMetadata()
                 .withNewSpec().withServiceAccountName("spark-operator")
                 .withContainers(historyServerContainer);
-        if (null != hs.getSharedVolume()) {
+        if (HistoryServerHelper.needsVolume(hs) && null != hs.getSharedVolume()) {
             deploymentBuilder = deploymentBuilder.withVolumes(new VolumeBuilder().withName(volumeName).withNewPersistentVolumeClaim()
-                    .withReadOnly(true).withClaimName(hs.getName() + "-claim").endPersistentVolumeClaim().build());
+                    .withReadOnly(false).withClaimName(hs.getName() + "-claim").endPersistentVolumeClaim().build());
         }
         Deployment deployment = deploymentBuilder.endSpec().endTemplate().endSpec().build();
 
@@ -106,6 +106,8 @@ public class KubernetesHistoryServerDeployer {
         requests.put("storage", new QuantityBuilder().withAmount(hs.getSharedVolume().getSize()).build());
         Map<String, String> matchLabels = hs.getSharedVolume().getMatchLabels();
         if (null == matchLabels || matchLabels.isEmpty()) {
+            // if no match labels are specified, we assume the default one: radanalytics.io/SparkHistoryServer: history-server-name
+            matchLabels = new HashMap<>(1);
             matchLabels.put(prefix + entityName, hs.getName());
         }
         PersistentVolumeClaim pvc = new PersistentVolumeClaimBuilder().withNewMetadata().withName(hs.getName() + "-claim").withLabels(labels).endMetadata()
