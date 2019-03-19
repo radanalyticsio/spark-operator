@@ -11,6 +11,7 @@ import io.fabric8.kubernetes.api.model.extensions.IngressBuilder;
 import io.fabric8.kubernetes.api.model.extensions.IngressRuleBuilder;
 import io.fabric8.openshift.api.model.Route;
 import io.fabric8.openshift.api.model.RouteBuilder;
+import io.radanalytics.types.SparkConfiguration;
 import io.radanalytics.types.SparkHistoryServer;
 
 import java.util.*;
@@ -77,7 +78,7 @@ public class KubernetesHistoryServerDeployer {
         ContainerBuilder containerBuilder = new ContainerBuilder().withName("history-server")
                 .withImage(Optional.ofNullable(hs.getCustomImage()).orElse(getDefaultSparkImage()))
                 .withCommand(Arrays.asList("/bin/sh", "-xc"))
-                .withArgs("mkdir /tmp/spark-events && /entrypoint ls && /opt/spark/bin/spark-class org.apache.spark.deploy.history.HistoryServer")
+                .withArgs("mkdir /tmp/spark-events || true ; /entrypoint ls ; /opt/spark/bin/spark-class org.apache.spark.deploy.history.HistoryServer")
                 .withEnv(env("SPARK_HISTORY_OPTS", getHistoryOpts(hs)))
                 .withPorts(new ContainerPortBuilder().withName("web-ui").withContainerPort(hs.getInternalPort()).build());
         if (HistoryServerHelper.needsVolume(hs) && null != hs.getSharedVolume()) {
@@ -151,6 +152,11 @@ public class KubernetesHistoryServerDeployer {
             sb.append(" -Dspark.history.store.path=").append(hs.getPersistentPath());
         }
 
+        if (null != hs.getSparkConfiguration() && !hs.getSparkConfiguration().isEmpty()) {
+            for (SparkConfiguration nv : hs.getSparkConfiguration()) {
+                sb.append(" -D").append(nv.getName()).append("=").append(nv.getValue());
+            }
+        }
         return sb.toString();
     }
 

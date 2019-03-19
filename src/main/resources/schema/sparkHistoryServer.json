@@ -30,6 +30,17 @@
         }
       }
     },
+    "sparkConfiguration": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "value": { "type": "string" }
+        },
+        "required": ["name", "value"]
+      }
+    },
     "remoteURI": {
       "type": "string",
       "description": "s3 bucket or hdfs path"
