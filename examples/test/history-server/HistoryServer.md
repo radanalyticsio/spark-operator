@@ -64,15 +64,16 @@ AWS Secret Access Key = bar
 Create new emtpy bucket for the event log called `my-history-server`:
 
 ```
+oc expose pod ceph-nano-0 --type=NodePort
 _ceph=http://`oc get svc ceph-nano-0 --template={{.spec.clusterIP}}`:8000
 aws s3api create-bucket --bucket my-history-server --endpoint-url=$_ceph
 ```
 
-```
-oc get route
-```
+Create some dummy file in the bucket (sparks needs the bucket to be non-empty from some reason):
 
-Open `http://my-history-server-default.127.0.0.1.nip.io/` or similar url in browser.
+```
+aws s3 cp README.md s3://my-history-server/ --endpoint-url=$_ceph
+```
 
 
 ```
@@ -83,7 +84,7 @@ Instead of `172.17.0.2`, use the correct ip from the command above
 
 ```
 _jar_path=`type -P spark-submit | xargs dirname`/../examples/jars/spark-examples_*.jar
-spark-submit --master spark://172.17.0.2:7077 \
+spark-submit --master spark://172.17.0.4:7077 \
  --packages com.amazonaws:aws-java-sdk-pom:1.10.34,org.apache.hadoop:hadoop-aws:2.7.3 \
  --conf spark.eventLog.enabled=true \
  --conf spark.eventLog.dir=s3a://my-history-server/ \
@@ -96,9 +97,25 @@ spark-submit --master spark://172.17.0.2:7077 \
  --executor-memory 1G \
  $_jar_path 42
  ```
+ 
+ 
+ 
+ Delete the dummy file in the bucket (todo ugly):
+ 
+ ```
+ aws s3 rm s3://my-history-server/README.md --endpoint-url=$_ceph
+ ```
 
  Check if the event has been written to the bucket:
 
  ```
  aws s3 ls s3://my-history-server/ --endpoint-url=$_ceph
  ```
+
+Check the history server on:
+
+```
+oc get route
+```
+
+Open `http://my-history-server-default.127.0.0.1.nip.io/` or similar url in browser.
