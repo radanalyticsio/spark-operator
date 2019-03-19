@@ -1,8 +1,10 @@
 # Using shared volume
 
 Assumptions:
+* Currently it's openshift only
 * Make sure the `/tmp/spark-events` on host is writable and readable by 'others', or use different directory in the PVs.
 * Spark 2.4 is installed locally and `spark-submit` is on `$PATH`
+* Spark operator is up and running
 
 ```
 oc apply -f examples/test/history-server/sharedVolume/
@@ -33,10 +35,16 @@ spark-submit --master spark://172.17.0.2:7077 \
 # Using external object storage
 
 Assumptions:
+* Openshift is up and running (currently it's openshift only)
 * `aws` client is installed and configured on `$PATH`
 * Spark 2.4 is installed locally and `spark-submit` is on `$PATH`
 
 
+Deploy the operator (and wait for it to start):
+
+```
+oc login -u system:admin ; oc project default ; oc apply -f manifest/operator.yaml
+```
 
 Deploy ceph-nano, Minio or use S3 from Amazon directly:
 
