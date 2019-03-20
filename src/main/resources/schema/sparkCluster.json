@@ -35,13 +35,50 @@
       "existingJavaType" : "java.util.Map<String,String>",
       "type" : "object"
     },
+    "historyServer": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string",
+          "default": "sharedVolume",
+          "enum": ["sharedVolume", "remoteStorage"],
+          "javaEnumNames" : ["sharedVolume","remoteStorage"]
+        },
+        "sharedVolume": {
+          "type": "object",
+          "properties": {
+            "size": {
+              "type": "string",
+              "default": "0.3Gi"
+            },
+            "mountPath": {
+              "type": "string",
+              "default": "/history/spark-events"
+            },
+            "matchLabels": {
+              "type": "object",
+              "existingJavaType": "java.util.Map<String,String>"
+            }
+          }
+        },
+        "remoteURI": {
+          "type": "string",
+          "description": "s3 bucket or hdfs path"
+        }
+      }
+    },
     "downloadData": {
       "type": "array",
       "items": {
         "type": "object",
         "properties": {
           "url": { "type": "string" },
-          "to": { "type": "string" }
+          "to": { "type": "string" },
+          "required": { "type": "boolean", "default": "false" },
+          "downloadTimeout": { "type": "integer", "minimum": "0" }
         },
         "required": ["url", "to"]
       }

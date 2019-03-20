@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory;
 @Operator(forKind = SparkApplication.class, prefix = "radanalytics.io")
 public class AppOperator extends AbstractOperator<SparkApplication> {
 
-    private static final Logger log = LoggerFactory.getLogger(AbstractOperator.class.getName());
+    private static final Logger log = LoggerFactory.getLogger(AppOperator.class.getName());
     private KubernetesAppDeployer deployer;
 
     @Override

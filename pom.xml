@@ -19,7 +19,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <abstract-operator.version>0.5.2</abstract-operator.version>
+        <abstract-operator.version>0.6.0</abstract-operator.version>
     </properties>
 
     <dependencies>
@@ -36,6 +36,10 @@
         <dependency>
             <groupId>io.prometheus</groupId>
             <artifactId>simpleclient</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.fabric8</groupId>
+            <artifactId>openshift-client</artifactId>
         </dependency>
     </dependencies>
     <build>

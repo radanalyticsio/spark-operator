@@ -2,9 +2,9 @@ package io.radanalytics.operator.cluster;
 
 import io.fabric8.kubernetes.api.model.*;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.radanalytics.operator.historyServer.HistoryServerHelper;
 import io.radanalytics.operator.resource.LabelsHelper;
-import io.radanalytics.types.RCSpec;
-import io.radanalytics.types.SparkCluster;
+import io.radanalytics.types.*;
 
 import java.util.*;
 
@@ -41,6 +41,12 @@ public class KubernetesSparkClusterDeployer {
             if (cluster.getSparkWebUI()) {
                 Service masterUiService = getService(true, name, 8080, allMasterLabels);
                 list.add(masterUiService);
+            }
+
+            // pvc for history server (in case of sharedVolume strategy)
+            if (HistoryServerHelper.needsVolume(cluster)) {
+                PersistentVolumeClaim pvc = getPersistentVolumeClaim(cluster, getDefaultLabels(name));
+                list.add(pvc);
             }
             KubernetesList resources = new KubernetesListBuilder().withItems(list).build();
             return resources;
@@ -144,9 +150,8 @@ public class KubernetesSparkClusterDeployer {
                 .withName(name + (isMaster ? "-m" : "-w"))
                 .withTerminationMessagePath("/dev/termination-log")
                 .withTerminationMessagePolicy("File")
-                .withPorts(ports);
-
-        containerBuilder.withLivenessProbe(generalLivenessProbe)
+                .withPorts(ports)
+                .withLivenessProbe(generalLivenessProbe)
                 .withReadinessProbe(isMaster ? masterReadiness : workerReadiness);
 
         // limits
@@ -158,7 +163,7 @@ public class KubernetesSparkClusterDeployer {
             Optional.ofNullable(master.getCpu()).ifPresent(cpu -> limits.put("cpu", new Quantity(cpu)));
 
             if (!limits.isEmpty()) {
-                containerBuilder.withResources(new ResourceRequirements(limits, limits));
+                containerBuilder = containerBuilder.withResources(new ResourceRequirements(limits, limits));
             }
         } else {
             final RCSpec worker = Optional.ofNullable(cluster.getWorker()).orElse(new RCSpec());
@@ -168,7 +173,7 @@ public class KubernetesSparkClusterDeployer {
             Optional.ofNullable(worker.getCpu()).ifPresent(cpu -> limits.put("cpu", new Quantity(cpu)));
 
             if (!limits.isEmpty()) {
-                containerBuilder.withResources(new ResourceRequirements(limits, limits));
+                containerBuilder = containerBuilder.withResources(new ResourceRequirements(limits, limits));
             }
         }
 
@@ -195,7 +200,7 @@ public class KubernetesSparkClusterDeployer {
                 podLabels.putAll(cluster.getWorker().getLabels());
         }
 
-        ReplicationController rc = new ReplicationControllerBuilder().withNewMetadata()
+        PodTemplateSpecFluent.SpecNested<ReplicationControllerSpecFluent.TemplateNested<ReplicationControllerFluent.SpecNested<ReplicationControllerBuilder>>> rcBuilder = new ReplicationControllerBuilder().withNewMetadata()
                 .withName(podName).withLabels(labels)
                 .endMetadata()
                 .withNewSpec().withReplicas(
@@ -207,15 +212,69 @@ public class KubernetesSparkClusterDeployer {
                 )
                 .withSelector(selector)
                 .withNewTemplate().withNewMetadata().withLabels(podLabels).endMetadata()
-                .withNewSpec().withContainers(containerBuilder.build())
-                .endSpec().endTemplate().endSpec().build();
+                .withNewSpec().withContainers(containerBuilder.build());
+
+//        if (isMaster && null != cluster.getHistoryServer()) {
+//            rcBuilder = rcBuilder.withVolumes(new VolumeBuilder().withName("history-server-volume").withNewPersistentVolumeClaim()
+//                    .withReadOnly(false).withClaimName(cluster.getName() + "-claim").endPersistentVolumeClaim().build());
+//        }
+        ReplicationController rc = rcBuilder.endSpec().endTemplate().endSpec().build();
+
+        // history server
+        if (isMaster && null != cluster.getHistoryServer()) {
+            augmentSparkConfWithHistoryServer(cluster);
+        }
 
         // add init containers that will prepare the data on the nodes or override the configuration
         if (!cluster.getDownloadData().isEmpty() || !cluster.getSparkConfiguration().isEmpty() || cmExists) {
-            InitContainersHelper.addInitContainers(rc, cluster, cmExists);
+            InitContainersHelper.addInitContainers(rc, cluster, cmExists, isMaster);
         }
         return rc;
     }
+
+    private PersistentVolumeClaim getPersistentVolumeClaim(SparkCluster cluster, Map<String, String> labels) {
+        SharedVolume sharedVolume = Optional.ofNullable(cluster.getHistoryServer().getSharedVolume()).orElse(new SharedVolume());
+        Map<String,Quantity> requests = new HashMap<>();
+        requests.put("storage", new QuantityBuilder().withAmount(sharedVolume.getSize()).build());
+        Map<String, String> matchLabels = sharedVolume.getMatchLabels();
+        if (null == matchLabels || matchLabels.isEmpty()) {
+            // if no match labels are specified, we assume the default one: radanalytics.io/SparkCluster: spark-cluster-name
+            matchLabels = new HashMap<>(1);
+            matchLabels.put(prefix + entityName, cluster.getName());
+        }
+        PersistentVolumeClaim pvc = new PersistentVolumeClaimBuilder().withNewMetadata().withName(cluster.getName() + "-claim").withLabels(labels).endMetadata()
+                .withNewSpec().withAccessModes("ReadWriteMany")
+                .withNewSelector().withMatchLabels(matchLabels).endSelector()
+                .withNewResources().withRequests(requests).endResources().endSpec().build();
+        return pvc;
+    }
+
+    private void augmentSparkConfWithHistoryServer(SparkCluster cluster) {
+
+        String eventLog;
+        if (HistoryServerHelper.needsVolume(cluster)) {
+            SharedVolume sharedVolume = Optional.ofNullable(cluster.getHistoryServer().getSharedVolume()).orElse(new SharedVolume());
+            eventLog = sharedVolume.getMountPath();
+        } else {
+            eventLog = cluster.getHistoryServer().getRemoteURI();
+        }
+
+        if (cluster.getSparkConfiguration().isEmpty()) {
+            NameValue nv1 = new NameValue();
+            nv1.setName("spark.eventLog.dir");
+            nv1.setValue(eventLog);
+            NameValue nv2 = new NameValue();
+            nv2.setName("spark.eventLog.enabled");
+            nv2.setValue("true");
+//            NameValue nv3 = new NameValue();
+//            nv3.setName("spark.history.fs.logDirectory");
+//            nv3.setValue(sharedVolume.getMountPath());
+            cluster.getSparkConfiguration().add(0, nv1);
+            cluster.getSparkConfiguration().add(0, nv2);
+//            cluster.getSparkConfiguration().add(0, nv3);
+        }
+    }
+
 
     private boolean cmExists(String name) {
         ConfigMap configMap;
