@@ -107,16 +107,16 @@ spec:
           selector:
             matchLabels:
               app.kubernetes.io/name: spark-operator
-              app.kubernetes.io/version: v0.3.5-v1alpha1
+              app.kubernetes.io/version: v0.3.6-v1alpha1
           template:
             metadata:
               labels:
                 app.kubernetes.io/name: spark-operator
-                app.kubernetes.io/version: v0.3.5-v1alpha1
+                app.kubernetes.io/version: v0.3.6-v1alpha1
             spec:
               containers:
                 - name: spark-operator
-                  image: quay.io/radanalyticsio/spark-operator:0.3.5
+                  image: quay.io/radanalyticsio/spark-operator:0.3.6
                   imagePullPolicy: Always
                   env:
                   - name: CRD
@@ -157,10 +157,10 @@ spec:
     name: Radanalytics.io
     url: www.radanalytics.io
   maturity: alpha
-  version: 0.3.5
+  version: 0.3.6
   maintainers:
     - email: jkremser@redhat.com
       name: Red Hat, Inc.
   labels:
     alm-owner-enterprise-app: spark-operator
-    alm-status-descriptors: spark-operator.v0.3.5
+    alm-status-descriptors: spark-operator.v0.3.6

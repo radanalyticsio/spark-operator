@@ -29,7 +29,7 @@ roleRef:
 apiVersion: operators.coreos.com/v1alpha1
 kind: ClusterServiceVersion
 metadata:
-  name: sparkoperator.v0.3.5
+  name: sparkoperator.v0.3.6
   annotations: 'alm-examples: [{"apiVersion": "v1","kind": "ConfigMap","metadata": {"name": "my-spark-cluster","labels": {"radanalytics.io/kind": "SparkCluster"}},"data": {"config": "worker:\n  instances: \"2\""}}]'
 spec:
   displayName: Apache Spark Operator
