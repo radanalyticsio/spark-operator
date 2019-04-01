@@ -149,6 +149,13 @@ that targets Apache Spark.
   user has a limited role-based access to Kubernetes, such as on OpenShift and also that
   `radanalyticsio/spark-operator` can deploy standalone Spark clusters.
 
+If you are looking for tooling to make interacting with the spark-operator
+more convenient, please see the following.
+
+* [oshinko-temaki](https://pypi.org/project/oshinko-temaki/) is a shell
+  application for generating `SparkCluster` manifest definitions. It can
+  produce full schema manifests from a few simple command line flags.
+
 ### Troubleshooting
 
 Show the log:
