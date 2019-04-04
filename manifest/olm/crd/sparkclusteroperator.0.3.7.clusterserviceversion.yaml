@@ -1,8 +1,8 @@
 apiVersion: operators.coreos.com/v1alpha1
 kind: ClusterServiceVersion
 metadata:
-  name: sparkoperator.v0.3.5
-  namespace: openshift-operators
+  name: sparkoperator.v0.3.7
+  namespace: placeholder
   annotations:
     alm-examples: |-
       [
@@ -42,12 +42,12 @@ metadata:
           }
         }
       ]
-    categories: apache spark, apache, spark
+    categories: Big Data
     certified: "false"
     description: An operator for managing the Apache Spark clusters and intelligent applications that spawn those clusters.
     support: jkremser@redhat.com
     createdAt: 2019-01-17T12:00:00Z
-    containerImage: quay.io/radanalyticsio/spark-operator:0.3.5
+    containerImage: quay.io/radanalyticsio/spark-operator:0.3.7
 spec:
   displayName: Apache Spark Operator
   description: |
@@ -107,20 +107,18 @@ spec:
           selector:
             matchLabels:
               app.kubernetes.io/name: spark-operator
-              app.kubernetes.io/version: v0.3.6-v1alpha1
+              app.kubernetes.io/version: v0.3.7-v1alpha1
           template:
             metadata:
               labels:
                 app.kubernetes.io/name: spark-operator
-                app.kubernetes.io/version: v0.3.6-v1alpha1
+                app.kubernetes.io/version: v0.3.7-v1alpha1
             spec:
               containers:
                 - name: spark-operator
-                  image: quay.io/radanalyticsio/spark-operator:0.3.6
+                  image: quay.io/radanalyticsio/spark-operator:0.3.7
                   imagePullPolicy: Always
                   env:
-                  - name: CRD
-                    value: "true"
                   - name: WATCH_NAMESPACE
                     valueFrom:
                       fieldRef:
@@ -157,10 +155,10 @@ spec:
     name: Radanalytics.io
     url: www.radanalytics.io
   maturity: alpha
-  version: 0.3.6
+  version: 0.3.7
   maintainers:
     - email: jkremser@redhat.com
       name: Red Hat, Inc.
   labels:
     alm-owner-enterprise-app: spark-operator
-    alm-status-descriptors: spark-operator.v0.3.6
+    alm-status-descriptors: spark-operator.v0.3.7
