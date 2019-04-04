@@ -125,7 +125,7 @@ of Spark clusters and applications. Here are a list of environment variables
 that can be set to adjust the default behaviors of the operator.
 
 * `CRD` set to `true` if the operator should respond to Custom
-  Resources, and set to `false` if it should respone to ConfigMaps.
+  Resources, and set to `false` if it should respond to ConfigMaps.
 * `DEFAULT_SPARK_CLUSTER_IMAGE` a container image reference that will be used
   as a default for all pods in a `SparkCluster` deployment when the image is
   not specified in the cluster manifest.
@@ -139,6 +139,21 @@ container, see [operator.yaml](manifest/operator.yaml) and
 
 ### Related projects
 
+If you are looking for tooling to make interacting with the spark-operator
+more convenient, please see the following.
+
+* [oshinko-temaki](https://pypi.org/project/oshinko-temaki/) is a shell
+  application for generating `SparkCluster` manifest definitions. It can
+  produce full schema manifests from a few simple command line flags.
+
+For checking and verifying that your own container image will work smoothly with the operator
+use the following tool.
+
+* [soit](https://pypi.org/project/soit/) is a CLI tool that runs a set of tests against the 
+given image to verify if it contains the right files on the file system, 
+if worker can register with master, etc. Check the code in the 
+[repository](https://github.com/Jiri-Kremser/spark-operator-image-tool).
+
 The radanalyticsio/spark-operator is not the only Kubernetes operator service
 that targets Apache Spark.
 
@@ -148,13 +163,6 @@ that targets Apache Spark.
   is that the latter has been designed to work well in environments where a
   user has a limited role-based access to Kubernetes, such as on OpenShift and also that
   `radanalyticsio/spark-operator` can deploy standalone Spark clusters.
-
-If you are looking for tooling to make interacting with the spark-operator
-more convenient, please see the following.
-
-* [oshinko-temaki](https://pypi.org/project/oshinko-temaki/) is a shell
-  application for generating `SparkCluster` manifest definitions. It can
-  produce full schema manifests from a few simple command line flags.
 
 ### Troubleshooting
 
