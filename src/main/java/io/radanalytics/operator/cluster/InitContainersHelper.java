@@ -2,14 +2,12 @@ package io.radanalytics.operator.cluster;
 
 import io.fabric8.kubernetes.api.model.*;
 import io.radanalytics.operator.historyServer.HistoryServerHelper;
-import io.radanalytics.types.DownloadDatum;
-import io.radanalytics.types.HistoryServer;
-import io.radanalytics.types.SharedVolume;
-import io.radanalytics.types.SparkCluster;
+import io.radanalytics.types.*;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Predicate;
 
 import static io.radanalytics.operator.Constants.getDefaultSparkImage;
 
@@ -17,7 +15,7 @@ public class InitContainersHelper {
 
     private static final String NEW_CONF_DIR = "conf-new-dir";
     private static final String NEW_CONF_DIR_PATH = "/tmp/config/new";
-    private static final String DEFAULT_CONF_DIR_PATH = "/opt/spark/conf";
+    private static final String DEFAULT_SPARK_HOME_PATH = "/opt/spark/";
 
     /**
      * Based on the SparkCluster configuration, it can add init-containers called 'downloader', 'backup-config' and/or
@@ -108,7 +106,7 @@ public class InitContainersHelper {
                 .withName("backup-config")
                 .withImage(Optional.ofNullable(cluster.getCustomImage()).orElse(getDefaultSparkImage()))
                 .withCommand("/bin/sh", "-xc")
-                .withArgs("cp -r " + DEFAULT_CONF_DIR_PATH + "/* " + NEW_CONF_DIR_PATH)
+                .withArgs("cp -r " + getSparkHome(cluster) + "/conf/* " + NEW_CONF_DIR_PATH)
                 .withVolumeMounts(backupMount)
                 .build();
 
@@ -164,7 +162,7 @@ public class InitContainersHelper {
 
         final VolumeMount backupMount = new VolumeMountBuilder().withName(NEW_CONF_DIR).withMountPath(NEW_CONF_DIR_PATH).build();
         final String origConfMountName = "conf-orig-dir";
-        final VolumeMount origConfMount = new VolumeMountBuilder().withName(origConfMountName).withMountPath(DEFAULT_CONF_DIR_PATH).build();
+        final VolumeMount origConfMount = new VolumeMountBuilder().withName(origConfMountName).withMountPath(getSparkHome(cluster) + "/conf/").build();
         final Volume origConfVolume = new VolumeBuilder().withName(origConfMountName).withNewEmptyDir().endEmptyDir().build();
         mounts.add(backupMount);
         mounts.add(origConfMount);
@@ -195,11 +193,11 @@ public class InitContainersHelper {
             overrideConfigCmd.append("/spark-defaults.conf");
         }
 
-        // replace the content of /opt/spark/conf with the newly created config files
+        // replace the content of $SPARK_HOME/conf with the newly created config files
         overrideConfigCmd.append(" && cp -r ");
         overrideConfigCmd.append(NEW_CONF_DIR_PATH);
         overrideConfigCmd.append("/* ");
-        overrideConfigCmd.append(DEFAULT_CONF_DIR_PATH);
+        overrideConfigCmd.append(getSparkHome(cluster) + "/conf/");
 
         Container overrideConfig = new ContainerBuilder()
                 .withName("override-config")
@@ -215,6 +213,17 @@ public class InitContainersHelper {
         podSpec.getVolumes().add(origConfVolume);
 
         return overrideConfig;
+    }
+
+    private static String getSparkHome(SparkCluster cluster) {
+        Predicate<NameValue> p = nv -> "SPARK_HOME".equals(nv.getName());
+        if (!cluster.getEnv().isEmpty() && cluster.getEnv().stream().anyMatch(p)) {
+            Optional<NameValue> sparkHome = cluster.getEnv().stream().filter(p).findFirst();
+            if (sparkHome.isPresent() && null != sparkHome.get().getValue() && !sparkHome.get().getValue().trim().isEmpty()) {
+                return sparkHome.get().getValue();
+            }
+        }
+        return DEFAULT_SPARK_HOME_PATH;
     }
 
     /**

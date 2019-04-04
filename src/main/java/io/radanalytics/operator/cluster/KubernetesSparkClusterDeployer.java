@@ -154,51 +154,17 @@ public class KubernetesSparkClusterDeployer {
                 .withLivenessProbe(generalLivenessProbe)
                 .withReadinessProbe(isMaster ? masterReadiness : workerReadiness);
 
-        // limits
-        if (isMaster) {
-            final RCSpec master = Optional.ofNullable(cluster.getMaster()).orElse(new RCSpec());
-
-            Map<String, Quantity> limits = new HashMap<>(2);
-            Optional.ofNullable(master.getMemory()).ifPresent(memory -> limits.put("memory", new Quantity(memory)));
-            Optional.ofNullable(master.getCpu()).ifPresent(cpu -> limits.put("cpu", new Quantity(cpu)));
-
-            if (!limits.isEmpty()) {
-                containerBuilder = containerBuilder.withResources(new ResourceRequirements(limits, limits));
-            }
-        } else {
-            final RCSpec worker = Optional.ofNullable(cluster.getWorker()).orElse(new RCSpec());
-
-            Map<String, Quantity> limits = new HashMap<>(2);
-            Optional.ofNullable(worker.getMemory()).ifPresent(memory -> limits.put("memory", new Quantity(memory)));
-            Optional.ofNullable(worker.getCpu()).ifPresent(cpu -> limits.put("cpu", new Quantity(cpu)));
-
-            if (!limits.isEmpty()) {
-                containerBuilder = containerBuilder.withResources(new ResourceRequirements(limits, limits));
-            }
-        }
+        // limits & cmd
+        containerBuilder = augmentContainerBuilder(cluster, containerBuilder, isMaster);
 
         // labels
         Map<String, String> labels = getDefaultLabels(name);
         labels.put(prefix + LabelsHelper.OPERATOR_RC_TYPE_LABEL, isMaster ? OPERATOR_TYPE_MASTER_LABEL : OPERATOR_TYPE_WORKER_LABEL);
-        if (cluster.getLabels() != null) labels.putAll(cluster.getLabels());
-        if (isMaster) {
-            if (cluster.getMaster() != null && cluster.getMaster().getLabels() != null)
-                labels.putAll(cluster.getMaster().getLabels());
-        } else {
-            if (cluster.getWorker() != null && cluster.getWorker().getLabels() != null)
-                labels.putAll(cluster.getWorker().getLabels());
-        }
+        addLabels(labels, cluster, isMaster);
 
         Map<String, String> podLabels = getSelector(name, podName);
         podLabels.put(prefix + LabelsHelper.OPERATOR_POD_TYPE_LABEL, isMaster ? OPERATOR_TYPE_MASTER_LABEL : OPERATOR_TYPE_WORKER_LABEL);
-        if (cluster.getLabels() != null) podLabels.putAll(cluster.getLabels());
-        if (isMaster) {
-            if (cluster.getMaster() != null && cluster.getMaster().getLabels() != null)
-                podLabels.putAll(cluster.getMaster().getLabels());
-        } else {
-            if (cluster.getWorker() != null && cluster.getWorker().getLabels() != null)
-                podLabels.putAll(cluster.getWorker().getLabels());
-        }
+        addLabels(podLabels, cluster, isMaster);
 
         PodTemplateSpecFluent.SpecNested<ReplicationControllerSpecFluent.TemplateNested<ReplicationControllerFluent.SpecNested<ReplicationControllerBuilder>>> rcBuilder = new ReplicationControllerBuilder().withNewMetadata()
                 .withName(podName).withLabels(labels)
@@ -214,10 +180,6 @@ public class KubernetesSparkClusterDeployer {
                 .withNewTemplate().withNewMetadata().withLabels(podLabels).endMetadata()
                 .withNewSpec().withContainers(containerBuilder.build());
 
-//        if (isMaster && null != cluster.getHistoryServer()) {
-//            rcBuilder = rcBuilder.withVolumes(new VolumeBuilder().withName("history-server-volume").withNewPersistentVolumeClaim()
-//                    .withReadOnly(false).withClaimName(cluster.getName() + "-claim").endPersistentVolumeClaim().build());
-//        }
         ReplicationController rc = rcBuilder.endSpec().endTemplate().endSpec().build();
 
         // history server
@@ -272,6 +234,37 @@ public class KubernetesSparkClusterDeployer {
             cluster.getSparkConfiguration().add(0, nv1);
             cluster.getSparkConfiguration().add(0, nv2);
 //            cluster.getSparkConfiguration().add(0, nv3);
+        }
+    }
+
+    private ContainerBuilder augmentContainerBuilder(SparkCluster cluster, ContainerBuilder builder, boolean isMaster) {
+        final RCSpec node = isMaster ? Optional.ofNullable(cluster.getMaster()).orElse(new RCSpec()) : Optional.ofNullable(cluster.getWorker()).orElse(new RCSpec());
+
+        Map<String, Quantity> limits = new HashMap<>(2);
+        Optional.ofNullable(node.getMemory()).ifPresent(memory -> limits.put("memory", new Quantity(memory)));
+        Optional.ofNullable(node.getCpu()).ifPresent(cpu -> limits.put("cpu", new Quantity(cpu)));
+
+        if (!limits.isEmpty()) {
+            builder = builder.withResources(new ResourceRequirements(limits, limits));
+        }
+
+        if (null != node.getCommand()) {
+            builder = builder.withCommand(node.getCommand());
+        }
+        if (null != node.getCommandArgs()) {
+            builder = builder.withArgs(node.getCommandArgs());
+        }
+        return builder;
+    }
+
+    private void addLabels( Map<String, String> labels, SparkCluster cluster, boolean isMaster) {
+        if (cluster.getLabels() != null) labels.putAll(cluster.getLabels());
+        if (isMaster) {
+            if (cluster.getMaster() != null && cluster.getMaster().getLabels() != null)
+                labels.putAll(cluster.getMaster().getLabels());
+        } else {
+            if (cluster.getWorker() != null && cluster.getWorker().getLabels() != null)
+                labels.putAll(cluster.getWorker().getLabels());
         }
     }
 

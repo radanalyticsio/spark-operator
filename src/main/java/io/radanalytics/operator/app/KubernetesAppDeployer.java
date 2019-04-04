@@ -46,7 +46,7 @@ public class KubernetesAppDeployer {
         }
 
         StringBuilder command = new StringBuilder();
-        command.append("/opt/spark/bin/spark-submit");
+        command.append("$SPARK_HOME/bin/spark-submit");
         if (app.getMainClass() != null) {
             command.append(" --class ").append(app.getMainClass());
         }
