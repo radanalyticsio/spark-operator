@@ -214,8 +214,5 @@
     "sparkConfigMap": {
       "type": "string"
     }
-  },
-  "required": [
-    "mainApplicationFile"
-  ]
+  }
 }
