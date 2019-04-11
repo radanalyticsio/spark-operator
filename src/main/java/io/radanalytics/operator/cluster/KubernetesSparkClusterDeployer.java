@@ -172,9 +172,9 @@ public class KubernetesSparkClusterDeployer {
                 .withNewSpec().withReplicas(
                         isMaster
                                 ?
-                                Optional.ofNullable(cluster.getMaster()).orElse(new RCSpec()).getInstances()
+                                Optional.ofNullable(cluster.getMaster()).orElse(new Master()).getInstances()
                                 :
-                                Optional.ofNullable(cluster.getWorker()).orElse(new RCSpec()).getInstances()
+                                Optional.ofNullable(cluster.getWorker()).orElse(new Worker()).getInstances()
                 )
                 .withSelector(selector)
                 .withNewTemplate().withNewMetadata().withLabels(podLabels).endMetadata()
@@ -222,10 +222,10 @@ public class KubernetesSparkClusterDeployer {
         }
 
         if (cluster.getSparkConfiguration().isEmpty()) {
-            NameValue nv1 = new NameValue();
+            SparkConfiguration nv1 = new SparkConfiguration();
             nv1.setName("spark.eventLog.dir");
             nv1.setValue(eventLog);
-            NameValue nv2 = new NameValue();
+            SparkConfiguration nv2 = new SparkConfiguration();
             nv2.setName("spark.eventLog.enabled");
             nv2.setValue("true");
 //            NameValue nv3 = new NameValue();
@@ -238,21 +238,29 @@ public class KubernetesSparkClusterDeployer {
     }
 
     private ContainerBuilder augmentContainerBuilder(SparkCluster cluster, ContainerBuilder builder, boolean isMaster) {
-        final RCSpec node = isMaster ? Optional.ofNullable(cluster.getMaster()).orElse(new RCSpec()) : Optional.ofNullable(cluster.getWorker()).orElse(new RCSpec());
+        Master m = null;
+        Worker w = null;
+        if (isMaster) {
+            m = Optional.ofNullable(cluster.getMaster()).orElse(new Master());
+        } else {
+            w = Optional.ofNullable(cluster.getWorker()).orElse(new Worker());
+        }
 
         Map<String, Quantity> limits = new HashMap<>(2);
-        Optional.ofNullable(node.getMemory()).ifPresent(memory -> limits.put("memory", new Quantity(memory)));
-        Optional.ofNullable(node.getCpu()).ifPresent(cpu -> limits.put("cpu", new Quantity(cpu)));
+        Optional.ofNullable(isMaster ? m.getMemory() : w.getMemory()).ifPresent(memory -> limits.put("memory", new Quantity(memory)));
+        Optional.ofNullable(isMaster ? m.getCpu() : w.getCpu()).ifPresent(cpu -> limits.put("cpu", new Quantity(cpu)));
 
         if (!limits.isEmpty()) {
             builder = builder.withResources(new ResourceRequirements(limits, limits));
         }
 
-        if (null != node.getCommand()) {
-            builder = builder.withCommand(node.getCommand());
+        List<String> command = isMaster ? m.getCommand() : w.getCommand();
+        if (null != command) {
+            builder = builder.withCommand(command);
         }
-        if (null != node.getCommandArgs()) {
-            builder = builder.withArgs(node.getCommandArgs());
+        List<String> commandArgs = isMaster ? m.getCommandArgs() : w.getCommandArgs();
+        if (null != commandArgs) {
+            builder = builder.withArgs(commandArgs);
         }
         return builder;
     }

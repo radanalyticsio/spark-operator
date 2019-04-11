@@ -2,8 +2,8 @@ package io.radanalytics.operator.app;
 
 import io.fabric8.kubernetes.api.model.*;
 import io.radanalytics.types.Deps;
-import io.radanalytics.types.DriverSpec;
-import io.radanalytics.types.ExecutorSpec;
+import io.radanalytics.types.Executor;
+import io.radanalytics.types.Driver;
 import io.radanalytics.types.SparkApplication;
 
 import java.util.*;
@@ -37,8 +37,8 @@ public class KubernetesAppDeployer {
         envVars.add(env("APPLICATION_NAME", name));
         app.getEnv().forEach(kv -> envVars.add(env(kv.getName(), kv.getValue())));
 
-        final DriverSpec driver = Optional.ofNullable(app.getDriver()).orElse(new DriverSpec());
-        final ExecutorSpec executor = Optional.ofNullable(app.getExecutor()).orElse(new ExecutorSpec());
+        final Driver driver = Optional.ofNullable(app.getDriver()).orElse(new Driver());
+        final Executor executor = Optional.ofNullable(app.getExecutor()).orElse(new Executor());
  
         String imageRef = getDefaultSparkAppImage(); // from Constants
         if (app.getImage() != null) {

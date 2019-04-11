@@ -147,7 +147,7 @@ public class InitContainersHelper {
     }
 
     private static Container createConfigOverrideContainer(SparkCluster cluster, PodSpec podSpec, boolean cmExists) {
-        final List<io.radanalytics.types.NameValue> config = cluster.getSparkConfiguration();
+        final List<io.radanalytics.types.SparkConfiguration> config = cluster.getSparkConfiguration();
         String cmMountName = "configmap-dir";
         String cmMountPath = "/tmp/config/fromCM";
         List<VolumeMount> mounts = new ArrayList<>(2);
@@ -216,9 +216,9 @@ public class InitContainersHelper {
     }
 
     private static String getSparkHome(SparkCluster cluster) {
-        Predicate<NameValue> p = nv -> "SPARK_HOME".equals(nv.getName());
+        Predicate<Env> p = nv -> "SPARK_HOME".equals(nv.getName());
         if (!cluster.getEnv().isEmpty() && cluster.getEnv().stream().anyMatch(p)) {
-            Optional<NameValue> sparkHome = cluster.getEnv().stream().filter(p).findFirst();
+            Optional<Env> sparkHome = cluster.getEnv().stream().filter(p).findFirst();
             if (sparkHome.isPresent() && null != sparkHome.get().getValue() && !sparkHome.get().getValue().trim().isEmpty()) {
                 return sparkHome.get().getValue();
             }
