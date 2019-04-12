@@ -19,7 +19,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <abstract-operator.version>0.6.4</abstract-operator.version>
+        <abstract-operator.version>0.6.5</abstract-operator.version>
     </properties>
 
     <dependencies>
