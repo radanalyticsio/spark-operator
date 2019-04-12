@@ -50,94 +50,23 @@
       "type": "string"
     },
     "driver": {
-      "$ref": "#/definitions/DriverSpec"
-    },
-    "executor": {
-      "$ref": "#/definitions/ExecutorSpec"
-    },
-    "image": {
-      "type": "string"
-    },
-    "mainApplicationFile": {
-      "type": "string"
-    },
-    "mainClass": {
-      "type": "string"
-    },
-    "arguments": {
-      "type": "string"
-    },
-    "mode": {
-      "type": "string",
-      "default": "cluster",
-      "enum": ["client", "cluster"],
-      "javaEnumNames" : ["client","cluster"]
-    },
-    "restartPolicy": {
-      "type": "string",
-      "default": "Always",
-      "enum": ["Always", "OnFailure", "Never"],
-      "javaEnumNames" : ["Always","OnFailure", "Never"]
-    },
-    "imagePullPolicy": {
-      "type": "string",
-      "default": "IfNotPresent",
-      "enum": ["IfNotPresent", "Always", "Never"],
-      "javaEnumNames" : ["IfNotPresent","Always", "Never"]
-    },
-    "type": {
-      "type": "string",
-      "default": "Java",
-      "enum": ["Java", "Scala", "Python", "R"],
-      "javaEnumNames" : ["Java","Scala", "Python", "R"]
-    },
-    "sleep": {
-      "type": "integer",
-      "default": "31536000",
-      "minimum": "0"
-    },
-    "labels": {
-      "$ref": "#/definitions/Labels"
-    },
-    "env": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "properties": {
-          "name": { "type": "string" },
-          "value": { "type": "string" }
-        },
-        "required": ["name", "value"]
-      }
-    },
-    "sparkConfigMap": {"type": "string"}
-  },
-  "required": [ "mainApplicationFile" ],
-  "definitions": {
-    "CommonNodeSpec": {
       "type": "object",
-      "javaType": "io.radanalytics.types.CommonNodeSpec",
       "properties": {
         "memory": {
           "type": "string",
           "default": "512m"
         },
-        "memoryOverhead": { "type": "string" },
+        "memoryOverhead": {
+          "type": "string"
+        },
         "image": {
-          "type": "string",
-          "default": "#/properties/image/default"
+          "type": "string"
         },
         "labels": {
-          "$ref": "#/definitions/Labels"
-        }
-      }
-    },
-    "DriverSpec": {
-      "type": "object",
-      "extends": {
-        "$ref": "#/definitions/CommonNodeSpec"
-      },
-      "properties": {
+          "type": "string",
+          "existingJavaType": "java.util.Map<String,String>",
+          "pattern": "([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9]"
+        },
         "cores": {
           "type": "string",
           "default": "0.5"
@@ -152,12 +81,24 @@
         }
       }
     },
-    "ExecutorSpec": {
+    "executor": {
       "type": "object",
-      "extends": {
-        "$ref": "#/definitions/CommonNodeSpec"
-      },
       "properties": {
+        "memory": {
+          "type": "string",
+          "default": "512m"
+        },
+        "memoryOverhead": {
+          "type": "string"
+        },
+        "image": {
+          "type": "string"
+        },
+        "labels": {
+          "type": "string",
+          "existingJavaType": "java.util.Map<String,String>",
+          "pattern": "([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9]"
+        },
         "instances": {
           "type": "integer",
           "default": "1",
@@ -174,10 +115,104 @@
         }
       }
     },
-    "Labels": {
+    "image": {
+      "type": "string"
+    },
+    "mainApplicationFile": {
+      "type": "string"
+    },
+    "mainClass": {
+      "type": "string"
+    },
+    "arguments": {
+      "type": "string"
+    },
+    "mode": {
       "type": "string",
-      "existingJavaType" : "java.util.Map<String,String>",
+      "default": "cluster",
+      "enum": [
+        "client",
+        "cluster"
+      ],
+      "javaEnumNames": [
+        "client",
+        "cluster"
+      ]
+    },
+    "restartPolicy": {
+      "type": "string",
+      "default": "Always",
+      "enum": [
+        "Always",
+        "OnFailure",
+        "Never"
+      ],
+      "javaEnumNames": [
+        "Always",
+        "OnFailure",
+        "Never"
+      ]
+    },
+    "imagePullPolicy": {
+      "type": "string",
+      "default": "IfNotPresent",
+      "enum": [
+        "IfNotPresent",
+        "Always",
+        "Never"
+      ],
+      "javaEnumNames": [
+        "IfNotPresent",
+        "Always",
+        "Never"
+      ]
+    },
+    "type": {
+      "type": "string",
+      "default": "Java",
+      "enum": [
+        "Java",
+        "Scala",
+        "Python",
+        "R"
+      ],
+      "javaEnumNames": [
+        "Java",
+        "Scala",
+        "Python",
+        "R"
+      ]
+    },
+    "sleep": {
+      "type": "integer",
+      "default": "31536000",
+      "minimum": "0"
+    },
+    "labels": {
+      "type": "string",
+      "existingJavaType": "java.util.Map<String,String>",
       "pattern": "([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9]"
+    },
+    "env": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ]
+      }
+    },
+    "sparkConfigMap": {
+      "type": "string"
     }
   }
 }

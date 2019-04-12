@@ -12,11 +12,11 @@ import io.fabric8.kubernetes.client.Watcher;
 import io.fabric8.kubernetes.client.dsl.FilterWatchListMultiDeletable;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.RollableScalableResource;
+import io.radanalytics.operator.Constants;
 import io.radanalytics.operator.common.AbstractOperator;
 import io.radanalytics.operator.common.Operator;
-import io.radanalytics.operator.Constants;
-import io.radanalytics.types.RCSpec;
 import io.radanalytics.types.SparkCluster;
+import io.radanalytics.types.Worker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,7 +62,7 @@ public class SparkClusterOperator extends AbstractOperator<SparkCluster> {
     @Override
     protected void onModify(SparkCluster newCluster) {
         String name = newCluster.getName();
-        int newWorkers = Optional.ofNullable(newCluster.getWorker()).orElse(new RCSpec()).getInstances();
+        int newWorkers = Optional.ofNullable(newCluster.getWorker()).orElse(new Worker()).getInstances();
 
         SparkCluster existingCluster = getClusters().getCluster(name);
         if (null == existingCluster) {
@@ -131,7 +131,7 @@ public class SparkClusterOperator extends AbstractOperator<SparkCluster> {
 
         // scale
         desiredSet.forEach(dCluster -> {
-            int desiredWorkers = Optional.ofNullable(dCluster.getWorker()).orElse(new RCSpec()).getInstances();
+            int desiredWorkers = Optional.ofNullable(dCluster.getWorker()).orElse(new Worker()).getInstances();
             Integer actualWorkers = actual.get(dCluster.getName());
             if (actualWorkers != null && desiredWorkers != actualWorkers) {
                 change.set(true);
@@ -203,7 +203,7 @@ public class SparkClusterOperator extends AbstractOperator<SparkCluster> {
      */
     private boolean isOnlyScale(SparkCluster oldC, SparkCluster newC) {
         boolean retVal = oldC.getWorker().getInstances() != newC.getWorker().getInstances();
-        int backup = Optional.ofNullable(newC.getWorker()).orElse(new RCSpec()).getInstances();
+        int backup = Optional.ofNullable(newC.getWorker()).orElse(new Worker()).getInstances();
         newC.getWorker().setInstances(oldC.getWorker().getInstances());
         retVal &= oldC.equals(newC);
         newC.getWorker().setInstances(backup);

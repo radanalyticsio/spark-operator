@@ -1,6 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "description": "A Spark cluster configuration",
+  "dependencies": null,
   "type": "object",
   "extends": {
     "type": "object",
@@ -8,10 +9,70 @@
   },
   "properties": {
     "master": {
-      "$ref": "#/definitions/RCSpec"
+      "type": "object",
+      "properties": {
+        "instances": {
+          "type": "integer",
+          "default": "1",
+          "minimum": "1"
+        },
+        "memory": {
+          "type": "string"
+        },
+        "cpu": {
+          "type": "string"
+        },
+        "labels": {
+          "existingJavaType": "java.util.Map<String,String>",
+          "type": "string",
+          "pattern": "([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9]"
+        },
+        "command": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "commandArgs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
     },
     "worker": {
-      "$ref": "#/definitions/RCSpec"
+      "type": "object",
+      "properties": {
+        "instances": {
+          "type": "integer",
+          "default": "1",
+          "minimum": "0"
+        },
+        "memory": {
+          "type": "string"
+        },
+        "cpu": {
+          "type": "string"
+        },
+        "labels": {
+          "existingJavaType": "java.util.Map<String,String>",
+          "type": "string",
+          "pattern": "([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9]"
+        },
+        "command": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "commandArgs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
     },
     "customImage": {
       "type": "string"
@@ -28,12 +89,31 @@
       "type": "string"
     },
     "env": {
-      "$ref": "#/definitions/NameValue"
+      "type": "array",
+      "items": {
+        "type": "object",
+        "javaType": "io.radanalytics.types.Env",
+        "properties": {
+          "name": { "type": "string" },
+          "value": { "type": "string" }
+        },
+        "required": ["name", "value"]
+      }
     },
-    "sparkConfiguration": { "$ref": "#/definitions/NameValue" },
-    "labels" : {
-      "existingJavaType" : "java.util.Map<String,String>",
-      "type" : "object"
+    "sparkConfiguration": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "value": { "type": "string" }
+        },
+        "required": ["name", "value"]
+      }
+    },
+    "labels": {
+      "type": "object",
+      "existingJavaType": "java.util.Map<String,String>"
     },
     "historyServer": {
       "type": "object",
@@ -44,9 +124,16 @@
         "type": {
           "type": "string",
           "default": "sharedVolume",
-          "enum": ["sharedVolume", "remoteStorage"],
-          "javaEnumNames" : ["sharedVolume","remoteStorage"]
+          "enum": [
+            "sharedVolume",
+            "remoteStorage"
+          ],
+          "javaEnumNames": [
+            "sharedVolume",
+            "remoteStorage"
+          ]
         },
+
         "sharedVolume": {
           "type": "object",
           "properties": {
@@ -75,60 +162,19 @@
       "items": {
         "type": "object",
         "properties": {
-          "url": { "type": "string" },
-          "to": { "type": "string" },
-          "required": { "type": "boolean", "default": "false" },
-          "downloadTimeout": { "type": "integer", "minimum": "0" }
+          "url": {
+            "type": "string"
+          },
+          "to": {
+            "type": "string"
+          }
         },
-        "required": ["url", "to"]
+        "required": [
+          "url",
+          "to"
+        ]
       }
     }
   },
-  "required": [ ],
-  "definitions": {
-    "RCSpec": {
-      "type": "object",
-      "properties": {
-        "instances": {
-          "type": "integer",
-          "default": "1",
-          "minimum": "0"
-        },
-        "memory": {
-          "type": "string"
-        },
-        "cpu": {
-          "type": "string"
-        },
-        "labels" : {
-          "existingJavaType" : "java.util.Map<String,String>",
-          "type" : "string",
-          "pattern": "([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9]"
-        },
-        "command": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "commandArgs": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        }
-      }
-    },
-    "NameValue": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "properties": {
-          "name": { "type": "string" },
-          "value": { "type": "string" }
-        },
-        "required": ["name", "value"]
-      }
-    }
-  }
+  "required": []
 }

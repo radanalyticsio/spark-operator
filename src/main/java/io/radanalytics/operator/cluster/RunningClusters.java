@@ -1,17 +1,13 @@
 package io.radanalytics.operator.cluster;
 
-import io.prometheus.client.log4j.InstrumentedAppender;
-import io.radanalytics.types.RCSpec;
 import io.radanalytics.types.SparkCluster;
-import org.apache.log4j.Logger;
+import io.radanalytics.types.Worker;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import static io.radanalytics.operator.cluster.MetricsHelper.runningClusters;
-import static io.radanalytics.operator.cluster.MetricsHelper.startedTotal;
-import static io.radanalytics.operator.cluster.MetricsHelper.workers;
+import static io.radanalytics.operator.cluster.MetricsHelper.*;
 
 
 
@@ -29,7 +25,7 @@ public class RunningClusters {
     public void put(SparkCluster ci) {
         runningClusters.labels(namespace).inc();
         startedTotal.labels(namespace).inc();
-        workers.labels(ci.getName(), namespace).set(Optional.ofNullable(ci.getWorker()).orElse(new RCSpec()).getInstances());
+        workers.labels(ci.getName(), namespace).set(Optional.ofNullable(ci.getWorker()).orElse(new Worker()).getInstances());
         clusters.put(ci.getName(), ci);
     }
 
