@@ -9,19 +9,17 @@ main() {
 
 
 docker_cache(){
-  if [[ "$BIN" = "oc" ]]; then
-    specific=container-images-oc.txt
-  elif [[ "$BIN" = "kubectl" ]]; then
-    specific=container-images-k8s.txt
-  else
-    echo "Unknown or empty \$BIN variable, skipping before-cache script.."
-    exit 1
-  fi
-
   if [[ "$TRAVIS_JOB_NUMBER" == *.1 ]] || [[ "$TRAVIS_JOB_NUMBER" == *.10 ]]; then
     images="container-images-common.txt"
   else
-    images="container-images-common.txt ${specific}"
+    if [[ "$BIN" = "oc" ]]; then
+      images="container-images-common.txt container-images-oc.txt"
+    elif [[ "$BIN" = "kubectl" ]]; then
+      images="container-images-common.txt container-images-k8s.txt"
+    else
+      echo "Unknown or empty \$BIN variable, skipping before-cache script.."
+      exit 1
+    fi
   fi
 
   if [[ -d $HOME/docker ]] && [[ -e $HOME/docker/${BIN}-list.txt ]]; then
@@ -33,7 +31,8 @@ docker_cache(){
 }
 
 maven_cache(){
-  cp -r $HOME/.m2/repository $HOME/.m2/repository/
+  mkdir -p $HOME/.m2/repository/
+  cp -r $HOME/maven $HOME/.m2/repository/
 }
 
 main

@@ -11,15 +11,15 @@ docker_cache(){
   if [[ "$TRAVIS_JOB_NUMBER" == *.1 ]] || [[ "$TRAVIS_JOB_NUMBER" == *.10 ]]; then
     echo "Skipping docker cache for .1 and .10 jobs"
     exit 0
-  fi
-
-  if [[ "$BIN" = "oc" ]]; then
-    specific=container-images-oc.txt
-  elif [[ "$BIN" = "kubectl" ]]; then
-    specific=container-images-k8s.txt
   else
-    echo "Unknown or empty \$BIN variable, skipping before-cache script.."
-    exit 1
+    if [[ "$BIN" = "oc" ]]; then
+      specific=container-images-oc.txt
+    elif [[ "$BIN" = "kubectl" ]]; then
+      specific=container-images-k8s.txt
+    else
+      echo "Unknown or empty \$BIN variable, skipping before-cache script.."
+      exit 1
+    fi
   fi
 
   mkdir -p $HOME/docker
