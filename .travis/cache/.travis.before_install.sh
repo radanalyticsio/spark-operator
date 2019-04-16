@@ -18,10 +18,16 @@ docker_cache(){
     exit 1
   fi
 
-  if [[ -d $HOME/docker ]] && [[ -e $HOME/docker/list.txt ]]; then
-    cat container-images-common.txt ${specific} | while read c
+  if [[ "$TRAVIS_JOB_NUMBER" == *.1 ]] || [[ "$TRAVIS_JOB_NUMBER" == *.10 ]]; then
+    images="container-images-common.txt"
+  else
+    images="container-images-common.txt ${specific}"
+  fi
+
+  if [[ -d $HOME/docker ]] && [[ -e $HOME/docker/${BIN}-list.txt ]]; then
+    cat ${images} | while read c
     do
-      cat $HOME/docker/list.txt | grep "$c" | xargs -n 2 sh -c 'test -e $HOME/docker/$1.tar.gz && (zcat $HOME/docker/$1.tar.gz | docker load) || true'
+      cat ${BIN}-$HOME/docker/list.txt | grep "$c" | xargs -n 2 sh -c 'test -e $HOME/docker/$1.tar.gz && (zcat $HOME/docker/$1.tar.gz | docker load) || true'
     done
   fi
 }

@@ -30,9 +30,6 @@ jobs:
       name: "Maven & cont. image build"
       language: java
       script:
-        # Pull docker images that will be cached
-        - docker pull quay.io/jkremser/openshift-spark:2.4.0
-        - docker pull quay.io/jkremser/openshift-spark:2.3-latest
         # run the tests
         - make build-travis test
 
