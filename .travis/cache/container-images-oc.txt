@@ -1,0 +1,6 @@
+openshift/origin-web-console:v3.9.0
+openshift/origin-docker-registry:v3.9.0
+openshift/origin-haproxy-router:v3.9.0
+openshift/origin-deployer:v3.9.0
+openshift/origin:v3.9.0
+openshift/origin-pod:v3.9.0

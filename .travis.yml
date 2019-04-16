@@ -7,19 +7,16 @@ services:
 install: true
 
 before_cache:
-  # Save tagged docker images
-  - >
-    mkdir -p $HOME/docker && docker images -a --filter='dangling=false' --format '{{.Repository}}:{{.Tag}} {{.ID}}'
-    | xargs -n 2 -t sh -c 'test -e $HOME/docker/$1.tar.gz || docker save $0 | gzip -2 > $HOME/docker/$1.tar.gz'
+  - ./.travis/cache/.travis.before_cache.sh
 
 before_install:
-  # Load cached docker images
-  - if [[ -d $HOME/docker ]]; then ls $HOME/docker/*.tar.gz | xargs -I {file} sh -c "zcat {file} | docker load"; fi
+  - ./.travis/cache/.travis.before_install.sh
+
 
 cache:
-  timeout: 600
+  timeout: 120
   directories:
-  - $HOME/.m2
+  - $HOME/maven
   - $HOME/docker
 
 stages:
@@ -33,9 +30,6 @@ jobs:
       name: "Maven & cont. image build"
       language: java
       script:
-        # Pull docker images that will be cached
-        - docker pull quay.io/jkremser/openshift-spark:2.4.0
-        - docker pull quay.io/jkremser/openshift-spark:2.3-latest
         # run the tests
         - make build-travis test
 
