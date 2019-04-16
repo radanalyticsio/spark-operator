@@ -27,6 +27,9 @@ docker_cache(){
     cat ${images} | while read c
     do
       cat $HOME/docker/${BIN:-oc}-list.txt | grep "$c" | xargs -n 2 sh -c 'test -e $HOME/docker/$1.tar.gz && (zcat $HOME/docker/$1.tar.gz | docker load) || true'
+
+      # make sure it's there, this should be a cheap operation if the previous command was successful
+      docker pull ${c}
     done
   fi
 }
