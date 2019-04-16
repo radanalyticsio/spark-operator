@@ -2,6 +2,8 @@
 
 set -x
 
+DIR="${DIR:-$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )}"
+
 main() {
   docker_cache
   maven_cache
@@ -13,9 +15,9 @@ docker_cache(){
     exit 0
   else
     if [[ "$BIN" = "oc" ]]; then
-      specific=container-images-oc.txt
+      specific="${DIR}/container-images-oc.txt"
     elif [[ "$BIN" = "kubectl" ]]; then
-      specific=container-images-k8s.txt
+      specific="${DIR}/container-images-k8s.txt"
     else
       echo "Unknown or empty \$BIN variable, skipping before-cache script.."
       exit 1
@@ -24,7 +26,7 @@ docker_cache(){
 
   mkdir -p $HOME/docker
   docker images -a --filter='dangling=false' --format '{{.Repository}}:{{.Tag}} {{.ID}}' > $HOME/docker/${BIN}-list.txt
-  cat container-images-common.txt ${specific} | while read c
+  cat "${DIR}/container-images-common.txt ${specific}" | while read c
   do
     cat $HOME/docker/${BIN}-list.txt | grep "$c" | xargs -n 2 -t sh -c 'test -e $HOME/docker/$1.tar.gz || docker save $0 | gzip -2 > $HOME/docker/$1.tar.gz'
   done
