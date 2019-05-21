@@ -142,6 +142,9 @@ container, see [operator.yaml](manifest/operator.yaml) and
 If you are looking for tooling to make interacting with the spark-operator
 more convenient, please see the following.
 
+* [Ansible role](https://github.com/jvm-operators/ansible-openshift-spark-operator) is a simple way to
+deploy the Spark operator using Ansible ecosystem. The role is [available](https://galaxy.ansible.com/jiri_kremser/spark_operator) also in the Ansible Galaxy.
+
 * [oshinko-temaki](https://pypi.org/project/oshinko-temaki/) is a shell
   application for generating `SparkCluster` manifest definitions. It can
   produce full schema manifests from a few simple command line flags.
