@@ -74,6 +74,12 @@
         }
       }
     },
+    "mavenDependencies": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
     "customImage": {
       "type": "string"
     },
