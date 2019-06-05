@@ -169,15 +169,15 @@ testFullConfigCluster() {
   os::cmd::try_until_text "${BIN} get pod -l radanalytics.io/deployment=sparky-cluster-w -o yaml" 'ready: true' && \
   os::cmd::try_until_text "${BIN} get pod -l radanalytics.io/deployment=sparky-cluster-m -o yaml" 'ready: true' && \
   os::cmd::try_until_text "${BIN} get pods --no-headers -l radanalytics.io/SparkCluster=sparky-cluster | wc -l" '3' && \
-  sleep 30 && \
+  sleep 150 && \
   local worker_pod=`${BIN} get pod -l radanalytics.io/deployment=sparky-cluster-w -o='jsonpath="{.items[0].metadata.name}"' | sed 's/"//g'` && \
   os::cmd::expect_success_and_text "${BIN} exec $worker_pod ls" 'README.md' && \
   os::cmd::expect_success_and_text "${BIN} exec $worker_pod env" 'FOO=bar' && \
   os::cmd::expect_success_and_text "${BIN} exec $worker_pod env" 'SPARK_WORKER_CORES=2' && \
   os::cmd::expect_success_and_text "${BIN} exec $worker_pod cat /opt/spark/conf/spark-defaults.conf" 'spark.history.retainedApplications 100' && \
   os::cmd::expect_success_and_text "${BIN} exec $worker_pod cat /opt/spark/conf/spark-defaults.conf" 'autoBroadcastJoinThreshold 20971520' && \
-  os::cmd::expect_success_and_text "${BIN} exec $worker_pod -- ls /tmp/jars | grep aws" 'com.amazonaws_aws-java-sdk-' && \
-  os::cmd::expect_success_and_text "${BIN} exec $worker_pod -- ls /tmp/jars | grep aws" 'org.apache.hadoop_hadoop-aws-' && \
+  os::cmd::try_until_text "${BIN} exec $worker_pod -- ls /tmp/jars | grep aws" 'com.amazonaws_aws-java-sdk-' && \
+  os::cmd::try_until_text "${BIN} exec $worker_pod -- ls /tmp/jars | grep aws" 'org.apache.hadoop_hadoop-aws-' && \
   os::cmd::expect_success_and_text '${BIN} delete sparkcluster sparky-cluster' '"?sparky-cluster"? deleted'
 }
 
