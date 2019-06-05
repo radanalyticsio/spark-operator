@@ -258,11 +258,16 @@ public class InitContainersHelper {
     public static int getExpectedDelay(SparkCluster cluster, boolean cmExists, boolean isMaster) {
         // todo: honor the chmod init cont.
         int delay = 6;
+        delay += cmExists ? 3 : 0;
+        delay += !cluster.getSparkConfiguration().isEmpty() ? 3 : 0;
+        delay += cluster.getDownloadData().size() * 4;
+        delay += cluster.getMavenDependencies().isEmpty() ? 0 : 42;
+        delay += cluster.getMavenDependencies().size() * 5;
         if (isMaster) {
             if (null != cluster.getMaster() && null != cluster.getMaster().getCpu()) {
                 try {
                     double cpu = Double.parseDouble(cluster.getMaster().getCpu());
-                    delay += (1.0 / cpu) * 3.5;
+                    delay *= Math.max(.75 / cpu, .95);
                 } catch (NumberFormatException nfe) {
                     // ignore
                 }
@@ -272,18 +277,13 @@ public class InitContainersHelper {
             if (null != cluster.getWorker() && null != cluster.getWorker().getCpu()) {
                 try {
                     double cpu = Double.parseDouble(cluster.getWorker().getCpu());
-                    delay += (1.0 / cpu) * 3.5;
+                    delay *= Math.max(.75 / cpu, .95);
                 } catch (NumberFormatException nfe) {
                     // ignore
                 }
             }
-            delay += 4;
+            delay += 5;
         }
-        delay += cmExists ? 3 : 0;
-        delay += !cluster.getSparkConfiguration().isEmpty() ? 3 : 0;
-        delay += cluster.getDownloadData().size() * 4;
-        delay += cluster.getMavenDependencies().isEmpty() ? 0 : 30;
-        delay += cluster.getMavenDependencies().size() * 4;
         return delay;
     }
 

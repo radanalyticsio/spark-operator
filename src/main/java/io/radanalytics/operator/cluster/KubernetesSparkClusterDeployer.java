@@ -266,7 +266,7 @@ public class KubernetesSparkClusterDeployer {
             command.add("/bin/sh");
             command.add("-c");
             String dependencies = String.join(",", cluster.getMavenDependencies());
-            commandArgs.add("spark-submit --packages " + dependencies +" --conf spark.jars.ivy=/tmp --class no-op 0 || true; /entrypoint /launch.sh");
+            commandArgs.add("spark-submit --packages " + dependencies +" --conf spark.jars.ivy=/tmp --class no-op 0 > /tmp/spark-submit.log || true; /entrypoint /launch.sh");
         }
 
         List<String> command = isMaster ? m.getCommand() : w.getCommand();
