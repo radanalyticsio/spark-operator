@@ -221,20 +221,21 @@ public class KubernetesSparkClusterDeployer {
             eventLog = cluster.getHistoryServer().getRemoteURI();
         }
 
-        if (cluster.getSparkConfiguration().isEmpty()) {
-            SparkConfiguration nv1 = new SparkConfiguration();
-            nv1.setName("spark.eventLog.dir");
-            nv1.setValue(eventLog);
-            SparkConfiguration nv2 = new SparkConfiguration();
-            nv2.setName("spark.eventLog.enabled");
-            nv2.setValue("true");
-//            NameValue nv3 = new NameValue();
-//            nv3.setName("spark.history.fs.logDirectory");
-//            nv3.setValue(sharedVolume.getMountPath());
-            cluster.getSparkConfiguration().add(0, nv1);
-            cluster.getSparkConfiguration().add(0, nv2);
-//            cluster.getSparkConfiguration().add(0, nv3);
-        }
+        SparkConfiguration nv1 = new SparkConfiguration();
+        nv1.setName("spark.eventLog.dir");
+        nv1.setValue(eventLog);
+        SparkConfiguration nv2 = new SparkConfiguration();
+        nv2.setName("spark.eventLog.enabled");
+        nv2.setValue("true");
+        cluster.getSparkConfiguration().add(0, nv1);
+        cluster.getSparkConfiguration().add(0, nv2);
+    }
+
+    private void augmentSparkConfWithJarsPath(SparkCluster cluster) {
+        SparkConfiguration nv = new SparkConfiguration();
+        nv.setName("spark.jars.ivy");
+        nv.setValue("/tmp");
+        cluster.getSparkConfiguration().add(0, nv);
     }
 
     private ContainerBuilder augmentContainerBuilder(SparkCluster cluster, ContainerBuilder builder, boolean isMaster) {
@@ -254,12 +255,26 @@ public class KubernetesSparkClusterDeployer {
             builder = builder.withResources(new ResourceRequirements(limits, limits));
         }
 
+        // if maven deps are not empty let spark-submit to download them
+        if (!cluster.getMavenDependencies().isEmpty()) {
+            augmentSparkConfWithJarsPath(cluster);
+            List<String> command = isMaster ? m.getCommand() : w.getCommand();
+            List<String> commandArgs = isMaster ? m.getCommandArgs() : w.getCommandArgs();
+            if (!command.isEmpty() || !commandArgs.isEmpty()) {
+                throw new IllegalArgumentException("Use either custom mavenDependencies or custom starting command for the image. Unfortunately, you can't have both.");
+            }
+            command.add("/bin/sh");
+            command.add("-c");
+            String dependencies = String.join(",", cluster.getMavenDependencies());
+            commandArgs.add("spark-submit --packages " + dependencies +" --conf spark.jars.ivy=/tmp --class no-op 0 || true; /entrypoint /launch.sh");
+        }
+
         List<String> command = isMaster ? m.getCommand() : w.getCommand();
-        if (null != command) {
+        if (!command.isEmpty()) {
             builder = builder.withCommand(command);
         }
         List<String> commandArgs = isMaster ? m.getCommandArgs() : w.getCommandArgs();
-        if (null != commandArgs) {
+        if (!commandArgs.isEmpty()) {
             builder = builder.withArgs(commandArgs);
         }
         return builder;

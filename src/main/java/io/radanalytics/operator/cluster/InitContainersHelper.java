@@ -244,6 +244,7 @@ public class InitContainersHelper {
      *  <li>if there is anything to download</li>
      *  <li>if config map with overrides exists</li>
      *  <li>if key-value config entries were passed in the custom resource/CM</li>
+     *  <li>if there are additional maven dependencies that should be downloaded</li>
      *  <li>cpu limit</li>
      * </ul>
      *
@@ -281,6 +282,8 @@ public class InitContainersHelper {
         delay += cmExists ? 3 : 0;
         delay += !cluster.getSparkConfiguration().isEmpty() ? 3 : 0;
         delay += cluster.getDownloadData().size() * 4;
+        delay += cluster.getMavenDependencies().isEmpty() ? 0 : 30;
+        delay += cluster.getMavenDependencies().size() * 4;
         return delay;
     }
 
