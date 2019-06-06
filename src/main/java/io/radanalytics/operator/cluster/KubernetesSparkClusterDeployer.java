@@ -266,7 +266,12 @@ public class KubernetesSparkClusterDeployer {
             command.add("/bin/sh");
             command.add("-c");
             String dependencies = String.join(",", cluster.getMavenDependencies());
-            commandArgs.add("spark-submit --packages " + dependencies +" --conf spark.jars.ivy=/tmp --class no-op 0 > /tmp/spark-submit.log || true; /entrypoint /launch.sh");
+            String repositories = cluster.getMavenRepositories().isEmpty() ? "" : " --repositories " + String.join(",", cluster.getMavenRepositories());
+            commandArgs.add("/entrypoint pwd ; " + logConfig() + " ; spark-submit --packages " +
+                    dependencies +
+                    repositories +
+                    " --conf spark.jars.ivy=/tmp --driver-java-options '-Dlog4j.configuration=file:///tmp/log4j.properties' " +
+                    "--class no-op-ignore-this 0 || true; /entrypoint /launch.sh");
         }
 
         List<String> command = isMaster ? m.getCommand() : w.getCommand();
@@ -278,6 +283,14 @@ public class KubernetesSparkClusterDeployer {
             builder = builder.withArgs(commandArgs);
         }
         return builder;
+    }
+
+    private String logConfig(){
+        String log4jconfig ="'log4j.rootCategory=ERROR, console\\n" +
+                "log4j.appender.console=org.apache.log4j.ConsoleAppender\\n" +
+                "log4j.appender.console.layout=org.apache.log4j.PatternLayout'";
+        return "echo -e " + log4jconfig + " > /tmp/log4j.properties";
+
     }
 
     private void addLabels( Map<String, String> labels, SparkCluster cluster, boolean isMaster) {

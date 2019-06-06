@@ -80,6 +80,12 @@
         "type": "string"
       }
     },
+    "mavenRepositories": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
     "customImage": {
       "type": "string"
     },
