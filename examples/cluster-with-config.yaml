@@ -3,6 +3,9 @@ kind: SparkCluster
 metadata:
   name: sparky-cluster                                  # compulsory
 spec:
+  mavenDependencies:                                    # optional: array of Maven resources identified by GAVs (groupId:artifactId:version)
+  - com.amazonaws:aws-java-sdk-pom:1.10.34
+  - org.apache.hadoop:hadoop-aws:2.7.3
   worker:
     instances: "2"                                      # optional defaults to 1
     memory: "1Gi"                                       # optional no defaults
@@ -23,7 +26,7 @@ spec:
                                                       # kubectl create configmap my-config --from-file=example/config.conf
   sparkConfiguration:                                 # optional, it overrides the config defined above
   - name: spark.executor.memory
-    value: 0.5g
+    value: 500m
   - name: spark.sql.conf.autoBroadcastJoinThreshold
     value: 20971520
   downloadData:                                       # optional, it downloads these files to each node
