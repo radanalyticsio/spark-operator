@@ -8,7 +8,7 @@ IMAGE="${IMAGE:-spark-operator}"
 
 main() {
   if [[ "$LATEST" = "1" ]]; then
-    echo "Pushing the :latest and :latest-centos images to docker.io and quay.io"
+    echo "Pushing the :latest and :latest-ubi images to docker.io and quay.io"
     loginDockerIo
     pushLatestImagesDockerIo
     loginQuayIo
@@ -51,7 +51,7 @@ pushLatestImagesQuayIo() {
 }
 
 buildReleaseImages() {
-  # build centos image
+  # build ubi image
   make build-travis image-build-all
 }
 
@@ -61,8 +61,8 @@ pushReleaseImages() {
   fi
   REPO="$1"
 
-  docker tag $OWNER/$IMAGE:centos $REPO/$OWNER/$IMAGE:${TRAVIS_TAG}
-  docker tag $OWNER/$IMAGE:centos $REPO/$OWNER/$IMAGE:latest-released
+  docker tag $OWNER/$IMAGE:ubi $REPO/$OWNER/$IMAGE:${TRAVIS_TAG}
+  docker tag $OWNER/$IMAGE:ubi $REPO/$OWNER/$IMAGE:latest-released
   docker tag $OWNER/$IMAGE:alpine $REPO/$OWNER/$IMAGE:${TRAVIS_TAG}-alpine
   docker tag $OWNER/$IMAGE:alpine $REPO/$OWNER/$IMAGE:latest-released-alpine
 

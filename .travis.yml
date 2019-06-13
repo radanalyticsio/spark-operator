@@ -95,7 +95,7 @@ jobs:
     - stage: deploy
       name: "Push container images"
       script:
-        # release x.y.z or x.y.z-centos if there is a release
+        # release x.y.z or x.y.z-ubi if there is a release
         # or release the latest image if building the master branch
         - ./.travis/.travis.release.images.sh
         # release maven artifacts

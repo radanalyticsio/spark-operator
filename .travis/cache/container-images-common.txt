@@ -1,5 +1,6 @@
 jkremser/mini-jre:8.1
 fabric8/java-centos-openjdk8-jdk:1.5.1
+quay.io/radanalyticsio/ubi-jre-1.8.0-minimal:1.0
 quay.io/jkremser/openshift-spark:2.3-latest
 quay.io/jkremser/openshift-spark:2.4.0
 jkremser/spark-operator:2.4.0-ntlk
