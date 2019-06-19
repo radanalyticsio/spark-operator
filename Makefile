@@ -27,8 +27,8 @@ test:
 
 .PHONY: image-build
 image-build:
-	docker build -t $(IMAGE):centos -f Dockerfile.centos .
-	docker tag $(IMAGE):centos $(IMAGE):latest
+	docker build -t $(IMAGE):ubi -f Dockerfile.ubi .
+	docker tag $(IMAGE):ubi $(IMAGE):latest
 
 .PHONY: image-build-alpine
 image-build-alpine:
@@ -45,8 +45,8 @@ image-publish-alpine: image-build-alpine
 
 .PHONY: image-publish
 image-publish: image-build
-	docker tag $(IMAGE):centos $(IMAGE):`git rev-parse --short=8 HEAD`-centos
-	docker tag $(IMAGE):centos $(IMAGE):latest-centos
+	docker tag $(IMAGE):ubi $(IMAGE):`git rev-parse --short=8 HEAD`-ubi
+	docker tag $(IMAGE):ubi $(IMAGE):latest-ubi
 	docker push $(IMAGE):latest
 
 .PHONY: image-publish-all
