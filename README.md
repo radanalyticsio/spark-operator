@@ -181,7 +181,7 @@ kubectl logs --tail 25 -l app.kubernetes.io/name=spark-operator
 kubectl logs -f `kubectl get pod -l app.kubernetes.io/name=spark-operator -o='jsonpath="{.items[0].metadata.name}"' | sed 's/"//g'`
 ```
 
-Run the operator from your host (also possible with the debugger):
+Run the operator from your host (also possible with the debugger/profiler):
 
 ```bash
 java -jar target/spark-operator-*.jar
