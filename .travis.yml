@@ -99,4 +99,4 @@ jobs:
         # or release the latest image if building the master branch
         - ./.travis/.travis.release.images.sh
         # release maven artifacts
-        - 'if [[ $TRAVIS_PULL_REQUEST == "false" ]] && [[ $TRAVIS_BRANCH == "master" ]] ; then make build-travis && ./mvnw -s ./.travis/settings.xml clean deploy; fi'
+        #- 'if [[ $TRAVIS_PULL_REQUEST == "false" ]] && [[ $TRAVIS_BRANCH == "master" ]] ; then make build-travis && ./mvnw -s ./.travis/settings.xml clean deploy; fi'
