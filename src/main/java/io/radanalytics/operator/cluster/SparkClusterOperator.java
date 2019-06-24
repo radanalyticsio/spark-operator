@@ -15,6 +15,7 @@ import io.fabric8.kubernetes.client.dsl.RollableScalableResource;
 import io.radanalytics.operator.Constants;
 import io.radanalytics.operator.common.AbstractOperator;
 import io.radanalytics.operator.common.Operator;
+import io.radanalytics.types.Master;
 import io.radanalytics.types.SparkCluster;
 import io.radanalytics.types.Worker;
 import org.slf4j.Logger;
@@ -62,6 +63,14 @@ public class SparkClusterOperator extends AbstractOperator<SparkCluster> {
     @Override
     protected void onModify(SparkCluster newCluster) {
         String name = newCluster.getName();
+
+        // if an empty master/worker was passed
+        if (null == newCluster.getMaster()) {
+            newCluster.setMaster(new Master());
+        }
+        if (null == newCluster.getWorker()) {
+            newCluster.setWorker(new Worker());
+        }
         int newWorkers = Optional.ofNullable(newCluster.getWorker()).orElse(new Worker()).getInstances();
 
         SparkCluster existingCluster = getClusters().getCluster(name);
@@ -77,7 +86,13 @@ public class SparkClusterOperator extends AbstractOperator<SparkCluster> {
         } else {
             log.info("{}recreating{} cluster  {}{}{}", re(), xx(), ye(), existingCluster.getName(), xx());
             KubernetesResourceList list = getDeployer().getResourceList(newCluster);
-            client.resourceList(list).inNamespace(namespace).createOrReplace();
+            try {
+                client.resourceList(list).inNamespace(namespace).createOrReplace();
+            } catch (Exception e) {
+                log.warn("{}deleting and creating{} cluster  {}{}{}", re(), xx(), ye(), existingCluster.getName(), xx());
+                client.resourceList(list).inNamespace(namespace).delete();
+                client.resourceList(list).inNamespace(namespace).createOrReplace();
+            }
             getClusters().put(newCluster);
         }
     }
