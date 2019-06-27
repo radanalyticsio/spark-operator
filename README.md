@@ -167,6 +167,28 @@ that targets Apache Spark.
   user has a limited role-based access to Kubernetes, such as on OpenShift and also that
   `radanalyticsio/spark-operator` can deploy standalone Spark clusters.
 
+### Operator Marketplace
+
+If you would like to install the operator into OpenShift (since 4.1) using the [Operator Marketplace](https://github.com/operator-framework/operator-marketplace), simply run:
+
+```bash
+cat <<EOF | kubectl apply -f -
+apiVersion: operators.coreos.com/v1
+kind: OperatorSource
+metadata:
+  name: radanalyticsio-operators
+  namespace: openshift-marketplace
+spec:
+  type: appregistry
+  endpoint: https://quay.io/cnr
+  registryNamespace: radanalyticsio
+  displayName: "Operators from radanalytics.io"
+  publisher: "Jirka Kremser"
+EOF
+```
+
+You will find the operator in the OpenShift web console under `Catalog > OperatorHub` (make sure the namespace is set to `openshift-marketplace`).
+
 ### Troubleshooting
 
 Show the log:
