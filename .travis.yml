@@ -31,7 +31,7 @@ jobs:
       language: java
       script:
         # run the tests
-        - make build-travis test
+        - make test
 
     - stage: Kubernetes and Openshift tests
       name: "[oc • CMs] Full specs"
