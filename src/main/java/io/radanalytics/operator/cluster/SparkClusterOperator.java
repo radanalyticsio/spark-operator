@@ -21,6 +21,8 @@ import io.radanalytics.types.Worker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -30,10 +32,15 @@ import static io.radanalytics.operator.common.AnsiColors.*;
 import static io.radanalytics.operator.resource.LabelsHelper.OPERATOR_KIND_LABEL;
 import static io.radanalytics.operator.resource.LabelsHelper.OPERATOR_RC_TYPE_LABEL;
 
+@Singleton
 @Operator(forKind = SparkCluster.class, prefix = "radanalytics.io")
 public class SparkClusterOperator extends AbstractOperator<SparkCluster> {
 
-    private static final Logger log = LoggerFactory.getLogger(SparkClusterOperator.class.getName());
+    @Inject
+    private Logger log;
+
+    @Inject
+    private MetricsHelper metrics;
 
     private RunningClusters clusters;
     private KubernetesSparkClusterDeployer deployer;
@@ -185,7 +192,7 @@ public class SparkClusterOperator extends AbstractOperator<SparkCluster> {
         if (!change.get()) {
             log.info("no change was detected during the reconciliation");
         }
-        MetricsHelper.reconciliationsTotal.labels(namespace).inc();
+        metrics.reconciliationsTotal.labels(namespace).inc();
     }
 
     private Map<String, Integer> getActual() {

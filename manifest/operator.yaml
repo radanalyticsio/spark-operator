@@ -60,5 +60,5 @@ spec:
           limits:
             memory: "512Mi"
             cpu: "1000m"
-        imagePullPolicy: Always
+        imagePullPolicy: Never
 

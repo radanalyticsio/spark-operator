@@ -9,6 +9,33 @@
     "allPublicClasses": true
   },
   {
+    "name": "org.apache.log4j.Category",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allPublicMethods": true,
+    "allDeclaredClasses": true,
+    "allPublicClasses": true
+  },
+  {
+    "name": "org.apache.log4j.CategoryKey",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allPublicMethods": true,
+    "allDeclaredClasses": true,
+    "allPublicClasses": true
+  },
+  {
+    "name": "org.apache.log4j.Logger",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allPublicMethods": true,
+    "allDeclaredClasses": true,
+    "allPublicClasses": true
+  },
+  {
     "name": "io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinitionList",
     "allDeclaredConstructors": true,
     "allPublicConstructors": true,
@@ -127,5 +154,4 @@
     "allDeclaredClasses": true,
     "allPublicClasses": true
   }
-
 ]

@@ -7,11 +7,20 @@ import io.radanalytics.types.SparkApplication;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
+
+@Singleton
 @Operator(forKind = SparkApplication.class, prefix = "radanalytics.io")
 public class AppOperator extends AbstractOperator<SparkApplication> {
 
-    private static final Logger log = LoggerFactory.getLogger(AppOperator.class.getName());
+    @Inject
+    private Logger log;
     private KubernetesAppDeployer deployer;
+
+    public AppOperator(){
+
+    }
 
     @Override
     protected void onInit() {
