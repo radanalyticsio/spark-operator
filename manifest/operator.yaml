@@ -37,7 +37,7 @@ spec:
       serviceAccountName: spark-operator
       containers:
       - name: spark-operator
-        image: foo
+        image: quay.io/radanalyticsio/spark-operator:latest-released
         env:
         - name: WATCH_NAMESPACE # if not specified all the namespaces will be watched; ~ denotes the same ns as the operator's
           value: "~"
