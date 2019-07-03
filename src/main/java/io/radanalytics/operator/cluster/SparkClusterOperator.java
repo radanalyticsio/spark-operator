@@ -19,7 +19,6 @@ import io.radanalytics.types.Master;
 import io.radanalytics.types.SparkCluster;
 import io.radanalytics.types.Worker;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -39,9 +38,7 @@ public class SparkClusterOperator extends AbstractOperator<SparkCluster> {
     @Inject
     private Logger log;
 
-    @Inject
     private MetricsHelper metrics;
-
     private RunningClusters clusters;
     private KubernetesSparkClusterDeployer deployer;
 
@@ -218,6 +215,14 @@ public class SparkClusterOperator extends AbstractOperator<SparkCluster> {
         return deployer;
     }
 
+    private RunningClusters getClusters() {
+        if (null == clusters) {
+            clusters = new RunningClusters(namespace);
+        }
+        return clusters;
+    }
+
+
     /**
      * This method verifies if any two instances of SparkCluster are the same ones up to the number of
      * workers. This way we can call the scale instead of recreating the whole cluster.
@@ -234,12 +239,5 @@ public class SparkClusterOperator extends AbstractOperator<SparkCluster> {
         retVal &= oldC.equals(newC);
         newC.getWorker().setInstances(backup);
         return retVal;
-    }
-
-    private RunningClusters getClusters() {
-        if (null == clusters){
-            clusters = new RunningClusters(namespace);
-        }
-        return clusters;
     }
 }
