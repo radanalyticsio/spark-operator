@@ -36,7 +36,12 @@ public class SparkOperatorEntrypoint{
 
     public void onStart(@Observes StartupEvent event) {
         log.info("onStart..");
-        exposeMetrics();
+        try {
+            exposeMetrics();
+        } catch (Exception e) {
+            // ignore, not critical (service may have been already exposed)
+            log.warn("Unable to expose the metrics, cause: {}", e.getMessage());
+        }
     }
 
     void onStop(@Observes ShutdownEvent event) {
@@ -62,7 +67,7 @@ public class SparkOperatorEntrypoint{
 
             if (entrypoint.isOpenShift()) {
                 ScheduledExecutorService s = Executors.newScheduledThreadPool(1);
-                int delay = 5;
+                int delay = 6;
                 ScheduledFuture<?> future =
                         s.schedule(() -> {
                             try {
