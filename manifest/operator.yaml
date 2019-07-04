@@ -46,7 +46,7 @@ spec:
         #- name: FULL_RECONCILIATION_INTERVAL_S
         #  value: "180"
         #- name: METRICS # should we expose metrics for Prometheus?
-        #  value: "false"
+        #  value: "true"
         #- name: METRICS_PORT
         #  value: "8080"
         #- name: METRICS_JVM # should we expose also internal JVM metrics?
