@@ -8,17 +8,25 @@ import io.radanalytics.types.SparkHistoryServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
 import java.util.Map;
 import java.util.Optional;
 import java.util.WeakHashMap;
 
+@Singleton
 @Operator(forKind = SparkHistoryServer.class, prefix = "radanalytics.io")
 public class HistoryServerOperator extends AbstractOperator<SparkHistoryServer> {
 
-    private static final Logger log = LoggerFactory.getLogger(HistoryServerOperator.class.getName());
+    @Inject
+    private Logger log;
     private KubernetesHistoryServerDeployer deployer;
     private boolean osClient = false;
     private Map<String, KubernetesResourceList> cache = new WeakHashMap<>();
+
+    public HistoryServerOperator() {
+
+    }
 
     @Override
     protected void onInit() {

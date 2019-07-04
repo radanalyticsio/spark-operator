@@ -2,4 +2,4 @@
 *
 
 # except these:
-!/target/*.jar
+!/target/
