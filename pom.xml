@@ -44,7 +44,7 @@
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-core</artifactId>
-            <version>0.18.0</version> <!-- todo: move to parent pom -->
+            <version>0.19.0</version> <!-- todo: move to parent pom -->
         </dependency>
     </dependencies>
     <build>
