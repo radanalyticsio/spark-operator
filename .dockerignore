@@ -3,3 +3,6 @@
 
 # except these:
 !/target/
+
+# but ignore the reports in /target
+/target/reports/

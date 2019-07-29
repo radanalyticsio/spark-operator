@@ -3,7 +3,7 @@
     <parent>
         <groupId>io.radanalytics</groupId>
         <artifactId>operator-parent-pom</artifactId>
-        <version>0.3.22</version>
+        <version>0.3.23-SNAPDHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.radanalytics</groupId>
@@ -19,7 +19,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <abstract-operator.version>0.6.8</abstract-operator.version>
+        <abstract-operator.version>0.6.9-SNAPSHOT</abstract-operator.version>
     </properties>
 
     <dependencies>
@@ -44,11 +44,29 @@
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-core</artifactId>
-            <version>0.18.0</version> <!-- todo: move to parent pom -->
+            <version>0.19.1</version> <!-- todo: move to parent pom -->
+        </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-core-deployment</artifactId>
+            <version>0.19.1</version> <!-- todo: move to parent pom -->
         </dependency>
     </dependencies>
     <build>
         <plugins>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <configuration>
+                <annotationProcessorPaths>
+                    <path>
+                        <groupId>io.quarkus</groupId>
+                        <artifactId>quarkus-extension-processor</artifactId>
+                        <version>0.19.1</version>
+                    </path>
+                </annotationProcessorPaths>
+            </configuration>
+        </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>

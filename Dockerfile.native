@@ -1,0 +1,9 @@
+FROM quay.io/radanalyticsio/ubi-graalvm
+
+ENV JAVA_OPTS="-XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -XX:MaxRAMFraction=2 -XshowSettings:vm"
+
+LABEL BASE_IMAGE_2="registry.access.redhat.com/ubi8-minimal:8.0"
+
+ADD target/spark-operator-*-runner /spark-operator
+
+CMD ["/spark-operator", "-Djava.library.path=/lib"]

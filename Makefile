@@ -3,6 +3,9 @@ IMAGE?=radanalyticsio/spark-operator
 .PHONY: build
 build: package image-build
 
+.PHONY: build-native
+build: package-native image-build-native
+
 .PHONY: build-travis
 build-travis:
 	echo -e "travis_fold:start:mvn\033[33;1mMaven and container build\033[0m"
@@ -21,6 +24,10 @@ install-lib: install-parent
 package:
 	MAVEN_OPTS="-Djansi.passthrough=true -Dplexus.logger.type=ansi $(MAVEN_OPTS)" ./mvnw clean package -DskipTests
 
+.PHONY: package-native
+package:
+	MAVEN_OPTS="-Djansi.passthrough=true -Dplexus.logger.type=ansi $(MAVEN_OPTS)" ./mvnw -Pnative -Dnative-image.docker-build=true -DskipTests
+
 .PHONY: test
 test:
 	MAVEN_OPTS="-Djansi.passthrough=true -Dplexus.logger.type=ansi $(MAVEN_OPTS)" ./mvnw clean test
@@ -29,6 +36,11 @@ test:
 image-build:
 	docker build -t $(IMAGE):ubi -f Dockerfile.ubi .
 	docker tag $(IMAGE):ubi $(IMAGE):latest
+
+.PHONY: image-build-native
+image-build-native:
+	docker build -t $(IMAGE):native -f Dockerfile.native .
+	docker tag $(IMAGE):native $(IMAGE):latest-native
 
 .PHONY: image-build-alpine
 image-build-alpine:
