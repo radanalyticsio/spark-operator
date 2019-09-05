@@ -91,6 +91,9 @@ public class SparkClusterOperator extends AbstractOperator<SparkCluster> {
             log.info("{}scaling{} from  {}{}{} worker replicas to  {}{}{}", re(), xx(), ye(),
                     existingCluster.getWorker().getInstances(), xx(), ye(), newWorkers, xx());
             client.replicationControllers().inNamespace(namespace).withName(name + "-w").scale(newWorkers);
+
+            // update metrics
+            MetricsHelper.workers.labels(newCluster.getName(), namespace).set(newCluster.getWorker().getInstances());
         } else {
             log.info("{}recreating{} cluster  {}{}{}", re(), xx(), ye(), existingCluster.getName(), xx());
             KubernetesResourceList list = getDeployer().getResourceList(newCluster);
