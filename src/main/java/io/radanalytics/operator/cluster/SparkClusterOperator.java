@@ -32,7 +32,10 @@ import static io.radanalytics.operator.resource.LabelsHelper.OPERATOR_KIND_LABEL
 import static io.radanalytics.operator.resource.LabelsHelper.OPERATOR_RC_TYPE_LABEL;
 
 @Singleton
-@Operator(forKind = SparkCluster.class, prefix = "radanalytics.io")
+@Operator(forKind = SparkCluster.class, prefix = "radanalytics.io",
+        additionalPrinterColumnNames = {"Workers", "Age"},
+        additionalPrinterColumnPaths = {".spec.worker.instances", ".metadata.creationTimestamp"},
+        additionalPrinterColumnTypes = {"string", "date"})
 public class SparkClusterOperator extends AbstractOperator<SparkCluster> {
 
     @Inject
