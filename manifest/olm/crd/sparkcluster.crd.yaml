@@ -11,3 +11,11 @@ spec:
     singular: sparkcluster
   scope: Namespaced
   version: v1
+  additionalPrinterColumns:
+  - name: Workers
+    type: string
+    description: The number of workers in the Spark cluster
+    JSONPath: .spec.worker.instances
+  - name: Age
+    type: date
+    JSONPath: .metadata.creationTimestamp
