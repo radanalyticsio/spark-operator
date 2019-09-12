@@ -38,6 +38,25 @@
           "items": {
             "type": "string"
           }
+        },
+        "persistentVolumes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "mountPath": {
+                "type": "string"
+              },
+              "size": {
+                "type": "string",
+                "default": "0.3Gi"
+              },
+              "matchLabels": {
+                "type": "object",
+                "existingJavaType": "java.util.Map<String,String>"
+              }
+            }
+          }
         }
       }
     },
@@ -70,6 +89,26 @@
           "type": "array",
           "items": {
             "type": "string"
+          }
+        },
+        "persistentVolumes": {
+          "type": "array",
+          "items": {
+            "existingJavaType": "io.radanalytics.types.PersistentVolume",
+            "type": "object",
+            "properties": {
+              "mountPath": {
+                "type": "string"
+              },
+              "size": {
+                "type": "string",
+                "default": "0.3Gi"
+              },
+              "matchLabels": {
+                "type": "object",
+                "existingJavaType": "java.util.Map<String,String>"
+              }
+            }
           }
         }
       }
