@@ -5,6 +5,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.radanalytics.operator.historyServer.HistoryServerHelper;
 import io.radanalytics.operator.resource.LabelsHelper;
 import io.radanalytics.types.*;
+import io.radanalytics.types.PersistentVolume;
 
 import java.util.*;
 
@@ -45,8 +46,32 @@ public class KubernetesSparkClusterDeployer {
 
             // pvc for history server (in case of sharedVolume strategy)
             if (HistoryServerHelper.needsVolume(cluster)) {
-                PersistentVolumeClaim pvc = getPersistentVolumeClaim(cluster, getDefaultLabels(name));
+                SharedVolume sharedVolume = Optional.ofNullable(cluster.getHistoryServer().getSharedVolume()).orElse(new SharedVolume());
+                Map<String, String> matchLabels = sharedVolume.getMatchLabels();
+                if (null == matchLabels || matchLabels.isEmpty()) {
+                    // if no match labels are specified, we assume the default one: radanalytics.io/SparkCluster: spark-cluster-name
+                    matchLabels = new HashMap<>(1);
+                    matchLabels.put(prefix + entityName, cluster.getName());
+                }
+                PersistentVolumeClaim pvc = getPersistentVolumeClaim(cluster.getName() + "-hs-claim", getDefaultLabels(name), matchLabels, sharedVolume.getSize(), "ReadWriteMany");
                 list.add(pvc);
+            }
+
+            // pvcs for masters/workers
+            List<PersistentVolume> pvcToBeAdded = new ArrayList<>();
+            if (cluster.getMaster() != null) {
+                pvcToBeAdded.addAll(cluster.getMaster().getPersistentVolumes());
+            }
+            if (cluster.getWorker() != null) {
+                pvcToBeAdded.addAll(cluster.getWorker().getPersistentVolumes());
+            }
+
+            if (!pvcToBeAdded.isEmpty()) {
+                for (PersistentVolume pv : pvcToBeAdded) {
+                    String pvName = cluster.getName() + "-" + Optional.ofNullable(pv.getName()).orElse(UUID.randomUUID().toString()) + "-claim";
+                    PersistentVolumeClaim pvc = getPersistentVolumeClaim(pvName, getDefaultLabels(name), pv.getMatchLabels(), pv.getSize(), "ReadWriteOnce");
+                    list.add(pvc);
+                }
             }
             KubernetesList resources = new KubernetesListBuilder().withItems(list).build();
             return resources;
@@ -180,6 +205,12 @@ public class KubernetesSparkClusterDeployer {
                 .withNewTemplate().withNewMetadata().withLabels(podLabels).endMetadata()
                 .withNewSpec().withContainers(containerBuilder.build());
 
+        // TODO: transform the replication controllers into stateful sets if the PV is asked
+        List<Volume> volumes = getVolumes(cluster);
+        if (volumes != null) {
+            rcBuilder.withVolumes(volumes);
+        }
+
         ReplicationController rc = rcBuilder.endSpec().endTemplate().endSpec().build();
 
         // history server
@@ -194,18 +225,29 @@ public class KubernetesSparkClusterDeployer {
         return rc;
     }
 
-    private PersistentVolumeClaim getPersistentVolumeClaim(SparkCluster cluster, Map<String, String> labels) {
-        SharedVolume sharedVolume = Optional.ofNullable(cluster.getHistoryServer().getSharedVolume()).orElse(new SharedVolume());
-        Map<String,Quantity> requests = new HashMap<>();
-        requests.put("storage", new QuantityBuilder().withAmount(sharedVolume.getSize()).build());
-        Map<String, String> matchLabels = sharedVolume.getMatchLabels();
-        if (null == matchLabels || matchLabels.isEmpty()) {
-            // if no match labels are specified, we assume the default one: radanalytics.io/SparkCluster: spark-cluster-name
-            matchLabels = new HashMap<>(1);
-            matchLabels.put(prefix + entityName, cluster.getName());
+    private List<Volume> getVolumes(SparkCluster cluster, boolean isMaster) {
+        if (isMaster) {
+            if (cluster.getMaster() == null) {
+                return null;
+            }
+            cluster.getMaster().getPersistentVolumes()
+        } else {
+            if (cluster.getWorker() == null) {
+                return null;
+            }
         }
-        PersistentVolumeClaim pvc = new PersistentVolumeClaimBuilder().withNewMetadata().withName(cluster.getName() + "-claim").withLabels(labels).endMetadata()
-                .withNewSpec().withAccessModes("ReadWriteMany")
+    }
+
+    private PersistentVolumeClaim getPersistentVolumeClaim(String name,
+                                                           Map<String, String> labels,
+                                                           Map<String, String> matchLabels,
+                                                           String size,
+                                                           String accessMode) {
+        Map<String,Quantity> requests = new HashMap<>();
+        requests.put("storage", new QuantityBuilder().withAmount(size).build());
+
+        PersistentVolumeClaim pvc = new PersistentVolumeClaimBuilder().withNewMetadata().withName(name).withLabels(labels).endMetadata()
+                .withNewSpec().withAccessModes(accessMode)
                 .withNewSelector().withMatchLabels(matchLabels).endSelector()
                 .withNewResources().withRequests(requests).endResources().endSpec().build();
         return pvc;
