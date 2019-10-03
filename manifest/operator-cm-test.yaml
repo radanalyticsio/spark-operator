@@ -1,21 +1,28 @@
-# for creating these resources it requires the user to be logged in as system admin
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: spark-operator
 ---
+kind: Role
 apiVersion: rbac.authorization.k8s.io/v1beta1
-kind: ClusterRoleBinding
+metadata:
+  name: edit-resources
+rules:
+- apiGroups: [""]
+  resources: ["pods", "replicationcontrollers", "services", "configmaps"]
+  verbs: ["create", "delete", "deletecollection", "get", "list", "update", "watch", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: RoleBinding
 metadata:
   name: spark-operator-edit-resources
 roleRef:
-  kind: ClusterRole
-  name: cluster-admin
+  kind: Role
+  name: edit-resources
   apiGroup: ""
 subjects:
   - kind: ServiceAccount
     name: spark-operator
-    namespace: default
 ---
 apiVersion: apps/v1beta1
 kind: Deployment
@@ -37,16 +44,18 @@ spec:
       serviceAccountName: spark-operator
       containers:
       - name: spark-operator
-        image: docker.io/jkremser/spark-operator:test-pr
+        image: radanalyticsio/spark-operator:latest-native
         env:
         - name: WATCH_NAMESPACE # if not specified all the namespaces will be watched; ~ denotes the same ns as the operator's
           value: "~"
-        #- name: CRD # if false, the operator will watch on ConfigMaps
-        #  value: "true"
+        - name: CRD # if false, the operator will watch on ConfigMaps
+          value: "false"
         #- name: FULL_RECONCILIATION_INTERVAL_S
         #  value: "180"
-        - name: METRICS # should we expose metrics for Prometheus?
-          value: "true"
+        #- name: CRD # if false, the operator will watch on ConfigMaps
+        #  value: "true"
+        #- name: METRICS # should we expose metrics for Prometheus?
+        #  value: "false"
         #- name: METRICS_PORT
         #  value: "8080"
         #- name: METRICS_JVM # should we expose also internal JVM metrics?
@@ -60,5 +69,5 @@ spec:
           limits:
             memory: "512Mi"
             cpu: "1000m"
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
 

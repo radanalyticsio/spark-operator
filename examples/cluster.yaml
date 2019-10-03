@@ -7,3 +7,4 @@ spec:
     instances: "2"
   master:
     instances: "1"
+  customImage: radanalyticsio/openshift-spark:2.2-latest
