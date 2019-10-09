@@ -11,10 +11,17 @@ download_openshift() {
 }
 
 setup_insecure_registry() {
-  sudo cat /etc/default/docker
+  #sudo cat /etc/default/docker
+  sudo cat /etc/docker/daemon.json
   sudo service docker stop
-  sudo sed -i -e 's/sock/sock --insecure-registry 172.30.0.0\/16/' /etc/default/docker
-  sudo cat /etc/default/docker
+  cat << EOF | sudo tee /etc/docker/daemon.json
+{
+  "insecure-registries": ["172.30.0.0/16"]
+}
+EOF
+  #sudo sed -i -e 's/sock/sock --insecure-registry 172.30.0.0\/16/' /etc/default/docker
+  #sudo cat /etc/default/docker
+  sudo cat /etc/docker/daemon.json
   sudo service docker start
   sudo service docker status
   sudo mount --make-rshared /
