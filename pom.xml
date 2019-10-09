@@ -3,7 +3,7 @@
     <parent>
         <groupId>io.radanalytics</groupId>
         <artifactId>operator-parent-pom</artifactId>
-        <version>0.3.22</version>
+        <version>0.3.23</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.radanalytics</groupId>
@@ -19,7 +19,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <abstract-operator.version>0.6.9</abstract-operator.version>
+        <abstract-operator.version>0.6.10</abstract-operator.version>
     </properties>
 
     <dependencies>
@@ -44,7 +44,6 @@
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-core</artifactId>
-            <version>0.18.0</version> <!-- todo: move to parent pom -->
         </dependency>
     </dependencies>
     <build>
