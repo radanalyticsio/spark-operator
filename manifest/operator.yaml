@@ -23,7 +23,7 @@ metadata:
   name: spark-operator
   labels: &default-labels
     app.kubernetes.io/name: spark-operator
-    app.kubernetes.io/version: v1.0.2-v1alpha1
+    app.kubernetes.io/version: v1.0.3-v1alpha1
 spec:
   replicas: 1
   selector:
