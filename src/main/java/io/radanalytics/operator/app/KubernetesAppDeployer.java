@@ -58,6 +58,7 @@ public class KubernetesAppDeployer {
         command.append(" --conf spark.kubernetes.submission.waitAppCompletion=false");
         command.append(" --conf spark.driver.cores=").append(driver.getCores());
         command.append(" --conf spark.kubernetes.driver.limit.cores=").append(driver.getCoreLimit());
+        command.append(" --conf spark.kubernetes.executor.limit.cores=").append(executor.getCoreLimit());
         command.append(" --conf spark.driver.memory=").append(driver.getMemory());
         if (driver.getMemoryOverhead() != null) {
             command.append(" --conf spark.driver.memoryOverhead=").append(driver.getMemoryOverhead());
