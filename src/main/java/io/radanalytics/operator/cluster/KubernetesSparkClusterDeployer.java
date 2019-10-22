@@ -1,10 +1,15 @@
 package io.radanalytics.operator.cluster;
 
 import io.fabric8.kubernetes.api.model.*;
+import io.fabric8.kubernetes.api.model.apps.StatefulSet;
+import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
+import io.fabric8.kubernetes.api.model.apps.StatefulSetFluent;
+import io.fabric8.kubernetes.api.model.apps.StatefulSetSpecFluent;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.radanalytics.operator.historyServer.HistoryServerHelper;
 import io.radanalytics.operator.resource.LabelsHelper;
 import io.radanalytics.types.*;
+import io.radanalytics.types.PersistentVolume;
 
 import java.util.*;
 
@@ -34,10 +39,10 @@ public class KubernetesSparkClusterDeployer {
             if (cluster.getMaster() != null && cluster.getMaster().getLabels() != null)
                 allMasterLabels.putAll(cluster.getMaster().getLabels());
 
-            ReplicationController masterRc = getRCforMaster(cluster);
-            ReplicationController workerRc = getRCforWorker(cluster);
+            StatefulSet masterSs = getSSforMaster(cluster);
+            StatefulSet workerSs = getSSforWorker(cluster);
             Service masterService = getService(false, name, 7077, allMasterLabels);
-            List<HasMetadata> list = new ArrayList<>(Arrays.asList(masterRc, workerRc, masterService));
+            List<HasMetadata> list = new ArrayList<>(Arrays.asList(masterSs, workerSs, masterService));
             if (cluster.getSparkWebUI()) {
                 Service masterUiService = getService(true, name, 8080, allMasterLabels);
                 list.add(masterUiService);
@@ -45,20 +50,44 @@ public class KubernetesSparkClusterDeployer {
 
             // pvc for history server (in case of sharedVolume strategy)
             if (HistoryServerHelper.needsVolume(cluster)) {
-                PersistentVolumeClaim pvc = getPersistentVolumeClaim(cluster, getDefaultLabels(name));
+                SharedVolume sharedVolume = Optional.ofNullable(cluster.getHistoryServer().getSharedVolume()).orElse(new SharedVolume());
+                Map<String, String> matchLabels = sharedVolume.getMatchLabels();
+                if (null == matchLabels || matchLabels.isEmpty()) {
+                    // if no match labels are specified, we assume the default one: radanalytics.io/SparkCluster: spark-cluster-name
+                    matchLabels = new HashMap<>(1);
+                    matchLabels.put(prefix + entityName, cluster.getName());
+                }
+                PersistentVolumeClaim pvc = getPersistentVolumeClaim(cluster.getName() + "-hs-claim", getDefaultLabels(name), matchLabels, sharedVolume.getSize(), "ReadWriteMany");
                 list.add(pvc);
             }
+
+            // pvcs for masters/workers
+            List<PersistentVolume> pvcToBeAdded = new ArrayList<>();
+            if (cluster.getMaster() != null) {
+                pvcToBeAdded.addAll(cluster.getMaster().getPersistentVolumes());
+            }
+            if (cluster.getWorker() != null) {
+                pvcToBeAdded.addAll(cluster.getWorker().getPersistentVolumes());
+            }
+
+//            if (!pvcToBeAdded.isEmpty()) {
+//                for (PersistentVolume pv : pvcToBeAdded) {
+//                    String pvName = cluster.getName() + "-" + Optional.ofNullable(pv.getName()).orElse(UUID.randomUUID().toString()) + "-claim";
+//                    PersistentVolumeClaim pvc = getPersistentVolumeClaim(pvName, getDefaultLabels(name), pv.getMatchLabels(), pv.getSize(), "ReadWriteOnce");
+//                    list.add(pvc);
+//                }
+//            }
             KubernetesList resources = new KubernetesListBuilder().withItems(list).build();
             return resources;
         }
     }
 
-    private ReplicationController getRCforMaster(SparkCluster cluster) {
-        return getRCforMasterOrWorker(true, cluster);
+    private StatefulSet getSSforMaster(SparkCluster cluster) {
+        return getSSforMasterOrWorker(true, cluster);
     }
 
-    private ReplicationController getRCforWorker(SparkCluster cluster) {
-        return getRCforMasterOrWorker(false, cluster);
+    private StatefulSet getSSforWorker(SparkCluster cluster) {
+        return getSSforMasterOrWorker(false, cluster);
     }
 
     private Service getService(boolean isUi, String name, int port, Map<String, String> allMasterLabels) {
@@ -78,7 +107,7 @@ public class KubernetesSparkClusterDeployer {
         return new EnvVarBuilder().withName(key).withValue(value).build();
     }
 
-    private ReplicationController getRCforMasterOrWorker(boolean isMaster, SparkCluster cluster) {
+    private StatefulSet getSSforMasterOrWorker(boolean isMaster, SparkCluster cluster) {
         String name = cluster.getName();
         String podName = name + (isMaster ? "-m" : "-w");
         Map<String, String> selector = getSelector(name, podName);
@@ -166,7 +195,7 @@ public class KubernetesSparkClusterDeployer {
         podLabels.put(prefix + LabelsHelper.OPERATOR_POD_TYPE_LABEL, isMaster ? OPERATOR_TYPE_MASTER_LABEL : OPERATOR_TYPE_WORKER_LABEL);
         addLabels(podLabels, cluster, isMaster);
 
-        PodTemplateSpecFluent.SpecNested<ReplicationControllerSpecFluent.TemplateNested<ReplicationControllerFluent.SpecNested<ReplicationControllerBuilder>>> rcBuilder = new ReplicationControllerBuilder().withNewMetadata()
+        PodTemplateSpecFluent.SpecNested<StatefulSetSpecFluent.TemplateNested<StatefulSetFluent.SpecNested<StatefulSetBuilder>>> ssBuilder = new StatefulSetBuilder().withNewMetadata()
                 .withName(podName).withLabels(labels)
                 .endMetadata()
                 .withNewSpec().withReplicas(
@@ -176,11 +205,17 @@ public class KubernetesSparkClusterDeployer {
                                 :
                                 Optional.ofNullable(cluster.getWorker()).orElse(new Worker()).getInstances()
                 )
-                .withSelector(selector)
+                .withNewSelector().withMatchLabels(selector).endSelector()
                 .withNewTemplate().withNewMetadata().withLabels(podLabels).endMetadata()
                 .withNewSpec().withContainers(containerBuilder.build());
 
-        ReplicationController rc = rcBuilder.endSpec().endTemplate().endSpec().build();
+//        // TODO: transform the replication controllers into stateful sets if the PV is asked
+//        List<Volume> volumes = getVolumes(cluster, isMaster);
+//        if (volumes != null) {
+//            rcBuilder.withVolumes(volumes);
+//        }
+
+        StatefulSet ss = ssBuilder.endSpec().endTemplate().endSpec().build();
 
         // history server
         if (isMaster && null != cluster.getHistoryServer()) {
@@ -189,23 +224,36 @@ public class KubernetesSparkClusterDeployer {
 
         // add init containers that will prepare the data on the nodes or override the configuration
         if (!cluster.getDownloadData().isEmpty() || !cluster.getSparkConfiguration().isEmpty() || cmExists) {
-            InitContainersHelper.addInitContainers(rc, cluster, cmExists, isMaster);
+            InitContainersHelper.addInitContainers(ss, cluster, cmExists, isMaster);
         }
-        return rc;
+        return ss;
+
     }
 
-    private PersistentVolumeClaim getPersistentVolumeClaim(SparkCluster cluster, Map<String, String> labels) {
-        SharedVolume sharedVolume = Optional.ofNullable(cluster.getHistoryServer().getSharedVolume()).orElse(new SharedVolume());
-        Map<String,Quantity> requests = new HashMap<>();
-        requests.put("storage", new QuantityBuilder().withAmount(sharedVolume.getSize()).build());
-        Map<String, String> matchLabels = sharedVolume.getMatchLabels();
-        if (null == matchLabels || matchLabels.isEmpty()) {
-            // if no match labels are specified, we assume the default one: radanalytics.io/SparkCluster: spark-cluster-name
-            matchLabels = new HashMap<>(1);
-            matchLabels.put(prefix + entityName, cluster.getName());
+    private List<Volume> getVolumes(SparkCluster cluster, boolean isMaster) {
+        if (isMaster) {
+            if (cluster.getMaster() == null) {
+                return null;
+            }
+//            cluster.getMaster().getPersistentVolumes()
+        } else {
+            if (cluster.getWorker() == null) {
+                return null;
+            }
         }
-        PersistentVolumeClaim pvc = new PersistentVolumeClaimBuilder().withNewMetadata().withName(cluster.getName() + "-claim").withLabels(labels).endMetadata()
-                .withNewSpec().withAccessModes("ReadWriteMany")
+        return null;
+    }
+
+    private PersistentVolumeClaim getPersistentVolumeClaim(String name,
+                                                           Map<String, String> labels,
+                                                           Map<String, String> matchLabels,
+                                                           String size,
+                                                           String accessMode) {
+        Map<String,Quantity> requests = new HashMap<>();
+        requests.put("storage", new QuantityBuilder().withAmount(size).build());
+
+        PersistentVolumeClaim pvc = new PersistentVolumeClaimBuilder().withNewMetadata().withName(name).withLabels(labels).endMetadata()
+                .withNewSpec().withAccessModes(accessMode)
                 .withNewSelector().withMatchLabels(matchLabels).endSelector()
                 .withNewResources().withRequests(requests).endResources().endSpec().build();
         return pvc;

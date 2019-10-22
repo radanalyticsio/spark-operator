@@ -3,10 +3,10 @@ package io.radanalytics.operator.cluster;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Functions;
 import com.google.common.collect.Sets;
-import io.fabric8.kubernetes.api.model.DoneableReplicationController;
 import io.fabric8.kubernetes.api.model.KubernetesResourceList;
-import io.fabric8.kubernetes.api.model.ReplicationController;
-import io.fabric8.kubernetes.api.model.ReplicationControllerList;
+import io.fabric8.kubernetes.api.model.apps.DoneableStatefulSet;
+import io.fabric8.kubernetes.api.model.apps.StatefulSet;
+import io.fabric8.kubernetes.api.model.apps.StatefulSetList;
 import io.fabric8.kubernetes.client.Watch;
 import io.fabric8.kubernetes.client.Watcher;
 import io.fabric8.kubernetes.client.dsl.FilterWatchListMultiDeletable;
@@ -65,7 +65,7 @@ public class SparkClusterOperator extends AbstractOperator<SparkCluster> {
     protected void onDelete(SparkCluster cluster) {
         String name = cluster.getName();
         client.services().inNamespace(namespace).withLabels(getDeployer().getDefaultLabels(name)).delete();
-        client.replicationControllers().inNamespace(namespace).withLabels(getDeployer().getDefaultLabels(name)).delete();
+        client.apps().statefulSets().inNamespace(namespace).withLabels(getDeployer().getDefaultLabels(name)).delete();
         client.pods().inNamespace(namespace).withLabels(getDeployer().getDefaultLabels(name)).delete();
         client.persistentVolumeClaims().inNamespace(namespace).withLabels(getDeployer().getDefaultLabels(name)).delete();
         getClusters().delete(name);
@@ -93,7 +93,7 @@ public class SparkClusterOperator extends AbstractOperator<SparkCluster> {
         if (isOnlyScale(existingCluster, newCluster)) {
             log.info("{}scaling{} from  {}{}{} worker replicas to  {}{}{}", re(), xx(), ye(),
                     existingCluster.getWorker().getInstances(), xx(), ye(), newWorkers, xx());
-            client.replicationControllers().inNamespace(namespace).withName(name + "-w").scale(newWorkers);
+            client.apps().statefulSets().inNamespace(namespace).withName(name + "-w").scale(newWorkers);
 
             // update metrics
             MetricsHelper.workers.labels(newCluster.getName(), namespace).set(newCluster.getWorker().getInstances());
@@ -199,18 +199,19 @@ public class SparkClusterOperator extends AbstractOperator<SparkCluster> {
     }
 
     private Map<String, Integer> getActual() {
-        MixedOperation<ReplicationController, ReplicationControllerList, DoneableReplicationController, RollableScalableResource<ReplicationController, DoneableReplicationController>> aux1 =
-                client.replicationControllers();
-        FilterWatchListMultiDeletable<ReplicationController, ReplicationControllerList, Boolean, Watch, Watcher<ReplicationController>> aux2 =
+
+        MixedOperation<StatefulSet, StatefulSetList, DoneableStatefulSet, RollableScalableResource<StatefulSet, DoneableStatefulSet>> aux1 =
+                client.apps().statefulSets();
+        FilterWatchListMultiDeletable<StatefulSet, StatefulSetList, Boolean, Watch, Watcher<StatefulSet>> aux2 =
                 "*".equals(namespace) ? aux1.inAnyNamespace() : aux1.inNamespace(namespace);
         Map<String, String> labels =new HashMap<>(2);
         labels.put(prefix + OPERATOR_KIND_LABEL, entityName);
         labels.put(prefix + OPERATOR_RC_TYPE_LABEL, "worker");
-        List<ReplicationController> workerRcs = aux2.withLabels(labels).list().getItems();
-        Map<String, Integer> retMap = workerRcs
+        List<StatefulSet> workerSss = aux2.withLabels(labels).list().getItems();
+        Map<String, Integer> retMap = workerSss
                 .stream()
-                .collect(Collectors.toMap(rc -> rc.getMetadata().getLabels().get(prefix + entityName),
-                        rc -> rc.getSpec().getReplicas()));
+                .collect(Collectors.toMap(ss -> ss.getMetadata().getLabels().get(prefix + entityName),
+                        ss -> ss.getSpec().getReplicas()));
         return retMap;
     }
 

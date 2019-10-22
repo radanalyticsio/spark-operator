@@ -38,6 +38,7 @@ public class AppOperator extends AbstractOperator<SparkApplication> {
         String name = app.getName();
         client.services().inNamespace(namespace).withLabels(deployer.getLabelsForDeletion(name)).delete();
         client.replicationControllers().inNamespace(namespace).withLabels(deployer.getLabelsForDeletion(name)).delete();
+        client.apps().statefulSets().inNamespace(namespace).withLabels(deployer.getLabelsForDeletion(name)).delete();
         client.pods().inNamespace(namespace).withLabels(deployer.getLabelsForDeletion(name)).delete();
     }
 }
