@@ -18,7 +18,7 @@ docker run -\-rm -v $PWD:/data asciinema/asciicast2gif -s 1.18 -w 104 -h 27 -t m
 
 # Quick Start
 
-Run the `spark-operator` deployment:
+Run the `spark-operator` deployment: _Remember to change the `namespace` variable for the `ClusterRoleBinding` before doing this step_
 ```bash
 kubectl apply -f manifest/operator.yaml
 ```
