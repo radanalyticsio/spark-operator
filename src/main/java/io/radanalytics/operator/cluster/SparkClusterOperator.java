@@ -59,11 +59,13 @@ public class SparkClusterOperator extends AbstractOperator<SparkCluster> {
         KubernetesResourceList list = getDeployer().getResourceList(cluster);
         client.resourceList(list).inNamespace(namespace).createOrReplace();
         getClusters().put(cluster);
+        setCRStatus("ready", cluster.getNamespace(), cluster.getName());
     }
 
     @Override
     protected void onDelete(SparkCluster cluster) {
         String name = cluster.getName();
+        setCRStatus("deleted", cluster.getNamespace(), cluster.getName());
         client.services().inNamespace(namespace).withLabels(getDeployer().getDefaultLabels(name)).delete();
         client.replicationControllers().inNamespace(namespace).withLabels(getDeployer().getDefaultLabels(name)).delete();
         client.pods().inNamespace(namespace).withLabels(getDeployer().getDefaultLabels(name)).delete();
@@ -87,6 +89,7 @@ public class SparkClusterOperator extends AbstractOperator<SparkCluster> {
         SparkCluster existingCluster = getClusters().getCluster(name);
         if (null == existingCluster) {
             log.error("something went wrong, unable to scale existing cluster. Perhaps it wasn't deployed properly.");
+            setCRStatus("error, unable to scale existing cluster", newCluster.getNamespace(), name);
             return;
         }
 
@@ -97,6 +100,7 @@ public class SparkClusterOperator extends AbstractOperator<SparkCluster> {
 
             // update metrics
             MetricsHelper.workers.labels(newCluster.getName(), namespace).set(newCluster.getWorker().getInstances());
+            setCRStatus("scaled", newCluster.getNamespace(), name);
         } else {
             log.info("{}recreating{} cluster  {}{}{}", re(), xx(), ye(), existingCluster.getName(), xx());
             KubernetesResourceList list = getDeployer().getResourceList(newCluster);
@@ -108,6 +112,7 @@ public class SparkClusterOperator extends AbstractOperator<SparkCluster> {
                 client.resourceList(list).inNamespace(namespace).createOrReplace();
             }
             getClusters().put(newCluster);
+            setCRStatus("ready", newCluster.getNamespace(), name);
         }
     }
 
