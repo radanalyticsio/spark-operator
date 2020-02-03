@@ -31,11 +31,13 @@ public class AppOperator extends AbstractOperator<SparkApplication> {
     protected void onAdd(SparkApplication app) {
         KubernetesResourceList list = deployer.getResourceList(app, namespace);
         client.resourceList(list).inNamespace(namespace).createOrReplace();
+        setCRStatus("ready", app.getNamespace(), app.getName() );
     }
 
     @Override
     protected void onDelete(SparkApplication app) {
         String name = app.getName();
+        setCRStatus("deleted", app.getNamespace(), name );
         client.services().inNamespace(namespace).withLabels(deployer.getLabelsForDeletion(name)).delete();
         client.replicationControllers().inNamespace(namespace).withLabels(deployer.getLabelsForDeletion(name)).delete();
         client.pods().inNamespace(namespace).withLabels(deployer.getLabelsForDeletion(name)).delete();
