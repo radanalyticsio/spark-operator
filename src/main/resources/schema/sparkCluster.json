@@ -19,7 +19,13 @@
         "memory": {
           "type": "string"
         },
+        "memoryRequest": {
+          "type": "string"
+        },
         "cpu": {
+          "type": "string"
+        },
+        "cpuRequest": {
           "type": "string"
         },
         "labels": {
@@ -52,7 +58,13 @@
         "memory": {
           "type": "string"
         },
+        "memoryRequest": {
+          "type": "string"
+        },
         "cpu": {
+          "type": "string"
+        },
+        "cpuRequest": {
           "type": "string"
         },
         "labels": {

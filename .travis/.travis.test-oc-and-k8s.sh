@@ -21,6 +21,13 @@ run_custom_test() {
     testCustomCluster5 || errorLogs
 }
 
+run_limit_request_tests() {
+    testNoLimits || errorLogs
+    testJustLimits || errorLogs
+    testJustRequests || errorLogs
+    testRequestsAndLimits || errorLogs
+}
+
 run_tests() {
   testCreateCluster1 || errorLogs
   testScaleCluster || errorLogs
@@ -38,6 +45,8 @@ run_tests() {
 
   run_custom_test || errorLogs
 
+  run_limit_request_tests || errorLogs
+  
   sleep 10
   testApp || appErrorLogs
   testAppResult || appErrorLogs
@@ -64,7 +73,8 @@ main() {
     # run single test that is passed as arg
     $1
   else
-    run_tests
+    run_limit_request_tests || errorLogs
+    #run_tests
   fi
   os::test::junit::declare_suite_end
   tear_down

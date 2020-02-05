@@ -251,8 +251,16 @@ public class KubernetesSparkClusterDeployer {
         Optional.ofNullable(isMaster ? m.getMemory() : w.getMemory()).ifPresent(memory -> limits.put("memory", new Quantity(memory)));
         Optional.ofNullable(isMaster ? m.getCpu() : w.getCpu()).ifPresent(cpu -> limits.put("cpu", new Quantity(cpu)));
 
-        if (!limits.isEmpty()) {
+        Map<String, Quantity> requests = new HashMap<>(2);
+        Optional.ofNullable(isMaster ? m.getMemoryRequest() : w.getMemoryRequest()).ifPresent(memory -> requests.put("memory", new Quantity(memory)));
+        Optional.ofNullable(isMaster ? m.getCpuRequest() : w.getCpuRequest()).ifPresent(cpu -> requests.put("cpu", new Quantity(cpu)));
+
+        if (!limits.isEmpty() && !requests.isEmpty()) {
+            builder = builder.withResources(new ResourceRequirements(limits, requests));
+        } else if (!limits.isEmpty()) {
             builder = builder.withResources(new ResourceRequirements(limits, limits));
+        } else if (!requests.isEmpty()) {
+            builder = builder.withResources(new ResourceRequirements(requests, requests));
         }
 
         // if maven deps are not empty let spark-submit to download them

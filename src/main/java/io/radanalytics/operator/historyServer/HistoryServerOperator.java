@@ -47,14 +47,14 @@ public class HistoryServerOperator extends AbstractOperator<SparkHistoryServer> 
         }
         client.resourceList(list).inNamespace(namespace).createOrReplace();
         cache.put(hs.getName(), list);
-        setCRStatus("ready", hs.getNamespace(), hs.getName());
+        //setCRStatus("ready", hs.getNamespace(), hs.getName());
     }
 
     @Override
     protected void onDelete(SparkHistoryServer hs) {
         log.info("Spark history server removed");
         String name = hs.getName();
-        setCRStatus("deleted", hs.getNamespace(), name);
+        //setCRStatus("deleted", hs.getNamespace(), name);
         KubernetesResourceList list = Optional.ofNullable(cache.get(name)).orElse(deployer.getResourceList(hs, namespace, isOpenshift));
         client.resourceList(list).inNamespace(namespace).delete();
         cache.remove(name);

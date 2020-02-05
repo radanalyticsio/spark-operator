@@ -1,0 +1,11 @@
+apiVersion: radanalytics.io/v1
+kind: SparkCluster
+metadata:
+  name: my-spark-cluster-requests
+spec:
+  worker:
+    instances: "1"
+    cpuRequest: 150m
+    memoryRequest: 250m
+  master:
+    instances: "1"
