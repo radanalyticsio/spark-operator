@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: my-spark-cluster-overwritelim
+  labels:
+    radanalytics.io/kind: SparkCluster
+data:
+  config: |-
+    worker:
+      instances: "1"
+      cpu: 150m
+      memory: 250m
+      cpuLimit: 175m
+      memoryLimit: 275m

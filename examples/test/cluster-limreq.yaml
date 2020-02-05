@@ -1,0 +1,13 @@
+apiVersion: radanalytics.io/v1
+kind: SparkCluster
+metadata:
+  name: my-spark-cluster-limreq
+spec:
+  worker:
+    instances: "1"
+    cpuLimit: 125m
+    memoryLimit: 225m
+    cpuRequest: 100m
+    memoryRequest: 200m
+  master:
+    instances: "1"

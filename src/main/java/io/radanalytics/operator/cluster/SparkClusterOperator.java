@@ -49,6 +49,19 @@ public class SparkClusterOperator extends AbstractOperator<SparkCluster> {
 
     }
 
+    private void updateStatus(SparkCluster cluster, String state) {
+	    for (int i=0; i<3; i++) {
+            try {
+	            setCRStatus(state, cluster.getNamespace(), cluster.getName() );
+		        break;
+	        }
+	        catch(Exception e) {
+	            log.warn("failed to update status {} for {} in {}", state, cluster.getName(), cluster.getNamespace());
+                try {Thread.sleep(500);} catch(Exception t) {}
+	        }
+	    }
+    }
+
     @Override
     protected void onInit() {
         log.info("{} operator default spark image = {}", this.entityName, Constants.getDefaultSparkImage());
@@ -59,13 +72,13 @@ public class SparkClusterOperator extends AbstractOperator<SparkCluster> {
         KubernetesResourceList list = getDeployer().getResourceList(cluster);
         client.resourceList(list).inNamespace(namespace).createOrReplace();
         getClusters().put(cluster);
-        setCRStatus("ready", cluster.getNamespace(), cluster.getName());
+        updateStatus(cluster, "ready");
     }
 
     @Override
     protected void onDelete(SparkCluster cluster) {
         String name = cluster.getName();
-        setCRStatus("deleted", cluster.getNamespace(), cluster.getName());
+        updateStatus(cluster, "deleted");
         client.services().inNamespace(namespace).withLabels(getDeployer().getDefaultLabels(name)).delete();
         client.replicationControllers().inNamespace(namespace).withLabels(getDeployer().getDefaultLabels(name)).delete();
         client.pods().inNamespace(namespace).withLabels(getDeployer().getDefaultLabels(name)).delete();
@@ -89,7 +102,7 @@ public class SparkClusterOperator extends AbstractOperator<SparkCluster> {
         SparkCluster existingCluster = getClusters().getCluster(name);
         if (null == existingCluster) {
             log.error("something went wrong, unable to scale existing cluster. Perhaps it wasn't deployed properly.");
-            setCRStatus("error, unable to scale existing cluster", newCluster.getNamespace(), name);
+	    updateStatus(newCluster, "error, unable to scale existing cluster");
             return;
         }
 
@@ -100,7 +113,7 @@ public class SparkClusterOperator extends AbstractOperator<SparkCluster> {
 
             // update metrics
             MetricsHelper.workers.labels(newCluster.getName(), namespace).set(newCluster.getWorker().getInstances());
-            setCRStatus("scaled", newCluster.getNamespace(), name);
+            updateStatus(newCluster, "scaled");
         } else {
             log.info("{}recreating{} cluster  {}{}{}", re(), xx(), ye(), existingCluster.getName(), xx());
             KubernetesResourceList list = getDeployer().getResourceList(newCluster);
@@ -112,7 +125,7 @@ public class SparkClusterOperator extends AbstractOperator<SparkCluster> {
                 client.resourceList(list).inNamespace(namespace).createOrReplace();
             }
             getClusters().put(newCluster);
-            setCRStatus("ready", newCluster.getNamespace(), name);
+            updateStatus(newCluster, "ready");
         }
     }
 

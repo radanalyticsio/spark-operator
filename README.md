@@ -63,6 +63,20 @@ spec:
 EOF
 ```
 
+# Limits and requests for cpu and memory in SparkCluster pods
+
+The operator supports multiple fields for setting limit and request values for master and worker pods.
+You can see these being used in the *examples/test* directory.
+
+* *cpu* and *memory* specify both limit _and_ request values for cpu and memory (that is, limits and requests will be equal)
+  This was the first mechanism provided for setting limits and requests and has been retained for backward compatibility.
+  However, a need was found to be able to set the requests and limits individually.
+
+* *cpuRequest* and *memoryRequest* set request values and take precedence over values from *cpu* and *memory* respectively
+
+* *cpuLimit* and *memoryLimit* set limit values and take precedence over values taken from *cpu* and *memory* respectively
+
+
 ## Spark Applications
 
 Apart from managing clusters with Apache Spark, this operator can also manage Spark applications similarly as the `GoogleCloudPlatform/spark-on-k8s-operator`. These applications spawn their own Spark cluster for their needs and it uses the Kubernetes as the native scheduling mechanism for Spark. For more details, consult the [Spark docs](https://spark.apache.org/docs/latest/running-on-kubernetes.html).

@@ -19,7 +19,19 @@
         "memory": {
           "type": "string"
         },
+        "memoryRequest": {
+          "type": "string"
+        },
+        "memoryLimit": {
+          "type": "string"
+        },
         "cpu": {
+          "type": "string"
+        },
+        "cpuRequest": {
+          "type": "string"
+        },
+        "cpuLimit": {
           "type": "string"
         },
         "labels": {
@@ -52,9 +64,21 @@
         "memory": {
           "type": "string"
         },
+        "memoryRequest": {
+          "type": "string"
+        },
+        "memoryLimit": {
+          "type": "string"
+        },
         "cpu": {
           "type": "string"
         },
+        "cpuRequest": {
+          "type": "string"
+        },
+        "cpuLimit": {
+          "type": "string"
+        },        
         "labels": {
           "existingJavaType": "java.util.Map<String,String>",
           "type": "string",

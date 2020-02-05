@@ -238,6 +238,29 @@ public class KubernetesSparkClusterDeployer {
         cluster.getSparkConfiguration().add(0, nv);
     }
 
+    private void getLimitRequestValues(Boolean isMaster, Master m, Worker w, Map<String, Quantity> limits, Map<String, Quantity> requests) {
+
+        // Set limit and request values from "cpu" and "memory" fields
+        String memory = isMaster ? m.getMemory() : w.getMemory();
+        String cpu = isMaster ? m.getCpu() : w.getCpu();
+        Optional.ofNullable(memory).ifPresent(memval -> limits.put("memory", new Quantity(memval)));
+        Optional.ofNullable(memory).ifPresent(memval -> requests.put("memory", new Quantity(memval)));
+        Optional.ofNullable(cpu).ifPresent(cpuval -> limits.put("cpu", new Quantity(cpuval)));
+        Optional.ofNullable(cpu).ifPresent(cpuval -> requests.put("cpu", new Quantity(cpuval)));    
+    
+        // Overwrite memory limit value from "memoryLimit"
+        Optional.ofNullable(isMaster ? m.getMemoryLimit() : w.getMemoryLimit()).ifPresent(memval -> limits.put("memory", new Quantity(memval)));        
+
+        // Overwrite memory request value from "memoryRequest"
+        Optional.ofNullable(isMaster ? m.getMemoryRequest() : w.getMemoryRequest()).ifPresent(memval -> requests.put("memory", new Quantity(memval)));
+
+        // Overwrite cpu limit value from "cpuLimit"
+        Optional.ofNullable(isMaster ? m.getCpuLimit() : w.getCpuLimit()).ifPresent(cpuval -> limits.put("cpu", new Quantity(cpuval)));
+
+        // Overwrite cpu request value from "cpuRequest"
+        Optional.ofNullable(isMaster ? m.getCpuRequest() : w.getCpuRequest()).ifPresent(cpuval -> requests.put("cpu", new Quantity(cpuval)));       
+    }
+
     private ContainerBuilder augmentContainerBuilder(SparkCluster cluster, ContainerBuilder builder, boolean isMaster) {
         Master m = null;
         Worker w = null;
@@ -248,12 +271,10 @@ public class KubernetesSparkClusterDeployer {
         }
 
         Map<String, Quantity> limits = new HashMap<>(2);
-        Optional.ofNullable(isMaster ? m.getMemory() : w.getMemory()).ifPresent(memory -> limits.put("memory", new Quantity(memory)));
-        Optional.ofNullable(isMaster ? m.getCpu() : w.getCpu()).ifPresent(cpu -> limits.put("cpu", new Quantity(cpu)));
-
-        if (!limits.isEmpty()) {
-            builder = builder.withResources(new ResourceRequirements(limits, limits));
-        }
+        Map<String, Quantity> requests = new HashMap<>(2);
+        getLimitRequestValues(isMaster, m, w, limits, requests);
+        
+        builder = builder.withResources(new ResourceRequirements(limits, requests));
 
         // if maven deps are not empty let spark-submit to download them
         if (!cluster.getMavenDependencies().isEmpty()) {

@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: my-spark-cluster-limits
+  labels:
+    radanalytics.io/kind: SparkCluster
+data:
+  config: |-
+    worker:
+      instances: "1"
+      cpuLimit: 100m
+      memoryLimit: 200m
