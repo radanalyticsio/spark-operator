@@ -21,6 +21,16 @@ run_custom_test() {
     testCustomCluster5 || errorLogs
 }
 
+run_limit_request_tests() {
+    testNoLimits || errorLogs
+    testCpuMem || errorLogs
+    testJustLimits || errorLogs
+    testJustRequests || errorLogs
+    testRequestsAndLimits || errorLogs
+    testOverwriteRequests || errorLogs
+    testOverwriteLimits || errorLogs
+}
+
 run_tests() {
   testCreateCluster1 || errorLogs
   testScaleCluster || errorLogs
@@ -37,6 +47,9 @@ run_tests() {
   sleep 5
 
   run_custom_test || errorLogs
+  sleep 5
+  
+  run_limit_request_tests || errorLogs
 
   sleep 10
   testApp || appErrorLogs

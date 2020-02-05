@@ -1,0 +1,13 @@
+apiVersion: radanalytics.io/v1
+kind: SparkCluster
+metadata:
+  name: my-spark-cluster-overwritereq
+spec:
+  worker:
+    instances: "1"
+    cpu: 150m
+    memory: 250m
+    cpuRequest: 100m
+    memoryRequest: 200m
+  master:
+    instances: "1"

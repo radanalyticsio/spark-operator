@@ -10,7 +10,8 @@ import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import java.util.Date;
+
+import java.lang.Thread;
 import java.util.Map;
 import java.util.Optional;
 import java.util.WeakHashMap;
@@ -27,6 +28,19 @@ public class HistoryServerOperator extends AbstractOperator<SparkHistoryServer> 
 
     public HistoryServerOperator() {
 
+    }
+
+   private void updateStatus(SparkHistoryServer hs, String state) {
+        for (int i=0; i<3; i++) {
+            try {
+	            setCRStatus(state, hs.getNamespace(), hs.getName() );
+		        break;
+	        }
+	        catch(Exception e) {
+	            log.warn("failed to update status {} for {} in {}", state, hs.getName(), hs.getNamespace());
+                try {Thread.sleep(500);} catch(Exception t) {}
+	        }
+	    }
     }
 
     @Override
@@ -47,14 +61,14 @@ public class HistoryServerOperator extends AbstractOperator<SparkHistoryServer> 
         }
         client.resourceList(list).inNamespace(namespace).createOrReplace();
         cache.put(hs.getName(), list);
-        setCRStatus("ready", hs.getNamespace(), hs.getName());
+        updateStatus(hs, "ready");
     }
 
     @Override
     protected void onDelete(SparkHistoryServer hs) {
         log.info("Spark history server removed");
         String name = hs.getName();
-        setCRStatus("deleted", hs.getNamespace(), name);
+        updateStatus(hs, "deleted");
         KubernetesResourceList list = Optional.ofNullable(cache.get(name)).orElse(deployer.getResourceList(hs, namespace, isOpenshift));
         client.resourceList(list).inNamespace(namespace).delete();
         cache.remove(name);

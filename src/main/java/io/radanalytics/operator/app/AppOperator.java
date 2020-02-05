@@ -22,6 +22,18 @@ public class AppOperator extends AbstractOperator<SparkApplication> {
 
     }
 
+    private void updateStatus(SparkApplication app, String state) {
+	    for (int i=0; i<3; i++) {
+            try {
+	            setCRStatus(state, app.getNamespace(), app.getName() );
+		        break;
+	        }
+	        catch(Exception e) {
+                try {Thread.sleep(500);} catch(Exception t) {}
+	        }
+	    }
+    }
+
     @Override
     protected void onInit() {
         this.deployer = new KubernetesAppDeployer(entityName, prefix);
@@ -31,13 +43,13 @@ public class AppOperator extends AbstractOperator<SparkApplication> {
     protected void onAdd(SparkApplication app) {
         KubernetesResourceList list = deployer.getResourceList(app, namespace);
         client.resourceList(list).inNamespace(namespace).createOrReplace();
-        setCRStatus("ready", app.getNamespace(), app.getName() );
+        updateStatus(app, "ready" );
     }
 
     @Override
     protected void onDelete(SparkApplication app) {
         String name = app.getName();
-        setCRStatus("deleted", app.getNamespace(), name );
+        updateStatus(app, "deleted");
         client.services().inNamespace(namespace).withLabels(deployer.getLabelsForDeletion(name)).delete();
         client.replicationControllers().inNamespace(namespace).withLabels(deployer.getLabelsForDeletion(name)).delete();
         client.pods().inNamespace(namespace).withLabels(deployer.getLabelsForDeletion(name)).delete();

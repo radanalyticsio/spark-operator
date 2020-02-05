@@ -237,6 +237,99 @@ testCustomCluster5() {
   os::cmd::try_until_text "${BIN} get pods --no-headers -l radanalytics.io/SparkCluster=my-spark-cluster-3 | wc -l" '0'
 }
 
+testNoLimits() {
+  info
+  sleep 2
+  # just use cluster-2 here because it's a simple cluster with no limits called out
+  os::cmd::expect_success_and_text "${BIN} create -f $DIR/../examples/test/${CM}cluster-2.yaml" '"?my-spark-cluster-2"? created' && \
+  os::cmd::try_until_success "${BIN} get pod -l radanalytics.io/deployment=my-spark-cluster-2-w -o=jsonpath='{.items[0].spec.containers[0].resources}'" && \
+  local requests=`${BIN} get pod -l radanalytics.io/deployment=my-spark-cluster-2-w -o='jsonpath="{.items[0].spec.containers[0].resources.requests}"' | sed 's/"//g' | wc -c` && \
+  os::cmd::expect_success_and_text 'echo $requests' '0' && \
+  local limits=`${BIN} get pod -l radanalytics.io/deployment=my-spark-cluster-2-w -o='jsonpath="{.items[0].spec.containers[0].resources.limits}"' | sed 's/"//g' | wc -c` && \
+  os::cmd::expect_success_and_text 'echo $limits' '0' && \
+  os::cmd::expect_success_and_text '${BIN} delete ${KIND} my-spark-cluster-2' '"my-spark-cluster-2" deleted'
+}
+
+testCpuMem() {
+  info
+  sleep 2
+  os::cmd::expect_success_and_text "${BIN} create -f $DIR/../examples/test/${CM}cluster-cpumem.yaml" '"?my-spark-cluster-cpumem"? created' && \
+  os::cmd::try_until_success "${BIN} get pod -l radanalytics.io/deployment=my-spark-cluster-cpumem-w -o=jsonpath='{.items[0].spec.containers[0].resources}'" && \
+  local cpulimit=`${BIN} get pod -l radanalytics.io/deployment=my-spark-cluster-cpumem-w -o='jsonpath="{.items[0].spec.containers[0].resources.limits.cpu}"'` && \
+  local memlimit=`${BIN} get pod -l radanalytics.io/deployment=my-spark-cluster-cpumem-w -o='jsonpath="{.items[0].spec.containers[0].resources.limits.memory}"'` && \
+  local cpureq=`${BIN} get pod -l radanalytics.io/deployment=my-spark-cluster-cpumem-w -o='jsonpath="{.items[0].spec.containers[0].resources.requests.cpu}"'` && \
+  local memreq=`${BIN} get pod -l radanalytics.io/deployment=my-spark-cluster-cpumem-w -o='jsonpath="{.items[0].spec.containers[0].resources.requests.memory}"'` && \
+  os::cmd::expect_success_and_text 'echo $cpulimit $cpureq $memlimit $memreq' '"100m" "100m" "200m" "200m"' && \
+  os::cmd::expect_success_and_text '${BIN} delete ${KIND} my-spark-cluster-cpumem' '"my-spark-cluster-cpumem" deleted'
+}
+
+testJustLimits() {
+  info
+  sleep 2
+  # Note that the behavior of kubernetes is to set the request value if only the limit value is set, so in this case we still expect
+  # both resource values to appear
+  os::cmd::expect_success_and_text "${BIN} create -f $DIR/../examples/test/${CM}cluster-limits.yaml" '"?my-spark-cluster-limits"? created' && \
+  os::cmd::try_until_success "${BIN} get pod -l radanalytics.io/deployment=my-spark-cluster-limits-w -o=jsonpath='{.items[0].spec.containers[0].resources}'" && \
+  local cpulimit=`${BIN} get pod -l radanalytics.io/deployment=my-spark-cluster-limits-w -o='jsonpath="{.items[0].spec.containers[0].resources.limits.cpu}"'` && \
+  local memlimit=`${BIN} get pod -l radanalytics.io/deployment=my-spark-cluster-limits-w -o='jsonpath="{.items[0].spec.containers[0].resources.limits.memory}"'` && \
+  local cpureq=`${BIN} get pod -l radanalytics.io/deployment=my-spark-cluster-limits-w -o='jsonpath="{.items[0].spec.containers[0].resources.requests.cpu}"'` && \
+  local memreq=`${BIN} get pod -l radanalytics.io/deployment=my-spark-cluster-limits-w -o='jsonpath="{.items[0].spec.containers[0].resources.requests.memory}"'` && \
+  os::cmd::expect_success_and_text 'echo $cpulimit $cpureq $memlimit $memreq' '"100m" "100m" "200m" "200m"' && \
+  os::cmd::expect_success_and_text '${BIN} delete ${KIND} my-spark-cluster-limits' '"my-spark-cluster-limits" deleted'
+}
+
+testJustRequests() {
+  info
+  sleep 2
+  os::cmd::expect_success_and_text "${BIN} create -f $DIR/../examples/test/${CM}cluster-requests.yaml" '"?my-spark-cluster-requests"? created' && \
+  os::cmd::try_until_success "${BIN} get pod -l radanalytics.io/deployment=my-spark-cluster-requests-w -o=jsonpath='{.items[0].spec.containers[0].resources}'" && \
+  local cpulimit=`${BIN} get pod -l radanalytics.io/deployment=my-spark-cluster-requests-w -o='jsonpath="{.items[0].spec.containers[0].resources.limits.cpu}"'` && \
+  local memlimit=`${BIN} get pod -l radanalytics.io/deployment=my-spark-cluster-requests-w -o='jsonpath="{.items[0].spec.containers[0].resources.limits.memory}"'` && \
+  local cpureq=`${BIN} get pod -l radanalytics.io/deployment=my-spark-cluster-requests-w -o='jsonpath="{.items[0].spec.containers[0].resources.requests.cpu}"'` && \
+  local memreq=`${BIN} get pod -l radanalytics.io/deployment=my-spark-cluster-requests-w -o='jsonpath="{.items[0].spec.containers[0].resources.requests.memory}"'` && \
+  os::cmd::expect_success_and_text 'echo $cpulimit $cpureq $memlimit $memreq' '"" "150m" "" "250m"' && \
+  os::cmd::expect_success_and_text '${BIN} delete ${KIND} my-spark-cluster-requests' '"my-spark-cluster-requests" deleted'
+}
+
+testRequestsAndLimits() {
+  info
+  sleep 2
+  os::cmd::expect_success_and_text "${BIN} create -f $DIR/../examples/test/${CM}cluster-limreq.yaml" '"?my-spark-cluster-limreq"? created' && \
+  os::cmd::try_until_success "${BIN} get pod -l radanalytics.io/deployment=my-spark-cluster-limreq-w -o=jsonpath='{.items[0].spec.containers[0].resources}'" && \
+  local cpulimit=`${BIN} get pod -l radanalytics.io/deployment=my-spark-cluster-limreq-w -o='jsonpath="{.items[0].spec.containers[0].resources.limits.cpu}"'` && \
+  local memlimit=`${BIN} get pod -l radanalytics.io/deployment=my-spark-cluster-limreq-w -o='jsonpath="{.items[0].spec.containers[0].resources.limits.memory}"'` && \
+  local cpureq=`${BIN} get pod -l radanalytics.io/deployment=my-spark-cluster-limreq-w -o='jsonpath="{.items[0].spec.containers[0].resources.requests.cpu}"'` && \
+  local memreq=`${BIN} get pod -l radanalytics.io/deployment=my-spark-cluster-limreq-w -o='jsonpath="{.items[0].spec.containers[0].resources.requests.memory}"'` && \
+  os::cmd::expect_success_and_text 'echo $cpulimit $cpureq $memlimit $memreq' '"125m" "100m" "225m" "200m"' && \
+  os::cmd::expect_success_and_text '${BIN} delete ${KIND} my-spark-cluster-limreq' '"my-spark-cluster-limreq" deleted'
+}
+
+testOverwriteRequests() {
+  info
+  sleep 2
+  os::cmd::expect_success_and_text "${BIN} create -f $DIR/../examples/test/${CM}cluster-overwritereq.yaml" '"?my-spark-cluster-overwritereq"? created' && \
+  os::cmd::try_until_success "${BIN} get pod -l radanalytics.io/deployment=my-spark-cluster-overwritereq-w -o=jsonpath='{.items[0].spec.containers[0].resources}'" && \
+  local cpulimit=`${BIN} get pod -l radanalytics.io/deployment=my-spark-cluster-overwritereq-w -o='jsonpath="{.items[0].spec.containers[0].resources.limits.cpu}"'` && \
+  local memlimit=`${BIN} get pod -l radanalytics.io/deployment=my-spark-cluster-overwritereq-w -o='jsonpath="{.items[0].spec.containers[0].resources.limits.memory}"'` && \
+  local cpureq=`${BIN} get pod -l radanalytics.io/deployment=my-spark-cluster-overwritereq-w -o='jsonpath="{.items[0].spec.containers[0].resources.requests.cpu}"'` && \
+  local memreq=`${BIN} get pod -l radanalytics.io/deployment=my-spark-cluster-overwritereq-w -o='jsonpath="{.items[0].spec.containers[0].resources.requests.memory}"'` && \
+  os::cmd::expect_success_and_text 'echo $cpulimit $cpureq $memlimit $memreq' '"150m" "100m" "250m" "200m"' && \
+  os::cmd::expect_success_and_text '${BIN} delete ${KIND} my-spark-cluster-overwritereq' '"my-spark-cluster-overwritereq" deleted'
+}
+
+testOverwriteLimits() {
+  info
+  sleep 2
+  os::cmd::expect_success_and_text "${BIN} create -f $DIR/../examples/test/${CM}cluster-overwritelim.yaml" '"?my-spark-cluster-overwritelim"? created' && \
+  os::cmd::try_until_success "${BIN} get pod -l radanalytics.io/deployment=my-spark-cluster-overwritelim-w -o=jsonpath='{.items[0].spec.containers[0].resources}'" && \
+  local cpulimit=`${BIN} get pod -l radanalytics.io/deployment=my-spark-cluster-overwritelim-w -o='jsonpath="{.items[0].spec.containers[0].resources.limits.cpu}"'` && \
+  local memlimit=`${BIN} get pod -l radanalytics.io/deployment=my-spark-cluster-overwritelim-w -o='jsonpath="{.items[0].spec.containers[0].resources.limits.memory}"'` && \
+  local cpureq=`${BIN} get pod -l radanalytics.io/deployment=my-spark-cluster-overwritelim-w -o='jsonpath="{.items[0].spec.containers[0].resources.requests.cpu}"'` && \
+  local memreq=`${BIN} get pod -l radanalytics.io/deployment=my-spark-cluster-overwritelim-w -o='jsonpath="{.items[0].spec.containers[0].resources.requests.memory}"'` && \
+  os::cmd::expect_success_and_text 'echo $cpulimit $cpureq $memlimit $memreq' '"175m" "150m" "275m" "250m"' && \
+  os::cmd::expect_success_and_text '${BIN} delete ${KIND} my-spark-cluster-overwritelim' '"my-spark-cluster-overwritelim" deleted'
+}
+
 testApp() {
   info
   [ "$CRD" = "0" ] && FOO="test/cm/" || FOO=""
