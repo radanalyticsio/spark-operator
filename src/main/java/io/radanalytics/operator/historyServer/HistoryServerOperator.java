@@ -13,6 +13,7 @@ import javax.inject.Singleton;
 
 import java.lang.Thread;
 import java.util.Map;
+import java.util.HashMap;
 import java.util.Optional;
 import java.util.WeakHashMap;
 
@@ -25,9 +26,24 @@ public class HistoryServerOperator extends AbstractOperator<SparkHistoryServer> 
     private KubernetesHistoryServerDeployer deployer;
     private boolean osClient = false;
     private Map<String, KubernetesResourceList> cache = new WeakHashMap<>();
+    private Map<String, SparkHistoryServer> hss;
 
     public HistoryServerOperator() {
+        this.hss = new HashMap<>();
+    }
 
+    private void put(SparkHistoryServer hs) {
+        hss.put(hs.getName(), hs);
+    }
+
+    private void delete(String name) {
+        if (hss.containsKey(name)) {
+            hss.remove(name);
+        }
+    }
+
+    private SparkHistoryServer getHS(String name) {
+        return this.hss.get(name);
     }
 
    private void updateStatus(SparkHistoryServer hs, String state) {
@@ -62,6 +78,21 @@ public class HistoryServerOperator extends AbstractOperator<SparkHistoryServer> 
         client.resourceList(list).inNamespace(namespace).createOrReplace();
         cache.put(hs.getName(), list);
         updateStatus(hs, "ready");
+        put(hs);
+    }
+
+    @Override
+    protected void onModify(SparkHistoryServer newHs) {
+
+        // This comparison works to rule out a change in status because
+        // we added the status block in the AbstractOperator universally,
+        // ie it is not actually included in the SparkHistoryServer type
+        // definition generated from json. If that ever changes, then
+        // this comparison will have to be a little smarter.
+        SparkHistoryServer existingHs = getHS(newHs.getName());
+        if (null == existingHs || !newHs.equals(existingHs)) {
+            super.onModify(newHs);
+        }
     }
 
     @Override
@@ -69,6 +100,7 @@ public class HistoryServerOperator extends AbstractOperator<SparkHistoryServer> 
         log.info("Spark history server removed");
         String name = hs.getName();
         updateStatus(hs, "deleted");
+        delete(name);
         KubernetesResourceList list = Optional.ofNullable(cache.get(name)).orElse(deployer.getResourceList(hs, namespace, isOpenshift));
         client.resourceList(list).inNamespace(namespace).delete();
         cache.remove(name);
