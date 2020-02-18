@@ -102,7 +102,7 @@ public class SparkClusterOperator extends AbstractOperator<SparkCluster> {
         SparkCluster existingCluster = getClusters().getCluster(name);
         if (null == existingCluster) {
             log.error("something went wrong, unable to scale existing cluster. Perhaps it wasn't deployed properly.");
-	    updateStatus(newCluster, "error, unable to scale existing cluster");
+            updateStatus(newCluster, "error, unable to scale existing cluster");
             return;
         }
 
