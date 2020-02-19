@@ -6,8 +6,8 @@ metadata:
     radanalytics.io/kind: SparkApplication
 data:
   config: |-
-    image: quay.io/jkremser/openshift-spark:2.3-latest
-    mainApplicationFile: local:///opt/spark/examples/jars/spark-examples_2.11-2.3.0.jar
+    image: quay.io/radanalyticsio/openshift-spark:2.4.5-2
+    mainApplicationFile: local:///opt/spark/examples/jars/spark-examples_2.11-2.4.5.jar
     mainClass: org.apache.spark.examples.SparkPi
     sleep: 300 # repeat each 5 minutes
     driver:
