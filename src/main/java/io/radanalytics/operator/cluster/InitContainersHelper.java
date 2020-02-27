@@ -1,6 +1,7 @@
 package io.radanalytics.operator.cluster;
 
 import io.fabric8.kubernetes.api.model.*;
+import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.radanalytics.operator.historyServer.HistoryServerHelper;
 import io.radanalytics.types.*;
 
@@ -34,16 +35,16 @@ public class InitContainersHelper {
      * </ol>
      *
      *
-     * @param rc ReplicationController instance
+     * @param ss StatefulSet instance
      * @param cluster SparkCluster instance
      * @param cmExists whether config map with overrides exists
-     * @return modified ReplicationController instance
+     * @return modified StatefulSet instance
      */
-    public static final ReplicationController addInitContainers(ReplicationController rc,
-                                                                 SparkCluster cluster,
-                                                                 boolean cmExists,
-                                                                 boolean isMaster) {
-        PodSpec podSpec = rc.getSpec().getTemplate().getSpec();
+    public static final StatefulSet addInitContainers(StatefulSet ss,
+                                                                SparkCluster cluster,
+                                                                boolean cmExists,
+                                                                boolean isMaster) {
+        PodSpec podSpec = ss.getSpec().getTemplate().getSpec();
 
         if (isMaster && HistoryServerHelper.needsVolume(cluster)) {
             createChmodHistoryServerContainer(cluster, podSpec);
@@ -57,8 +58,8 @@ public class InitContainersHelper {
             createConfigOverrideContainer(cluster, podSpec, cmExists);
         }
 
-        rc.getSpec().getTemplate().setSpec(podSpec);
-        return rc;
+        ss.getSpec().getTemplate().setSpec(podSpec);
+        return ss;
     }
 
     private static Container createDownloader(SparkCluster cluster, PodSpec podSpec) {

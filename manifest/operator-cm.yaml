@@ -9,7 +9,7 @@ metadata:
   name: edit-resources
 rules:
 - apiGroups: [""]
-  resources: ["pods", "replicationcontrollers", "services", "configmaps"]
+  resources: ["pods", "replicationcontrollers", "statefulsets", "services", "configmaps"]
   verbs: ["create", "delete", "deletecollection", "get", "list", "update", "watch", "patch"]
 - apiGroups: ["", "route.openshift.io"]
   resources: ["routes"]
