@@ -76,6 +76,14 @@ You can see these being used in the *examples/test* directory.
 
 * *cpuLimit* and *memoryLimit* set limit values and take precedence over values taken from *cpu* and *memory* respectively
 
+# Node Tolerations for SparkCluster pods
+
+The operator supports specifying [Kubernetes node tolerations](https://kubernetes.io/docs/concepts/configuration/taint-and-toleration)
+which will be applied to all master and worker pods in a Spark cluster.
+You can see examples of this in use in the *examples/test* directory.
+
+* *nodeTolerations* specifies a list of Node Tolerations definitions that should
+  be applied to all master and worker nodes.
 
 ## Spark Applications
 

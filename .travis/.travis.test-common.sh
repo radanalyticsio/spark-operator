@@ -330,6 +330,20 @@ testOverwriteLimits() {
   os::cmd::expect_success_and_text '${BIN} delete ${KIND} my-spark-cluster-overwritelim' '"my-spark-cluster-overwritelim" deleted'
 }
 
+testNodeTolerations() {
+  info
+  sleep 2
+  os::cmd::expect_success_and_text "${BIN} create -f $DIR/../examples/test/${CM}cluster-node-tolerations.yaml" '"?spark-cluster-with-tolerations"? created' && \
+  os::cmd::try_until_success "${BIN} get pod -l radanalytics.io/deployment=spark-cluster-with-tolerations-w -o=jsonpath='{.items[0].spec.tolerations}'" && \
+  local tolerations=`${BIN} get pod -l radanalytics.io/deployment=spark-cluster-with-tolerations-w -o='jsonpath="{.items[0].spec.tolerations}"' | sed 's/"//g'` && \
+  os::cmd::expect_success_and_text 'echo $tolerations' 'tolerationSeconds:60' && \
+  os::cmd::expect_success_and_text 'echo $tolerations' 'value:foo_value' && \
+  os::cmd::expect_success_and_text 'echo $tolerations' 'effect:NoExecute' && \
+  os::cmd::expect_success_and_text 'echo $tolerations' 'key:foo_key' && \
+  os::cmd::expect_success_and_text 'echo $tolerations' 'operator:Equal' && \
+  os::cmd::expect_success_and_text '${BIN} delete ${KIND} spark-cluster-with-tolerations' '"spark-cluster-with-tolerations" deleted'
+}
+
 testApp() {
   info
   [ "$CRD" = "0" ] && FOO="test/cm/" || FOO=""
