@@ -166,6 +166,9 @@ public class KubernetesSparkClusterDeployer {
         podLabels.put(prefix + LabelsHelper.OPERATOR_POD_TYPE_LABEL, isMaster ? OPERATOR_TYPE_MASTER_LABEL : OPERATOR_TYPE_WORKER_LABEL);
         addLabels(podLabels, cluster, isMaster);
 
+        // pod tolerations
+        List<Toleration> tolerations = getTolerations(cluster, isMaster);
+
         PodTemplateSpecFluent.SpecNested<ReplicationControllerSpecFluent.TemplateNested<ReplicationControllerFluent.SpecNested<ReplicationControllerBuilder>>> rcBuilder = new ReplicationControllerBuilder().withNewMetadata()
                 .withName(podName).withLabels(labels)
                 .endMetadata()
@@ -178,7 +181,7 @@ public class KubernetesSparkClusterDeployer {
                 )
                 .withSelector(selector)
                 .withNewTemplate().withNewMetadata().withLabels(podLabels).endMetadata()
-                .withNewSpec().withContainers(containerBuilder.build());
+                .withNewSpec().withTolerations(tolerations).withContainers(containerBuilder.build());
 
         ReplicationController rc = rcBuilder.endSpec().endTemplate().endSpec().build();
 
@@ -259,6 +262,16 @@ public class KubernetesSparkClusterDeployer {
 
         // Overwrite cpu request value from "cpuRequest"
         Optional.ofNullable(isMaster ? m.getCpuRequest() : w.getCpuRequest()).ifPresent(cpuval -> requests.put("cpu", new Quantity(cpuval)));       
+    }
+
+    private List<Toleration> getTolerations(SparkCluster cluster, boolean isMaster) {
+        List<Toleration> tolerations = new ArrayList<Toleration>();
+        List<NodeToleration> nodeTolerations = cluster.getNodeTolerations();
+        nodeTolerations.forEach(t -> {
+            tolerations.add(new Toleration(t.getEffect(), t.getKey(), t.getOperator(), (long) t.getTolerationSeconds(), t.getValue()));
+        });
+        return tolerations;
+
     }
 
     private ContainerBuilder augmentContainerBuilder(SparkCluster cluster, ContainerBuilder builder, boolean isMaster) {

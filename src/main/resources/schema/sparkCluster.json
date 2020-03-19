@@ -98,6 +98,36 @@
         }
       }
     },
+    "nodeTolerations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "operator": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          },
+          "effect": {
+            "type": "string"
+          },
+          "tolerationSeconds": {
+            "type": "integer",
+            "default": null
+          }
+        },
+        "required": [
+          "key",
+          "operator",
+          "value",
+          "effect"
+        ]
+      }
+    },
     "mavenDependencies": {
       "type": "array",
       "items": {

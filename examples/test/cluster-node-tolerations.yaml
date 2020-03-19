@@ -1,0 +1,15 @@
+apiVersion: radanalytics.io/v1
+kind: SparkCluster
+metadata:
+  name: spark-cluster-with-tolerations
+spec:
+  nodeTolerations:
+    - key: foo_key
+      operator: Equal
+      value: foo_value
+      effect: NoExecute
+      tolerationSeconds: 60
+  worker:
+    instances: "1"
+  master:
+    instances: "1"

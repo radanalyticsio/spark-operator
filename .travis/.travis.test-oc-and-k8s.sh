@@ -50,6 +50,9 @@ run_tests() {
   sleep 5
   
   run_limit_request_tests || errorLogs
+  sleep 5
+
+  testNodeTolerations || errorLogs
 
   sleep 10
   testApp || appErrorLogs
