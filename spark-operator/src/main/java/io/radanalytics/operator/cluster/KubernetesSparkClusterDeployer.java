@@ -268,7 +268,13 @@ public class KubernetesSparkClusterDeployer {
         List<Toleration> tolerations = new ArrayList<Toleration>();
         List<NodeToleration> nodeTolerations = cluster.getNodeTolerations();
         nodeTolerations.forEach(t -> {
-            tolerations.add(new Toleration(t.getEffect(), t.getKey(), t.getOperator(), (long) t.getTolerationSeconds(), t.getValue()));
+            Toleration tol;
+            if (t.getTolerationSeconds() == null) {
+                tol = new Toleration(t.getEffect(), t.getKey(), t.getOperator(), null, t.getValue());
+            } else {
+                tol = new Toleration(t.getEffect(), t.getKey(), t.getOperator(), (long) t.getTolerationSeconds(), t.getValue());
+            }
+            tolerations.add(tol);
         });
         return tolerations;
 
