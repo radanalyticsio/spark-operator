@@ -6,16 +6,8 @@ build: package image-build
 .PHONY: build-travis
 build-travis:
 	echo -e "travis_fold:start:mvn\033[33;1mMaven and container build\033[0m"
-	$(MAKE) install-lib build
+	$(MAKE) build
 	echo -e "\ntravis_fold:end:mvn\r"
-
-.PHONY: install-parent
-install-parent:
-	rm -rf ./operator-parent-pom ; git clone --depth=1 --branch master https://github.com/jvm-operators/operator-parent-pom.git && cd operator-parent-pom && MAVEN_OPTS="-Djansi.passthrough=true -Dplexus.logger.type=ansi $(MAVEN_OPTS)" ./mvnw clean install && cd - && rm -rf ./operator-parent-pom
-
-.PHONY: install-lib
-install-lib: install-parent
-	rm -rf ./abstract-operator ; git clone --depth=1 --branch master https://github.com/jvm-operators/abstract-operator.git && cd abstract-operator && MAVEN_OPTS="-Djansi.passthrough=true -Dplexus.logger.type=ansi $(MAVEN_OPTS)" ./mvnw clean install && cd - && rm -rf ./abstract-operator
 
 .PHONY: package
 package:
