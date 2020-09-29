@@ -33,6 +33,12 @@ Going forward, changes to the spark-operator source code itself that are indepen
 be merged from the master branch into the 1.0 branch if applicable. Changes that are dependent on additional changes to the
 abstract-operator however cannot be merged into the 1.0 branch.
 
+### Note on building in the master branch
+
+The *make package* command will use *mvn clean install* to build the parent pom, annotator, and abstract-operator and install them
+in the local .m2 repository before building the spark-operator. These components are not treated as modules, just co-located projects.
+The build is done this way to preserve spark-operator as an uberjar (making all of the components modules in the parent pom breaks this).
+
 ## CHANGELOG.md
 
 The changelog should be updated when changes are made to the repository. In particular, changes to the top-level pom file and/or
