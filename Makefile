@@ -11,7 +11,14 @@ build-travis:
 
 .PHONY: package
 package:
-	MAVEN_OPTS="-Djansi.passthrough=true -Dplexus.logger.type=ansi $(MAVEN_OPTS)" ./mvnw clean package -DskipTests
+	# install parent pom in m2 cache
+	MAVEN_OPTS="-Djansi.passthrough=true -Dplexus.logger.type=ansi $(MAVEN_OPTS)" ./mvnw clean install -DskipTests
+	# install annotator in m2 cache
+	MAVEN_OPTS="-Djansi.passthrough=true -Dplexus.logger.type=ansi $(MAVEN_OPTS)" ./mvnw clean install -f annotator/pom.xml -DskipTests
+	# install abstract-operator in m2 cache
+	MAVEN_OPTS="-Djansi.passthrough=true -Dplexus.logger.type=ansi $(MAVEN_OPTS)" ./mvnw clean install -f abstract-operator/pom.xml -DskipTests
+	# build uberjar for spark-operator
+	MAVEN_OPTS="-Djansi.passthrough=true -Dplexus.logger.type=ansi $(MAVEN_OPTS)" ./mvnw clean package -f spark-operator/pom.xml -DskipTests
 
 .PHONY: test
 test:
