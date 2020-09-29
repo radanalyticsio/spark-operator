@@ -49,7 +49,9 @@ classes/
 # Maven
 ######################
 /log/
-/target/
+/annotator/target/
+/abstract-operator/target/
+/spark-operator/target/
 pom.xml.versionsBackup
 
 ######################
@@ -124,9 +126,6 @@ Desktop.ini
 
 # oc cluster up
 openshift.local.clusterup
-
-
-abstract-operator
 
 # spark shell
 metastore_db/

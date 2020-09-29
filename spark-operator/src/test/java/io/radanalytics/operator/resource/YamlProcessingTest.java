@@ -18,9 +18,9 @@ import static org.junit.Assert.*;
 
 public class YamlProcessingTest {
 
-    private String path1 = "examples/cluster-cm.yaml";
-    private String path2 = "examples/test/cm/app.yaml";
-    private String path3 = "examples/test/cm/cluster-with-config-1.yaml";
+    private String path1 = "../examples/cluster-cm.yaml";
+    private String path2 = "../examples/test/cm/app.yaml";
+    private String path3 = "../examples/test/cm/cluster-with-config-1.yaml";
     private String cluster1;
     private String application;
     private KubernetesClient client = new DefaultKubernetesClient();
