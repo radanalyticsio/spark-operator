@@ -55,7 +55,7 @@
 
         <commons-collections.version>3.2.2</commons-collections.version>
         <commons-lang.version>2.6</commons-lang.version>
-        <fabric8.kubernetes-client.version>4.10.3</fabric8.kubernetes-client.version>
+        <fabric8.kubernetes-client.version>4.11.1</fabric8.kubernetes-client.version>
         <fabric8.zjsonpatch.version>0.3.0</fabric8.zjsonpatch.version>
         <prometheus.metrics.version>0.8.1</prometheus.metrics.version>
         <guava.version>23.0</guava.version>
