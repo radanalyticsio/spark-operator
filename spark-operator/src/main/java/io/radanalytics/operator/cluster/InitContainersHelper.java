@@ -83,7 +83,7 @@ public class InitContainersHelper {
 
         Container downloader = new ContainerBuilder()
                 .withName("downloader")
-                .withImage("busybox")
+                .withImage(Optional.ofNullable(cluster.getCustomInitContainerImage()).orElse("busybox"))
                 .withImagePullPolicy("IfNotPresent")
                 .withCommand("/bin/sh", "-xc")
                 .withArgs(downloaderCmd.toString())
@@ -125,7 +125,7 @@ public class InitContainersHelper {
         Container chmod = new ContainerBuilder()
                 .withName("chmod-history-server")
 //                .withNewSecurityContext().withPrivileged(true).endSecurityContext()
-                .withImage("busybox")
+                .withImage(Optional.ofNullable(cluster.getCustomInitContainerImage()).orElse("busybox"))
                 .withCommand("/bin/sh", "-xc")
                 .withArgs("mkdir -p " + sharedVolume.getMountPath() + " || true ; chmod -R go+ws " + sharedVolume.getMountPath() + " || true")
                 .withVolumeMounts(mount)
@@ -201,7 +201,7 @@ public class InitContainersHelper {
 
         Container overrideConfig = new ContainerBuilder()
                 .withName("override-config")
-                .withImage("busybox")
+                .withImage(Optional.ofNullable(cluster.getCustomInitContainerImage()).orElse("busybox"))
                 .withImagePullPolicy("IfNotPresent")
                 .withCommand("/bin/sh", "-xc")
                 .withArgs(overrideConfigCmd.toString())

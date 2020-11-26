@@ -143,6 +143,9 @@
     "customImage": {
       "type": "string"
     },
+    "customInitContainerImage": {
+      "type": "string"
+    },
     "metrics": {
       "type": "boolean",
       "default": "false"
