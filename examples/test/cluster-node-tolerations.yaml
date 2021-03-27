@@ -9,6 +9,10 @@ spec:
       value: foo_value
       effect: NoExecute
       tolerationSeconds: 60
+    - key: bar_key
+      operator: Equal
+      value: bar_value
+      effect: NoSchedule
   worker:
     instances: "1"
   master:
