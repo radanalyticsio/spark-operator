@@ -2,7 +2,7 @@ package io.radanalytics.operator.common;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.fabric8.kubernetes.api.model.apiextensions.JSONSchemaProps;
+import io.fabric8.kubernetes.api.model.apiextensions.v1.JSONSchemaProps;
 
 import java.io.IOException;
 import java.net.URL;

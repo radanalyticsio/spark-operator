@@ -3,7 +3,6 @@ package io.radanalytics.operator.cluster;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Functions;
 import com.google.common.collect.Sets;
-import io.fabric8.kubernetes.api.model.DoneableReplicationController;
 import io.fabric8.kubernetes.api.model.KubernetesResourceList;
 import io.fabric8.kubernetes.api.model.ReplicationController;
 import io.fabric8.kubernetes.api.model.ReplicationControllerList;
@@ -217,9 +216,9 @@ public class SparkClusterOperator extends AbstractOperator<SparkCluster> {
     }
 
     private Map<String, Integer> getActual() {
-        MixedOperation<ReplicationController, ReplicationControllerList, DoneableReplicationController, RollableScalableResource<ReplicationController, DoneableReplicationController>> aux1 =
+        MixedOperation<ReplicationController, ReplicationControllerList, RollableScalableResource<ReplicationController>> aux1 =
                 client.replicationControllers();
-        FilterWatchListMultiDeletable<ReplicationController, ReplicationControllerList, Boolean, Watch, Watcher<ReplicationController>> aux2 =
+        FilterWatchListMultiDeletable<ReplicationController, ReplicationControllerList> aux2 =
                 "*".equals(namespace) ? aux1.inAnyNamespace() : aux1.inNamespace(namespace);
         Map<String, String> labels =new HashMap<>(2);
         labels.put(prefix + OPERATOR_KIND_LABEL, entityName);

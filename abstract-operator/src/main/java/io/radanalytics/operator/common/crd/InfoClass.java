@@ -22,7 +22,7 @@ public class InfoClass<U> extends CustomResource {
         return spec;
     }
 
-    public void setSpec(U spec) {
-        this.spec = spec;
-    }
+    // public void setSpec(U spec) {
+    //     this.spec = spec;
+    // }
 }
