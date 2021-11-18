@@ -1,11 +1,11 @@
 package io.radanalytics.operator.common.crd;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
-import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
-import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinitionBuilder;
-import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinitionFluent;
-import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceSubresourceStatus;
-import io.fabric8.kubernetes.api.model.apiextensions.JSONSchemaProps;
+import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinition;
+import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinitionBuilder;
+import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinitionFluent;
+import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceSubresourceStatus;
+import io.fabric8.kubernetes.api.model.apiextensions.v1.JSONSchemaProps;
 import io.fabric8.kubernetes.client.CustomResourceList;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
@@ -40,7 +40,7 @@ public class CrdDeployer {
         CustomResourceDefinition crdToReturn;
 
         Serialization.jsonMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        List<CustomResourceDefinition> crds = client.customResourceDefinitions()
+        List<CustomResourceDefinition> crds = client.apiextensions().v1().customResourceDefinitions()
                 .list()
                 .getItems()
                 .stream()
@@ -56,33 +56,14 @@ public class CrdDeployer {
 
             if (schema != null) {
                 removeDefaultValues(schema);
-                builder = getCRDBuilder(newPrefix,
-                                        entityName,
-                                        shortNames,
-                                        pluralName)
-                        .withNewValidation()
-                        .withNewOpenAPIV3SchemaLike(schema)
-                        .endOpenAPIV3Schema()
-                        .endValidation();
-            } else {
-                builder = getCRDBuilder(newPrefix,
-                                        entityName,
-                                        shortNames,
-                                        pluralName);
             }
-            if (additionalPrinterColumnNames != null && additionalPrinterColumnNames.length > 0) {
-                for (int i = 0; i < additionalPrinterColumnNames.length; i++) {
-                    builder = builder.addNewAdditionalPrinterColumn().withName(additionalPrinterColumnNames[i]).withJSONPath(additionalPrinterColumnPaths[i]).endAdditionalPrinterColumn();
-                }
-            }
+            builder = getCRDBuilder(newPrefix,
+                                    entityName,
+                                    shortNames,
+                                    pluralName);
             crdToReturn = builder.endSpec().build();
             try {
-                if (schema != null) {
-                    // https://github.com/fabric8io/kubernetes-client/issues/1486
-                    crdToReturn.getSpec().getValidation().getOpenAPIV3Schema().setDependencies(null);
-                }
-
-                client.customResourceDefinitions().createOrReplace(crdToReturn);
+               client.apiextensions().v1().customResourceDefinitions().createOrReplace(crdToReturn);
             } catch (KubernetesClientException e) {
                 // old version of K8s/openshift -> don't use schema validation
                 log.warn("Consider upgrading the {}. Your version doesn't support schema validation for custom resources."
@@ -93,13 +74,13 @@ public class CrdDeployer {
                                             pluralName)
                         .endSpec()
                         .build();
-                client.customResourceDefinitions().createOrReplace(crdToReturn);
+                client.apiextensions().v1().customResourceDefinitions().createOrReplace(crdToReturn);
             }
         }
 
         // register the new crd for json serialization
-        io.fabric8.kubernetes.internal.KubernetesDeserializer.registerCustomKind(newPrefix + "/" + crdToReturn.getSpec().getVersion() + "#" + entityName, InfoClass.class);
-        io.fabric8.kubernetes.internal.KubernetesDeserializer.registerCustomKind(newPrefix + "/" + crdToReturn.getSpec().getVersion() + "#" + entityName + "List", CustomResourceList.class);
+        io.fabric8.kubernetes.internal.KubernetesDeserializer.registerCustomKind(newPrefix + "/" + crdToReturn.getSpec().getVersions().get(0) + "#" + entityName, InfoClass.class);
+        io.fabric8.kubernetes.internal.KubernetesDeserializer.registerCustomKind(newPrefix + "/" + crdToReturn.getSpec().getVersions().get(0) + "#" + entityName + "List", CustomResourceList.class);
 
         return crdToReturn;
     }
@@ -134,7 +115,7 @@ public class CrdDeployer {
                                          .toArray(String[]::new);
 
         return new CustomResourceDefinitionBuilder()
-                .withApiVersion("apiextensions.k8s.io/v1beta1")
+                .withApiVersion("apiextensions.k8s.io/v1")
                 .withNewMetadata().withName(plural + "." + prefix)
                 .endMetadata()
                 .withNewSpec()
@@ -143,9 +124,6 @@ public class CrdDeployer {
                     .withPlural(plural)
                     .withShortNames(Arrays.asList(shortNamesLower)).endNames()
                 .withGroup(prefix)
-                .withVersion("v1")
-                .withScope("Namespaced")
-                // add an empty status block to all CRDs created
-                .withNewSubresources().withStatus(new CustomResourceSubresourceStatus()).endSubresources();
+                .withScope("Namespaced");
     }
 }

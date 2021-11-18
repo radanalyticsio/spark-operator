@@ -108,14 +108,14 @@ public class SparkOperatorEntrypoint{
     }
 
     private Service createServiceForMetrics() {
-        Service svc = entrypoint.getClient().services().createNew().withNewMetadata().withName("spark-operator-metrics")
+        Service svc = new ServiceBuilder().withNewMetadata().withName("spark-operator-metrics")
                 .withLabels(Collections.singletonMap("type", "operator-metrics"))
                 .endMetadata().withNewSpec()
                 .withSelector(Collections.singletonMap("app.kubernetes.io/name", "spark-operator"))
                 .withPorts(new ServicePortBuilder().withPort(entrypoint.getConfig().getMetricsPort())
                         .withNewTargetPort().withIntVal(entrypoint.getConfig().getMetricsPort()).endTargetPort()
                         .withProtocol("TCP").build())
-                .endSpec().done();
+                .endSpec().build();
         return svc;
     }
 
